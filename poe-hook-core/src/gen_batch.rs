@@ -448,7 +448,7 @@ unsafe fn generate(
         };
         let captured = crate::terrain_tools::batch_take();
         let out = match ran {
-            Ok(()) => read_result(world, o, job, row, capture, captured, dir),
+            Ok(()) => read_result(world, g, o, job, row, capture, captured, dir),
             Err(e) => Err(e.to_string()),
         };
 
@@ -476,6 +476,7 @@ impl Wr for usize {
 /// Hashes and size from the finished world; the export for jobs on the export list.
 unsafe fn read_result(
     world: *mut u8,
+    generator: usize,
     o: &poe_hook_shared::offsets::Offsets,
     job: &Job,
     row: usize,
@@ -496,7 +497,16 @@ unsafe fn read_result(
         return Err("no terrain generated".into());
     }
     if capture {
-        export(dir, job, row, terrain, tile_hash, doodad_hash, captured);
+        export(
+            dir,
+            job,
+            row,
+            terrain,
+            generator,
+            tile_hash,
+            doodad_hash,
+            captured,
+        );
     }
     Ok(Out {
         tile_hash,
@@ -513,6 +523,7 @@ fn export(
     job: &Job,
     row: usize,
     terrain: usize,
+    generator: usize,
     tile_hash: u32,
     doodad_hash: u32,
     captured: Option<crate::terrain_tools::Captured>,
@@ -543,6 +554,27 @@ fn export(
             if ok { "match" } else { "MISMATCH" }
         );
         write("layout.tsv", text.as_bytes());
+        // The final corner lattice (terrain +0x40 points per row, +0x48 rows, +0x50 three bytes
+        // per point: ground index, height, flags; flag 8 = unwalkable, read by `0x141d118a0`):
+        // `lattice.bin` = u32 points per row, u32 rows, then the raw points.
+        if let (Some(pw), Some(ph), Some(pts)) = (
+            read::<usize>(terrain + 0x40),
+            read::<usize>(terrain + 0x48),
+            read::<usize>(terrain + 0x50),
+        ) {
+            let n = pw.saturating_mul(ph).saturating_mul(3);
+            if n > 0 && n < 50_000_000 && poe_hook_shared::mem::readable(pts, n) {
+                let mut bytes = Vec::with_capacity(8 + n);
+                bytes.extend_from_slice(&(pw as u32).to_le_bytes());
+                bytes.extend_from_slice(&(ph as u32).to_le_bytes());
+                bytes.extend_from_slice(unsafe { std::slice::from_raw_parts(pts as *const u8, n) });
+                write("lattice.bin", &bytes);
+            }
+        }
+        write(
+            "tiledata.tsv",
+            crate::terrain_tools::tile_data(&t).as_bytes(),
+        );
         if let Some(grids) = crate::dump_types::grid_bytes(terrain, t.w, t.h) {
             write("grids.bin", &grids);
         }
@@ -552,6 +584,12 @@ fn export(
             write("generator_trace.tsv", t.as_bytes());
         }
         let _ = writeln!(meta, "generator_objects\t{}", c.objects.len());
+        // The objects the generator added (tile objects, room objects that are entities), with
+        // their grid cells: what the server's tile-object pass is compared with.
+        write(
+            "entities.tsv",
+            crate::terrain_tools::entities_tsv(&c.objects, false).as_bytes(),
+        );
         let computed = c.doodads.iter().fold(0u32, |h, &(x, y, _, ph, _)| {
             h.wrapping_add(y as u32)
                 .wrapping_add(ph)
@@ -572,5 +610,37 @@ fn export(
         }
         write("doodads.tsv", text.as_bytes());
     }
+    write("regions.tsv", regions(generator).as_bytes());
     write("meta.txt", meta.as_bytes());
+}
+
+/// `regions.tsv`: the generator's regions (generator `+0x30` → list, `+0xd` main count, `+0x10`
+/// vector of 0x98-byte regions: tile rectangle at `+0x40..+0x4c`, master at `+0x50` → `+0x28`
+/// data with the flags `+0x164..+0x166` that decide whether `0x141ff7b90` runs the unwalkable
+/// marking `0x141fe1150` on the region).
+fn regions(generator: usize) -> String {
+    let mut out = String::from("# index\tx0\ty0\tw\th\tmain count\tmaster +0x164 +0x165 +0x166\n");
+    let Some(list) = read::<usize>(generator + 0x30).filter(|&l| l != 0) else {
+        return out;
+    };
+    let main = read::<u8>(list + 0xd).unwrap_or(0);
+    let (begin, end) = (
+        read::<usize>(list + 0x10).unwrap_or(0),
+        read::<usize>(list + 0x18).unwrap_or(0),
+    );
+    let n = end.saturating_sub(begin) / 0x98;
+    for i in 0..n.min(256) {
+        let r = begin + i * 0x98;
+        let rect: [i32; 4] = read(r + 0x40).unwrap_or_default();
+        let flags: [u8; 3] = read::<usize>(r + 0x50)
+            .and_then(|m| read::<usize>(m + 0x28))
+            .and_then(|d| read(d + 0x164))
+            .unwrap_or_default();
+        let _ = writeln!(
+            out,
+            "{i}\t{}\t{}\t{}\t{}\t{main}\t{} {} {}",
+            rect[0], rect[1], rect[2], rect[3], flags[0], flags[1], flags[2]
+        );
+    }
+    out
 }

@@ -736,6 +736,28 @@ fn tdiff_reset() {
 
 /// `tdiff <label> x y h<old>-><new> o<old>-><new>` lines: tile records changed since the last
 /// checkpoint (result: the tile file name, `old>new` when it changed; `-` for none).
+/// With `POE_HOOK_GRID_PHASES=<dir>` (trace mode, one job at a time): the four cell grids at the
+/// start of each phase, as `<dir>/<nn>_<phase>.bin` (`PWG1`), so a diff between two snapshots
+/// shows what the phase between them wrote. Phases before the grid exists write nothing.
+fn grid_snapshot(index: usize, name: &str) {
+    let Some(dir) = std::env::var_os("POE_HOOK_GRID_PHASES") else {
+        return;
+    };
+    let map = TILE_MAP.load(Ordering::Relaxed);
+    let Some(t) = (map != 0).then(|| tiles(map)).flatten() else {
+        return;
+    };
+    let Some(bytes) = crate::dump_types::grid_bytes(map, t.w, t.h) else {
+        return;
+    };
+    let path = PathBuf::from(dir).join(format!("{index:02}_{name}.bin"));
+    if let Err(e) = std::fs::create_dir_all(path.parent().unwrap_or(&path))
+        .and_then(|()| std::fs::write(&path, bytes))
+    {
+        log::warn!("grid snapshot {}: {e}", path.display());
+    }
+}
+
 fn tile_diff(label: &str) {
     let map = TILE_MAP.load(Ordering::Relaxed);
     let Some(t) = (map != 0).then(|| tiles(map)).flatten() else {
@@ -1509,6 +1531,7 @@ unsafe extern "win64" fn on_phase(regs: *mut Registers, index: usize) {
     let (sig, name) = PHASES[index];
     let addr = crate::sigs::addr(sig).map_or(0, crate::sigs::ghidra);
     tile_diff(&format!("phase_{name}"));
+    grid_snapshot(index, name);
     trace_line(
         "phase",
         &callers(r.rsp as usize, 2),
@@ -1651,6 +1674,30 @@ pub(crate) fn tiles(terrain: usize) -> Option<Tiles> {
         .then_some(Tiles { w, h, records })
 }
 
+/// `tiledata.tsv`: for every tile data object the layout uses (record `+8`, its data at `+0x28`),
+/// the bytes `+0x16c..+0x174` (flag words, the object-group key `+0x170` that `0x141ff4a50`
+/// groups no-overlap objects by, the hull plane count and masks).
+pub(crate) fn tile_data(t: &Tiles) -> String {
+    let mut out = String::from("# tile path\tdata +0x16c..+0x174 (hex)\n");
+    let mut seen = std::collections::BTreeMap::new();
+    for i in 0..t.w * t.h {
+        let Some(object) = read::<usize>(t.records + i * TILE_RECORD + 8).filter(|&o| o != 0)
+        else {
+            continue;
+        };
+        let Some(data) = read::<usize>(object + 0x28) else {
+            continue;
+        };
+        let bytes: [u8; 8] = read(data + 0x16c).unwrap_or_default();
+        seen.entry(resource_path(object)).or_insert(bytes);
+    }
+    for (path, b) in seen {
+        let hex: String = b.iter().map(|x| format!("{x:02x}")).collect();
+        let _ = writeln!(out, "{path}\t{hex}");
+    }
+    out
+}
+
 /// `layout.tsv` and the recomputed tile hash.
 pub(crate) fn layout(t: &Tiles) -> (String, u32) {
     let mut out = String::from(
@@ -1769,7 +1816,7 @@ fn entity_line(source: &str, entity: usize, region: usize) -> Option<String> {
     ))
 }
 
-fn entities_tsv(objects: &[(usize, usize)], with_server: bool) -> String {
+pub(crate) fn entities_tsv(objects: &[(usize, usize)], with_server: bool) -> String {
     let mut out = String::from(
         "# source\tid\tpath\tgrid x\tgrid y\tworld x\tworld y\tfacing\tregion\tcomponents\n",
     );
