@@ -1,21 +1,10 @@
 # Mod manifest (`mod.toml`)
 
-Status: **implemented** (manifest v1 and v2, package verification). The launcher installs, enables and orders client
-mods by this format (it still reads only v1 until its mod-sync work package lands); the DLL loader (`poe-hook`,
-`poe-hook/src/mods.rs`, logic in the host-testable `poe-hook-mods` crate) loads the enabled mods that have an entry DLL
-and checks their ABI. Not yet applied by the loader: the `[data]` sections (data-only mods count as loaded, with a
-warning). The client mod ABI is defined in [The mod ABI](#the-mod-abi) below; the **server** mod ABI and the SDK
-(templates, packer) live in the public repository [Poe2ModSDK](https://github.com/WaystoneWorks/Poe2ModSDK).
+Status: **implemented** (manifest v1 and v2, package verification). The launcher installs, enables and orders client mods by this format; the DLL loader (`poe-hook`, `poe-hook/src/mods.rs`, logic in the host-testable `poe-hook-mods` crate) loads the enabled mods that have an entry DLL and checks their ABI. Not applied by the loader: the `[data]` sections (data-only mods count as loaded, with a warning). The client mod ABI is defined in [The mod ABI](#the-mod-abi); the **server** mod ABI and the SDK (templates, packer) live in [Poe2ModSDK](https://github.com/WaystoneWorks/Poe2ModSDK).
 
-**Versions.** `manifest_version = 1` is the client-only format that has always existed and keeps working unchanged.
-`manifest_version = 2` adds the mod's `side` (`client`, `server` or `both`), the `[client]` and `[server]` sections and
-data-tier `[[commands]]`, so one package can carry a client DLL, a server library and data. Readers accept 1 and 2 and
-refuse anything newer.
+**Versions.** `manifest_version = 1` is the client-only format and keeps working unchanged. `manifest_version = 2` adds the mod's `side` (`client`, `server` or `both`), the `[client]` and `[server]` sections and data-tier `[[commands]]`, so one package can carry a client DLL, a server library and data. Readers accept 1 and 2 and refuse anything newer.
 
-A mod is a folder with a `mod.toml` at its root. Mods are installed into `poe-hook-mods/` next to
-`PathOfExileSteam.exe` (`<game dir>/poe-hook-mods/<id>/`), never into the game files themselves. The launcher installs,
-enables, disables and orders mods; the loader reads the same folders. This directory name and `state.toml` are what
-the launcher writes (`modules/launcher/src-tauri/src/mods.rs`); there is no other `mods/` directory.
+A mod is a folder with a `mod.toml` at its root. Mods are installed into `poe-hook-mods/` next to `PathOfExileSteam.exe` (`<game dir>/poe-hook-mods/<id>/`), never into the game files. The launcher installs, enables, disables and orders mods; the loader reads the same folders. There is no other `mods/` directory.
 
 ```
 poe-hook-mods/
@@ -26,8 +15,7 @@ poe-hook-mods/
     data/               data files (optional)
 ```
 
-From the repository, `cargo xtask deploy-mod [dir]` (or `deploy-client --sample-mod`) installs a mod into `GameFiles/`
-through `poe-hook-deploy` in this same layout; never copy files into a game folder by hand.
+From the repository, `cargo xtask deploy-mod [dir]` (or `deploy-client --sample-mod`) installs a mod into `GameFiles/` through `poe-hook-deploy` in this layout; never copy files into a game folder by hand.
 
 ## Format
 
@@ -123,13 +111,10 @@ reply = "Roll distance is 1.5x on this server, {player}."   # exactly one of rep
 role = "player"                # "player" (default) or "admin"
 ```
 
-- `[client]` is `[entry] dll` + `game.hook_api` + `[data]` under one name. The v1 spellings stay valid in v2 and mean
-  the client half; giving a setting in both spellings is an error.
+- `[client]` is `[entry] dll` + `game.hook_api` + `[data]` under one name. The v1 spellings stay valid in v2 and mean the client half; giving a setting in both spellings is an error.
 - `server_api` may also be written `game.server_api` (parallel to `game.hook_api`).
-- `reply`/`alias` text may use `{player}` (the caller's character name) and `{args}` (the rest of the line); the server
-  substitutes them. `reply` and `alias` are limited to 1000 characters.
-- A v2 manifest is the only place `side`, `[client]`, `[server]`, `[[commands]]` and `game.server_api` exist. In a v1
-  manifest they are errors ("needs manifest_version = 2"), not silently ignored keys.
+- `reply`/`alias` text may use `{player}` (the caller's character name) and `{args}` (the rest of the line); the server substitutes them. `reply` and `alias` are limited to 1000 characters.
+- `side`, `[client]`, `[server]`, `[[commands]]` and `game.server_api` exist only in v2. In a v1 manifest they are errors ("needs manifest_version = 2"), not ignored keys.
 
 ## Sides
 
@@ -139,32 +124,19 @@ role = "player"                # "player" (default) or "admin"
 | `server` | a server library, server data or `[[commands]]` | `[client]`, `[entry]`, `[data]`, `hook_api` | the server |
 | `both` | a client half and a server half | | both; the client hook ignores the server half |
 
-- A DLL must say which API it was built against: v2 requires `hook_api` for a client DLL and `server_api` for a server
-  library (v1 keeps its old leniency; the loader's ABI check still refuses a v1 DLL mod without `hook_api`).
-- **Dependencies and conflicts are about the mod, not a half.** A `both` mod may depend on a server-only mod (the
-  dependency matters on the server, so the client skips it); a mod that has only this program's half may not depend on
-  a mod that lacks it. A conflict between two enabled mods holds on every side.
+- A DLL must say which API it was built against: v2 requires `hook_api` for a client DLL and `server_api` for a server library (v1 keeps its old leniency; the loader's ABI check still refuses a v1 DLL mod without `hook_api`).
+- **Dependencies and conflicts are about the mod, not a half.** A `both` mod may depend on a server-only mod (the client skips that dependency); a mod that has only this program's half may not depend on a mod that lacks it. A conflict between two enabled mods holds on every side.
 - The client hook and the launcher ignore `[server]` and `[[commands]]`; the server ignores `[client]`/`[entry]`.
-- Unknown keys are ignored and logged, **except** in `[server]`, `[server.library]` and `[[commands]]`, where a typo is
-  an error (a silently misspelled server setting is worse than a refused mod).
-- Game versions are shared: `game.versions` lists the client builds the mod was made for (the server compares it to its
-  own game version).
+- Unknown keys are ignored and logged, **except** in `[server]`, `[server.library]` and `[[commands]]`, where a typo is an error.
+- `game.versions` lists the client builds the mod was made for (the server compares it to its own game version).
 
 ### Fail closed
 
-A pure server mod must never be mistaken for a client mod by a program that predates `side`. Every reader checks
-`manifest_version` first, and all programs that read only v1 (the launcher until its mod-sync work package, and
-`poe-hook` releases before this one) refuse a v2 manifest with `manifest_version 2 is not supported`. So: a
-server-only or `both` mod is always v2; a client mod that has to keep working with those older programs stays v1.
-The shared parser has `parse_manifest_max(text, 1)`, which behaves like such a reader (used in the tests).
-The current client loader refuses a server-only mod with `server-only mod (side = "server"): it has no client half`,
-before any file is touched, and never maps a DLL for it.
+A pure server mod must never be mistaken for a client mod by a program that predates `side`. Every reader checks `manifest_version` first, and programs that read only v1 refuse a v2 manifest with `manifest_version 2 is not supported`. So a server-only or `both` mod is always v2; a client mod that must keep working with older programs stays v1. The shared parser has `parse_manifest_max(text, 1)`, which behaves like such a reader (used in the tests). The client loader refuses a server-only mod with `server-only mod (side = "server"): it has no client half`, before any file is touched, and never maps a DLL for it.
 
 ## Package
 
-A distributable mod is `<id>-<version>.zip` and a sidecar `<id>-<version>.zip.sha256` (the `sha256sum` format,
-`<64 hex>  <file name>`). The SHA-256 of the whole zip is the package's identity (what a server advertises and a launcher
-pins). Layout:
+A distributable mod is `<id>-<version>.zip` and a sidecar `<id>-<version>.zip.sha256` (the `sha256sum` format, `<64 hex>  <file name>`). The SHA-256 of the whole zip is the package's identity (what a server advertises and a launcher pins). Layout:
 
 ```
 faster-rolls-1.0.0.zip
@@ -176,53 +148,26 @@ faster-rolls-1.0.0.zip
   README.md, LICENSE, ...        optional documents at the root
 ```
 
-Rules, enforced by `poe_hook_mods::verify_package` (feature `package`, on by default; the loader DLL is built without
-it) and `poe-mod verify` of the SDK:
+Rules, enforced by `poe_hook_mods::verify_package` (feature `package`, on by default; the loader DLL is built without it) and `poe-mod verify` of the SDK:
 
-- `mod.toml` at the root, valid, and the file named `<id>-<version>.zip` (a mismatch is refused); every file or folder
-  the manifest names is in the zip (a DLL, library or `config_defaults` must be a file; `tables`/`opcodes` may be folders).
-- Paths are relative and `/`-separated: no `..`, no empty parts, no backslash, drive colon or control character, no
-  duplicates (compared case-insensitively), no symbolic links, no encrypted entries.
-- Limits (configurable `Limits`): package 512 MiB, 4096 files, 1 GiB per file, 2 GiB unpacked, paths 240 bytes. Every entry is
-  decompressed against its declared size and CRC (a stream longer than declared is refused).
+- `mod.toml` at the root, valid, and the file named `<id>-<version>.zip` (a mismatch is refused); every file or folder the manifest names is in the zip (a DLL, library or `config_defaults` must be a file; `tables`/`opcodes` may be folders).
+- Paths are relative and `/`-separated: no `..`, no empty parts, no backslash, drive colon or control character, no duplicates (compared case-insensitively), no symbolic links, no encrypted entries.
+- Limits (configurable `Limits`): package 512 MiB, 4096 files, 1 GiB per file, 2 GiB unpacked, paths 240 bytes. Every entry is decompressed against its declared size and CRC (a longer stream is refused).
 - The `.sha256` sidecar is required and must equal the zip's hash.
 - Warnings, not refusals: unknown manifest keys, no `game.versions`, a server library for one platform only.
 
-`poe-mod pack` writes the package **reproducibly**: entries sorted by path, one fixed timestamp (1980-01-01), fixed
-permissions, Deflate; the same inputs give the same bytes (with the same tool version), so the hash is stable.
-A launcher installing a `both` package takes the client half and may leave `server/` out; the server serves the whole zip.
+`poe-mod pack` writes the package **reproducibly**: entries sorted by path, one fixed timestamp (1980-01-01), fixed permissions, Deflate; the same inputs give the same bytes (same tool version), so the hash is stable. A launcher installing a `both` package takes the client half and may leave `server/` out; the server serves the whole zip.
 
 ## The loader
 
-The loader runs once per process, on the loader's start-up thread after the debug core is up. It never throws the
-client off: every failure is logged and the mod is skipped.
+The loader runs once per process, on its start-up thread after the debug core is up. It never throws the client off: every failure is logged and the mod is skipped.
 
-1. **Official mode, or a read-only latch that is already set: nothing loads and nothing is read** from
-   `poe-hook-mods/` (not even `state.toml`). One line `mods: official mode is read-only: no mod is loaded`.
-   The latch can also come on later (the client connects to an untrusted server): mods that send, alter or inject
-   anything must watch `HookApi::read_only` and stop.
-2. No `poe-hook-mods/state.toml`: no mod is enabled, nothing else happens. Otherwise the signature table is
-   resolved for the mods (about 0.3 s, only when mods exist) **before the debug core starts**, because the core hooks
-   function starts and a table resolved afterwards would no longer find them. `sig_addr` therefore answers about the
-   unhooked image.
-3. `state.toml` is read in order. A broken `state.toml` loads no mod. For every id: valid id, readable and valid
-   `mod.toml`, folder name equal to `id`, **a client half** (a `side = "server"` mod is skipped with
-   `server-only mod ...`; the server half of a `both` mod is ignored), the ABI check, the entry DLL file exists. A mod that fails is skipped with
-   its reason; **its DLL is never mapped**.
-4. For every remaining mod, in order: dependencies must have loaded (earlier) in a satisfying version and no loaded
-   mod may conflict with it (a mod whose dependency was skipped or failed is skipped too); then the DLL is mapped
-   (`LoadLibraryExW`, `LOAD_WITH_ALTERED_SEARCH_PATH`, so its own DLLs next to it resolve), the optional
-   `poe_mod_abi_version` export is compared, and `poe_mod_init` is called. A DLL that does not map, lacks
-   `poe_mod_init`, reports another ABI or returns non-zero is unmapped again and skipped.
+1. **Official mode, or a read-only latch that is already set: nothing loads and nothing is read** from `poe-hook-mods/` (not even `state.toml`). One line `mods: official mode is read-only: no mod is loaded`. The latch can also come on later (the client connects to an untrusted server): mods that send, alter or inject anything must watch `HookApi::read_only` and stop.
+2. No `poe-hook-mods/state.toml`: no mod is enabled, nothing else happens. Otherwise the signature table is resolved for the mods (about 0.3 s, only when mods exist) **before the debug core starts**, because the core hooks function starts and a later table would no longer find them. `sig_addr` therefore answers about the unhooked image.
+3. `state.toml` is read in order. A broken `state.toml` loads no mod. For every id: valid id, readable and valid `mod.toml`, folder name equal to `id`, **a client half** (a `side = "server"` mod is skipped with `server-only mod ...`; the server half of a `both` mod is ignored), the ABI check, the entry DLL file exists. A mod that fails is skipped with its reason; **its DLL is never mapped**.
+4. For every remaining mod, in order: dependencies must have loaded (earlier) in a satisfying version and no loaded mod may conflict with it (a mod whose dependency was skipped or failed is skipped too); then the DLL is mapped (`LoadLibraryExW`, `LOAD_WITH_ALTERED_SEARCH_PATH`, so its own DLLs next to it resolve), the optional `poe_mod_abi_version` export is compared, and `poe_mod_init` is called. A DLL that does not map, lacks `poe_mod_init`, reports another ABI or returns non-zero is unmapped again and skipped.
 5. Mods stay loaded for the life of the process; `poe_mod_shutdown` is not called in ABI 1.
-
-6. **Report to the server (private mode only).** Once the loader has finished, the list of loaded mods is available to the
-   debug core, which sends it to a private server over the side channel right after the instance connection starts
-   (`Kind::ModReport`, TCP on the instance port, sealed with the session keys; format `poe_hook_shared::modreport`,
-   protocol in the server repository's `docs/protocol/side-channel.md`). Per loaded mod it carries the id, the version, the
-   SHA-256 of the installed `mod.toml` and of the entry DLL (none for a data-only mod). A server that requires client mods
-   compares it at login and refuses a mismatch; an empty list is sent when no mod is loaded. Never sent in official mode, while
-   read-only, or to an untrusted server (there is no side-channel session then). A consistency check, not anti-cheat.
+6. **Report to the server (private mode only).** The list of loaded mods goes to a private server over the side channel right after the instance connection starts (`Kind::ModReport`, TCP on the instance port, sealed with the session keys; format `poe_hook_shared::modreport`, protocol in the server repository's `docs/protocol/side-channel.md`). Per loaded mod: id, version, SHA-256 of the installed `mod.toml` and of the entry DLL (none for a data-only mod). A server that requires client mods compares it at login and refuses a mismatch; an empty list is sent when no mod is loaded. Never sent in official mode, while read-only, or to an untrusted server. A consistency check, not anti-cheat.
 
 Log lines (in `poe-hook.log`, target `poe_hook::mods`; a mod's own lines carry the target `mod:<id>`):
 
@@ -237,15 +182,9 @@ mod report to the server: stored
 
 ## The mod ABI
 
-Defined in the dependency-free crate `poe-hook-mod-api` (`poe-hook-mod-api/src/lib.rs`), which a Rust mod depends on
-(any language works: it is a plain C ABI). Only `#[repr(C)]` data and `extern "C"` functions cross it.
+Defined in the dependency-free crate `poe-hook-mod-api` (`poe-hook-mod-api/src/lib.rs`), which a Rust mod depends on (any language works: it is a plain C ABI). Only `#[repr(C)]` data and `extern "C"` functions cross it.
 
-**Version**: `HOOK_API_VERSION = 1` (the `game.hook_api` of the manifest; the launcher's `HOOK_API` is the same
-number). It changes whenever a field or function below changes meaning, moves or is removed; appending fields at the
-end of `HookApi` does not need a bump (a mod reads `HookApi::size` before it uses a later field). The loader offers
-exactly its own version: a mod built for a **newer** one is refused ("update poe-hook"), one built for an **older**
-one too ("rebuild the mod"), and a mod with an entry DLL that states none is refused. The manifest is checked before
-the DLL is mapped; the optional export `poe_mod_abi_version` is checked right after.
+**Version**: `HOOK_API_VERSION = 1` (the `game.hook_api` of the manifest; the launcher's `HOOK_API` is the same number). It changes whenever a field or function below changes meaning, moves or is removed; appending fields at the end of `HookApi` does not need a bump (a mod reads `HookApi::size` before it uses a later field). The loader offers exactly its own version: a mod built for a **newer** one is refused ("update poe-hook"), one built for an **older** one too ("rebuild the mod"), and a mod with an entry DLL that states none is refused. The manifest is checked before the DLL is mapped; the optional export `poe_mod_abi_version` right after.
 
 **Exports of the mod DLL** (C calling convention):
 
@@ -269,22 +208,13 @@ the DLL is mapped; the optional export `poe_mod_abi_version` is checked right af
 | `feature_ok(feature: Str) -> bool` | every signature and field of that table feature resolved |
 | `field(name: Str, out: *mut usize) -> bool` | a resolved struct offset of the table |
 
-`Str` is borrowed UTF-8 (`ptr`, `len`), valid for the call only (the strings inside `HookApi` live forever). The
-Rust crate adds safe helpers (`api.info("...")`, `api.game_version()`, `api.sig_addr("...")`).
+`Str` is borrowed UTF-8 (`ptr`, `len`), valid for the call only (the strings inside `HookApi` live forever). The Rust crate adds safe helpers (`api.info("...")`, `api.game_version()`, `api.sig_addr("...")`).
 
-This is the **client** ABI (`HOOK_API_VERSION`, `game.hook_api`/`client.hook_api`). The server has its own, separately
-versioned ABI (`SERVER_API_VERSION`, `server.server_api`) in the SDK's `poe-mod-api` crate; the two never share a
-number or a struct.
-
-The API deliberately offers nothing that writes to the game: a mod that hooks or patches code does that itself with
-the addresses it got and is responsible for the read-only latch.
+This is the **client** ABI (`HOOK_API_VERSION`, `game.hook_api`/`client.hook_api`). The server has its own, separately versioned ABI (`SERVER_API_VERSION`, `server.server_api`) in the SDK's `poe-mod-api` crate; the two never share a number or a struct. The API offers nothing that writes to the game: a mod that hooks or patches code does that itself with the addresses it got and is responsible for the read-only latch.
 
 ## Sample mod
 
-`examples/sample-mod/` (package `poe-hook-sample-mod`, `sample_mod.dll`) logs `hello`, the game build and the state of
-a signature through this ABI. `cargo xtask build-dll` builds it with the DLLs; `cargo xtask deploy-mod` (or
-`deploy-client --sample-mod`) installs and enables it in `GameFiles/poe-hook-mods/sample-mod/`; the next client start
-logs, for example:
+`examples/sample-mod/` (package `poe-hook-sample-mod`, `sample_mod.dll`) logs `hello`, the game build and the state of a signature through this ABI. `cargo xtask build-dll` builds it with the DLLs; `cargo xtask deploy-mod` (or `deploy-client --sample-mod`) installs and enables it in `GameFiles/poe-hook-mods/sample-mod/`; the next client start logs:
 
 ```
 [mod:sample-mod] hello from sample-mod 0.1.0: game build 0.5.5e.hotfix1 (revision 326410, table verified), read_only=false
@@ -292,18 +222,11 @@ logs, for example:
 
 ## Tests
 
-`cargo test` in this repository covers the manifest parser (v1 compatibility, every v2 key and `side` rule, invalid
-cases, a v1-only parser refusing v2), `state.toml`, the load plan (order, skipping, a server-only mod refused, a `both`
-mod loading only its client half, official mode), the ABI checks, the dependency/conflict set across sides, package
-verification (hash, names, paths, symlinks, limits, CRC), the install tooling (`poe-hook-mods`, `poe-hook-mod-api`,
-`poe-hook-deploy`), and that the sample mod's manifest is valid for this loader.
+`cargo test` covers the manifest parser (v1 compatibility, every v2 key and `side` rule, invalid cases, a v1-only parser refusing v2), `state.toml`, the load plan (order, skipping, a server-only mod refused, a `both` mod loading only its client half, official mode), the ABI checks, the dependency/conflict set across sides, package verification (hash, names, paths, symlinks, limits, CRC), the install tooling (`poe-hook-mods`, `poe-hook-mod-api`, `poe-hook-deploy`), and that the sample mod's manifest is valid.
 
 ## Open points
 
-- `[data]` / `[client]` tables, opcodes and config defaults are parsed and validated but not applied by the loader yet.
-- Hooks and packet observers are not part of ABI 1 (mods use `sig_addr` and their own hooks); they are added as
-  appended fields or a new major.
-- `poe_mod_shutdown` and unloading mods (needed for hot-reloading a mod) are not implemented (never planned for the server).
+- `[data]` / `[client]` tables, opcodes and config defaults are parsed and validated but not applied by the loader.
+- Hooks and packet observers are not part of ABI 1 (mods use `sig_addr` and their own hooks); they would be appended fields or a new major.
+- `poe_mod_shutdown` and unloading mods (hot-reload) are not implemented.
 - Signatures (ed25519 by the author) are not specified; the package identity is the SHA-256 only.
-- The launcher still has its own v1 parser (it accepts a DLL mod without `game.hook_api` and refuses v2); it moves to the
-  shared parser in the mod-sync work package, which also makes it show a `side` badge.
