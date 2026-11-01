@@ -105,6 +105,13 @@ struct Out {
     doodad_hash: u32,
     width: u32,
     height: u32,
+    /// FNV-1a 64 of the four cell grids as `grids.bin` bytes (`PWG1`); 0 when unreadable.
+    grid_hash: u64,
+}
+
+/// FNV-1a 64 (the server's `check_grid_hashes` hashes its own `PWG1` bytes the same way).
+fn fnv1a64(bytes: &[u8]) -> u64 {
+    bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| (h ^ b as u64).wrapping_mul(0x100_0000_01b3))
 }
 
 struct Shared {
@@ -193,7 +200,7 @@ fn run(env: Env, config: GenBatchConfig, dir: PathBuf) -> Result<(), String> {
     if is_new {
         let _ = writeln!(
             file,
-            "# area\tseed\ttopology\torientation\tstatus\ttile_hash\tdoodad_hash\twidth\theight\tms\tdetail"
+            "# area\tseed\ttopology\torientation\tstatus\ttile_hash\tdoodad_hash\twidth\theight\tms\tdetail\tgrid_hash"
         );
     }
     let shared = Shared {
@@ -289,12 +296,13 @@ fn do_job(shared: &Shared, n: usize, job: &Job) {
     let ms = started.elapsed().as_secs_f64() * 1000.0;
     let line = match result {
         Ok(o) => format!(
-            "{}\tok\t{}\t{}\t{}\t{}\t{ms:.1}\t",
+            "{}\tok\t{}\t{}\t{}\t{}\t{ms:.1}\t\t{:016x}",
             job.key(),
             o.tile_hash,
             o.doodad_hash,
             o.width,
-            o.height
+            o.height,
+            o.grid_hash
         ),
         Err(e) => {
             shared.errors.fetch_add(1, Ordering::Relaxed);
@@ -496,6 +504,9 @@ unsafe fn read_result(
     if tile_hash == 0 && width == 0 {
         return Err("no terrain generated".into());
     }
+    let grid_hash = crate::terrain_tools::tiles(terrain)
+        .and_then(|t| crate::dump_types::grid_bytes(terrain, t.w, t.h))
+        .map_or(0, |g| fnv1a64(&g));
     if capture {
         export(
             dir,
@@ -513,6 +524,7 @@ unsafe fn read_result(
         doodad_hash,
         width,
         height,
+        grid_hash,
     })
 }
 
