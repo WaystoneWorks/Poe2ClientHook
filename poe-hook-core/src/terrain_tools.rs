@@ -93,6 +93,8 @@ const LATTICE_STEPS: &[(&str, &str, usize)] = &[
     // Per-tile height levelling of the outer fill (`0x141fd7340`, once per fixed cell and round):
     // dumped only when the lattice changed since the previous dump.
     ("lattice_round", "round", 0x8),
+    // Enclosed-fill marking (`0x141fe0cc0`, inside the unwalkable marking): rcx is the view.
+    ("lattice_enclosed", "enclosed", usize::MAX),
 ];
 /// Set by a `round` dump: the next `place_tile` call (the outer buffer strips) dumps the lattice
 /// once more (`afterround`), the state the levelling rounds left.
@@ -606,7 +608,11 @@ unsafe extern "win64" fn on_lattice_step(regs: *mut Registers, step: usize) {
     }
     let (_, name, view_at) = LATTICE_STEPS[step];
     let r = unsafe { &*regs };
-    let view = read::<usize>(r.rcx as usize + view_at).unwrap_or(0);
+    let view = if view_at == usize::MAX {
+        r.rcx as usize
+    } else {
+        read::<usize>(r.rcx as usize + view_at).unwrap_or(0)
+    };
     dump_lattice(name, view, name == "round");
 }
 
@@ -843,6 +849,21 @@ unsafe extern "win64" fn on_tile_checkpoint(regs: *mut Registers, index: usize) 
         "preunique" => dump_preunique_cells(r.rcx as usize),
         "topology" => dump_map_pins(r.rcx as usize),
         "overlay_scan" => dump_occupancy(r.rcx as usize),
+        // The unwalkable marking's view (rcx): its corner flags before the pass.
+        "grid_fd0" => dump_lattice("unwalkable", r.rcx as usize, false),
+        // The map border pass (rcx = map): the whole lattice after every region's marking.
+        "grid_ea0" => {
+            let map = r.rcx as usize;
+            let (cols, rows) = (
+                read::<u64>(map + 0x40).unwrap_or(0) as u32,
+                read::<u64>(map + 0x48).unwrap_or(0) as u32,
+            );
+            let mut view = [0u8; 0x20];
+            view[..8].copy_from_slice(&(map as u64).to_le_bytes());
+            view[0x18..0x1c].copy_from_slice(&cols.saturating_sub(1).to_le_bytes());
+            view[0x1c..0x20].copy_from_slice(&rows.saturating_sub(1).to_le_bytes());
+            dump_lattice("border", view.as_ptr() as usize, false);
+        }
         _ => {}
     }
 }

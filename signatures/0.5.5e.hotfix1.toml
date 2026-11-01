@@ -668,6 +668,13 @@ pdata = true
 ghidra = 0x141fd7340
 
 [[sig]]
+name = "lattice_enclosed"
+features = ["generator_trace"]
+pattern = "48 89 5c 24 18 48 89 6c 24 20 56 57 41 56 48 81 ec d0 02 00 00 48 8b f1 45 33 f6 44 39 71 1c"
+pdata = true
+ghidra = 0x141fe0cc0
+
+[[sig]]
 name = "round_corner"
 features = ["generator_trace"]
 kind = "site"
