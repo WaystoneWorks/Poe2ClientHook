@@ -271,7 +271,12 @@ fn start_features(config: &Config, main: &Module) {
         gen_batch::init(&config.gen_batch, read_only)
     });
     report("trace_calls", !addresses.is_empty(), || {
-        trace_calls::init(main, &addresses, f.trace_limit.max(200))
+        // POE_HOOK_TRACE_LIMIT overrides the per-address hit limit (RE tests).
+        let limit = std::env::var("POE_HOOK_TRACE_LIMIT")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(f.trace_limit.max(200));
+        trace_calls::init(main, &addresses, limit)
     });
     // Test input is injection: never while read-only. The key timeline only runs once per
     // process (a reload must not press Enter again).

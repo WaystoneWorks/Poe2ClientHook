@@ -84,14 +84,25 @@ unsafe extern "win64" fn on_hit(regs: *mut Registers, user: usize) {
                 .then(|| format!(" handler={obj:#x} slot0={:#x}", m.to_ghidra(slot0)))
         })
         .unwrap_or_default();
+    // Low f32 of xmm0..xmm3 (float arguments) and the f32 at [rdx+8] (a speed in move
+    // parameter blocks such as `Positioned_MoveToWaypoint`'s).
+    let f = |x: u128| f32::from_bits(x as u32);
+    let rdx8 = poe_hook_shared::mem::read::<f32>(r.rdx as usize + 8)
+        .filter(|_| r.rdx > 0x10000)
+        .map(|v| format!(" [rdx+8]={v}"))
+        .unwrap_or_default();
     log::info!(
-        "hit {:#x} #{n} rax={:#x}{rax_target}{handler} rbx={:#x} rcx={:#x} rdx={:#x} r8={:#x} r9={:#x} stack=[{stack}]",
+        "hit {:#x} #{n} rax={:#x}{rax_target}{handler} rbx={:#x} rcx={:#x} rdx={:#x} r8={:#x} r9={:#x} xmm0-3=({}, {}, {}, {}){rdx8} stack=[{stack}]",
         target.ghidra,
         r.rax,
         r.rbx,
         r.rcx,
         r.rdx,
         r.r8,
-        r.r9
+        r.r9,
+        f(r.xmm0),
+        f(r.xmm1),
+        f(r.xmm2),
+        f(r.xmm3)
     );
 }
