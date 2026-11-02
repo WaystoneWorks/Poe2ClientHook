@@ -12,8 +12,10 @@ use poe_hook_shared::module::Module;
 
 use std::sync::atomic::{AtomicU32, Ordering};
 
-/// Positioned component bytes logged with each plan (`+0x1e0..+0x210`: flags, sizes, levels).
-const POSITIONED_DUMP: (usize, usize) = (0x1e0, 0x30);
+/// Positioned component bytes logged with each plan (`+0x1e0..+0x290`: flags, sizes, levels,
+/// and the line the entity moves along at `+0x208`, whose point and current cell decide the
+/// pathfinder's line-of-sight variant, `FUN_141ec83d0` / `FUN_141b87580`).
+const POSITIONED_DUMP: (usize, usize) = (0x1e0, 0xb0);
 /// Layer index byte of the Positioned component (`+0x498`).
 const POSITIONED_LAYER: usize = 0x498;
 
