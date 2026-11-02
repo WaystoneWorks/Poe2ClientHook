@@ -36,6 +36,7 @@ mod scanner;
 mod side;
 mod sigs;
 mod snapshot;
+mod state_export;
 mod symbols;
 mod terrain_tools;
 mod timing;
@@ -285,6 +286,16 @@ fn start_features(config: &Config, main: &Module) {
         Vec::new()
     };
     report("auto_keys", !read_only, || auto_keys::init(keys));
+    // Live state file for tests (read-only observer). POE_HOOK_STATE=1 or =<interval ms>.
+    let state_env = std::env::var("POE_HOOK_STATE").ok();
+    let state_ms = state_env
+        .as_deref()
+        .and_then(|v| v.parse::<u64>().ok())
+        .filter(|&ms| ms > 1)
+        .unwrap_or(f.state_export_ms);
+    report("state_export", f.state_export || state_env.is_some(), || {
+        state_export::init(state_ms)
+    });
     // The server debug link (our server only).
     if !read_only {
         devlink::start();
@@ -324,6 +335,7 @@ extern "C" fn stop() {
     overlay::stop();
     packets::stop();
     crash::stop();
+    state_export::stop();
     hooks::remove_all();
     position_sync::stop();
     log::info!("debug core stopped");

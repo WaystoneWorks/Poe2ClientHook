@@ -127,6 +127,12 @@ pub struct FeatureConfig {
     /// Log every terrain RNG draw and generator phase (`generator_trace.tsv` in the area
     /// export). Large; also enabled by the `POE_HOOK_GEN_TRACE` environment variable.
     pub generator_trace: bool,
+    /// Live state export for tests: every `state_export_ms` the DLL writes `poe-hook-state.json`
+    /// next to the exe (player position, area, life pools, visible UI panels, recent packets;
+    /// see state_export.rs). Read-only, so also on official servers. Also enabled by the
+    /// `POE_HOOK_STATE` environment variable (its value, when a number, is the interval).
+    pub state_export: bool,
+    pub state_export_ms: u64,
 }
 
 impl Default for FeatureConfig {
@@ -148,6 +154,8 @@ impl Default for FeatureConfig {
             auto_keys: Vec::new(),
             area_export: true,
             generator_trace: false,
+            state_export: false,
+            state_export_ms: 250,
         }
     }
 }

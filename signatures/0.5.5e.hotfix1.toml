@@ -185,6 +185,14 @@ pdata = true
 ghidra = 0x141e717a0
 
 [[sig]]
+name = "ui_set_visible"
+features = ["ui_panels"]
+pattern = "40 53 48 83 ec 40 48 8b d9 8b 89 68 01 00 00 8b c1 c1 e8 0b 24 01 3a c2"
+pdata = true
+ghidra = 0x1427af130
+note = "UI element SetVisible (element, bool): flags +0x168 bit 11, parent +0xb8, name wstring +0x98; hooked by the state export"
+
+[[sig]]
 name = "actor_sim_handler"
 features = ["position_sync", "inspect"]
 pattern = "48 89 5c 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8d ac 24 ?? ?? ?? ?? 48 81 ec ?? ?? ?? ?? 4c 8b fa 4c 8b f1 33 db 0f b7 4a 08"
