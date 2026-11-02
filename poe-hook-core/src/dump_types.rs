@@ -715,9 +715,14 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                         w(0x84a)
                     );
                 }
+                // The probes below call game functions on the entity from this thread, which
+                // crashes when the entity was freed meanwhile (an area change within the 5 s:
+                // access violation in 0x140150cb0 after a `transfer`), so they run only with
+                // POE_HOOK_PLAYER_PROBE set.
+                let game_calls = std::env::var_os("POE_HOOK_PLAYER_PROBE").is_some();
                 // Render component (getter 0x140150cb0, by name): +0x39a non-zero = rendering
                 // disabled (GEAL EnableRendering clears it, then calls 0x1416a9990).
-                if let Some(pa) = probe() {
+                if let Some(pa) = probe().filter(|_| game_calls) {
                     let get_render: extern "win64" fn(usize) -> usize =
                         unsafe { std::mem::transmute(pa.get_render) };
                     let render = get_render(entity);
@@ -734,7 +739,9 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                     }
                 }
                 // Positioned height as the client samples it (0x141de5510 returns f32 in xmm0).
-                if let (Some(pa), Some(pos)) = (probe(), read::<usize>(begin_components(entity))) {
+                if let (Some(pa), Some(pos)) =
+                    (probe().filter(|_| game_calls), read::<usize>(begin_components(entity)))
+                {
                     let height: extern "win64" fn(usize) -> f32 =
                         unsafe { std::mem::transmute(pa.height) };
                     log::info!("  positioned height {}", height(pos));
