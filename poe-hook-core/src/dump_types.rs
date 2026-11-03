@@ -520,6 +520,7 @@ fn log_player_frame(entity: usize, n: usize, dt: f32) {
         read::<f32>(pos + crate::sigs::off().positioned_world_x).unwrap_or(0.0),
         read::<f32>(pos + crate::sigs::off().positioned_world_y).unwrap_or(0.0),
     );
+    log_player_line(pos, n);
     let mut last = LAST.lock().unwrap();
     if *last != (x.to_bits(), y.to_bits()) {
         let (lx, ly) = (f32::from_bits(last.0), f32::from_bits(last.1));
@@ -532,6 +533,51 @@ fn log_player_frame(entity: usize, n: usize, dt: f32) {
             read::<i32>(pos + crate::sigs::off().positioned_grid_y).unwrap_or(0)
         );
     }
+}
+
+/// Movement research: the state of the player's path line (Positioned +0x208, set up by
+/// `0x141ec86a0`, stepped by `0x141ec8cb0`) at the start of its update, one `LINE` line per
+/// frame while a line runs. Offsets from the grid cell (+0x444), which the signatures find.
+/// Raw fields: major and minor are swapped when `swap` is set.
+fn log_player_line(pos: usize, n: usize) {
+    use poe_hook_shared::mem::read;
+    let grid = pos + crate::sigs::off().positioned_grid_x;
+    let line = grid - 0x23c;
+    let f = |o: usize| read::<f32>(line + o).unwrap_or(f32::NAN);
+    let i = |o: usize| read::<i32>(line + o).unwrap_or(0);
+    let b = |o: usize| read::<u8>(line + o).unwrap_or(0);
+    if f(0x84) == 0.0 {
+        return;
+    }
+    let wp_begin = read::<usize>(grid + 0x84).unwrap_or(0);
+    let wp_end = read::<usize>(grid + 0x8c).unwrap_or(0);
+    let wp_index = read::<i32>(grid + 0xe4).unwrap_or(0);
+    log::info!(
+        "LINE frame={n} s={},{} p={:.4},{:.4} q={},{} e={},{} cur={},{} flag={} swap={} sign={} slope={:.5} minacc={:.4} len={:.4} T={:.5} el={:.5} thr={:.5} acc={:.5} pend={:.5} wp={}/{}",
+        i(0x00),
+        i(0x04),
+        f(0x0c),
+        f(0x10),
+        i(0x18),
+        i(0x1c),
+        i(0x34),
+        i(0x38),
+        i(0x40),
+        i(0x44),
+        b(0x24),
+        b(0x25),
+        i(0x28),
+        f(0x2c),
+        f(0x4c),
+        f(0x6c),
+        f(0x70),
+        f(0x7c),
+        f(0x84),
+        f(0x88),
+        f(0x90),
+        wp_index,
+        wp_end.saturating_sub(wp_begin) / 8,
+    );
 }
 
 /// Movement research: logs the player's position whenever it changes (polled every 20 ms):
