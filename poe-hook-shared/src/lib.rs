@@ -2,6 +2,7 @@
 //! configuration file, the C ABI between the two DLLs and guarded memory helpers.
 
 pub mod abi;
+pub mod alert;
 pub mod batch_jobs;
 pub mod config;
 pub mod login;

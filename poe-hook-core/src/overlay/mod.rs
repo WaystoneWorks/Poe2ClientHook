@@ -76,6 +76,12 @@ pub fn visible() -> bool {
     VISIBLE.load(Ordering::SeqCst)
 }
 
+/// Whether the overlay takes mouse and keyboard: the main window is shown, or an alert waits
+/// for OK.
+pub fn input_active() -> bool {
+    visible() || crate::ui::has_alerts()
+}
+
 pub fn set_visible(v: bool) {
     VISIBLE.store(v, Ordering::SeqCst);
 }
@@ -108,7 +114,7 @@ pub fn present(queue: u64, info: *const c_void) -> u64 {
     if STOPPING.load(Ordering::SeqCst) || FAILED.load(Ordering::SeqCst) {
         return 0;
     }
-    let notices = crate::ui::has_notices();
+    let notices = crate::ui::has_notices() || crate::ui::has_alerts();
     if !visible() && !notices && !crate::host::read_only() && !crate::snapshot::wants_frame() {
         return 0;
     }
@@ -251,8 +257,8 @@ fn frame(
         let io = ui.io();
         (io.want_capture_mouse(), io.want_capture_keyboard())
     };
-    WANT_MOUSE.store(want_mouse && visible(), Ordering::Relaxed);
-    WANT_KEYBOARD.store(want_keyboard && visible(), Ordering::Relaxed);
+    WANT_MOUSE.store(want_mouse && input_active(), Ordering::Relaxed);
+    WANT_KEYBOARD.store(want_keyboard && input_active(), Ordering::Relaxed);
     let shot = crate::snapshot::take_frame_request();
     let image = o.gpu.image(image_index);
     let mut capture = None;

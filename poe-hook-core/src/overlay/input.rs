@@ -85,7 +85,7 @@ pub fn window_message(hwnd: isize, msg: u32, wparam: usize, lparam: isize) -> Op
             return Some(0);
         }
     }
-    if !super::visible() {
+    if !super::input_active() {
         return None;
     }
     let want_mouse = WANT_MOUSE.load(Ordering::Relaxed);

@@ -1,6 +1,7 @@
 //! The overlay's windows: the main debug window with its tabs, the read-only badge and
 //! short notices. Each tab keeps its own state in [`App`].
 
+mod alert;
 mod commands_tab;
 mod coverage_tab;
 mod follow;
@@ -38,6 +39,8 @@ pub fn notice(text: String) {
     log::info!("{text}");
     NOTICES.lock().unwrap().push((text, Instant::now()));
 }
+
+pub use alert::{Alert, Row as AlertRow, alert, has_alerts};
 
 pub fn has_notices() -> bool {
     let mut n = NOTICES.lock().unwrap();
@@ -116,6 +119,7 @@ impl App {
             badge(ui);
         }
         notices(ui);
+        alert::draw(ui);
         if !visible {
             return;
         }

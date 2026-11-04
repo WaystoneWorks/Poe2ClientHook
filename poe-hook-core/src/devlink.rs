@@ -46,11 +46,18 @@ pub fn start() {
 fn receiver() {
     let mut timeout_set: Option<SOCKET> = None;
     let mut buf = [0u8; 4096];
+    let mut hello = Instant::now() - Duration::from_secs(10);
     while crate::hooks::running() {
         let Some((sock, ..)) = crate::position_sync::link() else {
             crate::hooks::sleep(Duration::from_millis(250));
             continue;
         };
+        // Tells the server where to send debug frames before the first position report exists
+        // (the terrain mismatch alert comes right as the world opens). The server ignores it.
+        if hello.elapsed() >= Duration::from_secs(1) {
+            hello = Instant::now();
+            send("hello", true);
+        }
         if timeout_set != Some(sock) {
             let ms: u32 = 200;
             unsafe {
@@ -218,6 +225,62 @@ fn handle_instances(text: &str) {
     }
 }
 
+/// An `alert` block: the terrain mismatch exports the client's layout (the area is still loaded),
+/// answers the server with `ack export <folder>` (or `ack export failed <why>`), and shows the
+/// popup.
+fn handle_alert(text: &str) {
+    use crate::ui::{Alert, AlertRow, theme};
+    let Some(m) = poe_hook_shared::alert::parse_terrain_mismatch(text) else {
+        log::warn!("debug link: unknown alert");
+        return;
+    };
+    log::warn!("terrain mismatch: {}", m.report);
+    let exported = crate::terrain_tools::export_mismatch(&m);
+    command(&match &exported {
+        Ok(dir) => format!("ack export {}", dir.display()),
+        Err(why) => format!("ack export failed {why}"),
+    });
+    let status = |differs: bool| {
+        if differs {
+            ("DIFFERENT", theme::BAD)
+        } else {
+            ("same", theme::OK)
+        }
+    };
+    let (tile, doodad) = (status(m.tile_differs()), status(m.doodad_differs()));
+    let mut rows = vec![
+        AlertRow::new("Area", format!("{}    seed {}", m.area, m.seed)),
+        AlertRow::new("Layout", m.layout.clone()),
+        AlertRow::new(
+            "Tile",
+            format!("client {}   server {}", m.tile_client, m.tile_server),
+        )
+        .with_status(tile.0, tile.1),
+        AlertRow::new(
+            "Doodad",
+            format!("client {}   server {}", m.doodad_client, m.doodad_server),
+        )
+        .with_status(doodad.0, doodad.1),
+        AlertRow::new("Reason", m.reason.clone()),
+        AlertRow::new("Moved", format!("you were moved to: {}", m.dest)),
+    ];
+    rows.push(match &exported {
+        Ok(dir) => AlertRow::new(
+            "Export",
+            format!("client layout exported: {}", dir.display()),
+        ),
+        Err(why) => {
+            AlertRow::new("Export", format!("export failed: {why}")).with_status("", theme::BAD)
+        }
+    });
+    crate::ui::alert(Alert {
+        title: "Terrain does not match the server".into(),
+        rows,
+        report: Some(m.report),
+        folder: exported.ok(),
+    });
+}
+
 /// The server's command registry and who we are (empty until the server sent it).
 pub fn registry() -> (Vec<Cmd>, Option<Me>) {
     REGISTRY.lock().unwrap().clone()
@@ -239,6 +302,10 @@ pub fn results() -> Vec<(u64, String, String)> {
 }
 
 fn handle(text: &str) {
+    if text.starts_with("alert\t") {
+        handle_alert(text);
+        return;
+    }
     if text.starts_with("cmds\t") {
         handle_registry(text);
         return;
@@ -310,6 +377,10 @@ fn handle(text: &str) {
 
 /// Sends a dev command to our server (not while read-only).
 pub fn command(text: &str) -> bool {
+    send(text, false)
+}
+
+fn send(text: &str, quiet: bool) -> bool {
     if crate::host::read_only() {
         return false;
     }
@@ -324,7 +395,9 @@ pub fn command(text: &str) -> bool {
     else {
         return false;
     };
-    log::info!("dev command: {text}");
+    if !quiet {
+        log::info!("dev command: {text}");
+    }
     unsafe {
         sendto(
             sock,

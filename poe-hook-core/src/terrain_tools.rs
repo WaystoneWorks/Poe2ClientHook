@@ -2026,6 +2026,27 @@ pub fn export_now() -> Option<PathBuf> {
     Some(area.dir)
 }
 
+/// The terrain mismatch export (server alert): the layout and grids of the area just generated
+/// (as "Export area" writes them), copied into the area's folder under names that carry the
+/// area, seed and both tile hashes, with the alert's report beside them. Returns the folder.
+pub fn export_mismatch(m: &poe_hook_shared::alert::TerrainMismatch) -> Result<PathBuf, String> {
+    crate::dump_types::export_layout_now();
+    let dir = export_now().ok_or("no area was exported (area_export is off)")?;
+    let tag = m.file_tag();
+    for (from, to) in [
+        ("layout.tsv", format!("terrain_layout_{tag}.tsv")),
+        ("grids.bin", format!("terrain_grid_{tag}.bin")),
+    ] {
+        std::fs::copy(dir.join(from), dir.join(&to)).map_err(|e| format!("{from}: {e}"))?;
+    }
+    write(
+        &dir,
+        &format!("terrain_mismatch_{tag}.txt"),
+        format!("{}\n", m.report),
+    );
+    Ok(dir)
+}
+
 /// Samples the player's cell for the walkability probe; the probe file is rewritten every
 /// 30 s while it grows.
 fn probe_loop() {

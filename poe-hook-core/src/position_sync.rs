@@ -118,13 +118,9 @@ pub fn report(entity: usize, frame: u32) {
     else {
         return;
     };
-    let mut s = SOCK.load(Ordering::Relaxed);
+    let s = report_socket();
     if s == INVALID_SOCKET {
-        s = unsafe { socket(AF_INET as i32, SOCK_DGRAM, IPPROTO_UDP) };
-        if s == INVALID_SOCKET {
-            return;
-        }
-        SOCK.store(s, Ordering::Relaxed);
+        return;
     }
     unsafe {
         sendto(
@@ -169,6 +165,18 @@ fn cursor() -> Option<(i16, i16, u16, u16)> {
     })
 }
 
+/// The report socket, made on first use.
+fn report_socket() -> SOCKET {
+    let mut s = SOCK.load(Ordering::Relaxed);
+    if s == INVALID_SOCKET {
+        s = unsafe { socket(AF_INET as i32, SOCK_DGRAM, IPPROTO_UDP) };
+        if s != INVALID_SOCKET {
+            SOCK.store(s, Ordering::Relaxed);
+        }
+    }
+    s
+}
+
 /// Closes the report socket (core stop).
 pub fn stop() {
     let s = SOCK.swap(INVALID_SOCKET, Ordering::SeqCst);
@@ -180,11 +188,12 @@ pub fn stop() {
 /// The report socket and target (instance server address, ip and port), for the debug link
 /// ([`crate::devlink`]).
 pub fn link() -> Option<(SOCKET, SOCKADDR_IN, [u8; 4], u16)> {
-    let s = SOCK.load(Ordering::Relaxed);
-    if s == INVALID_SOCKET {
+    // Up as soon as an instance connection exists (not only after the first position report),
+    // so the server can send an alert while the world opens.
+    if !ENABLED.load(Ordering::Relaxed) || crate::host::read_only() {
         return None;
     }
-    let target = TARGET.lock().unwrap();
-    let (_, dest, ip, port) = target.as_ref()?;
-    Some((s, *dest, *ip, *port))
+    let (dest, ip, port) = target()?;
+    let s = report_socket();
+    (s != INVALID_SOCKET).then_some((s, dest, ip, port))
 }
