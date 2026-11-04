@@ -87,11 +87,11 @@ impl InstancesView {
                 ui.table_next_column();
                 let _id = ui.push_id(inst.id as usize);
                 if !inst.current && ui.small_button("Join") {
-                    crate::devlink::command(&format!("join {}", inst.id));
+                    crate::devlink::command(&format!("instance join {}", inst.id));
                 }
                 ui.same_line();
                 if ui.small_button("Close") {
-                    crate::devlink::command(&format!("close {}", inst.id));
+                    crate::devlink::command(&format!("instance close {}", inst.id));
                 }
             }
         }
@@ -102,15 +102,15 @@ impl InstancesView {
         {
             let _d = ui.begin_disabled_with_cond(!ready);
             if ui.button("Transfer there") {
-                crate::devlink::command(&format!("transfer {}", self.form.args()));
+                crate::devlink::command(&format!("instance transfer {}", self.form.args()));
                 self.form.used();
             }
             ui.same_line();
             if ui.button("Create without transferring") {
-                crate::devlink::command(&format!("instance_new {}", self.form.args()));
+                crate::devlink::command(&format!("instance new {}", self.form.args()));
                 self.form.used();
             }
         }
-        ui.text_disabled("Chat equivalent: !transfer <area> [seed] [topology] [orientation], !instance_new ..., !join <id>, !close <id>");
+        ui.text_disabled("Chat equivalent: !go <area> [seed] [topology] [orientation], !instance new ..., !join <id>, !instance close <id>");
     }
 }

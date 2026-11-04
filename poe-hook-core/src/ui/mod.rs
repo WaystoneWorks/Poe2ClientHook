@@ -391,36 +391,21 @@ impl App {
             let (cmds, me) = crate::devlink::registry();
             let admin = me.is_some_and(|m| m.admin);
             for c in cmds.iter().filter(|c| admin || !c.admin) {
-                if !q.is_empty() && !c.name.starts_with(&first_word) && !c.name.contains(&q) {
+                let name = c.name();
+                let alias = c.aliases.iter().any(|a| a.starts_with(&first_word));
+                if !q.is_empty() && !name.starts_with(&first_word) && !name.contains(&q) && !alias {
                     continue;
                 }
-                let line = if q.starts_with(&c.name) {
+                let line = if q.starts_with(&name) || alias {
                     self.palette_query.trim().to_string()
                 } else {
-                    c.name.clone()
+                    name.clone()
                 };
                 first.get_or_insert(PaletteItem::Command(
                     line.clone(),
                     c.args.iter().any(|a| !a.optional),
                 ));
-                let usage: Vec<String> = c
-                    .args
-                    .iter()
-                    .map(|a| {
-                        if a.optional {
-                            format!("[{}]", a.name)
-                        } else {
-                            format!("<{}>", a.name)
-                        }
-                    })
-                    .collect();
-                if ui.selectable(format!(
-                    "Run: {} {}  - {}##cmd{}",
-                    c.name,
-                    usage.join(" "),
-                    c.help,
-                    c.name
-                )) {
+                if ui.selectable(format!("Run: {}  - {}##cmd{name}", c.usage(), c.summary)) {
                     chosen = Some(PaletteItem::Command(line, false));
                 }
             }

@@ -1,9 +1,10 @@
 //! Command forms for the Debug page (our server only): a form for a command of the server's
-//! registry (the same commands as `!name` in chat).
+//! registry (the same commands as `!name` in chat), generated from its arguments and flags.
 
 use std::collections::HashMap;
 
 use imgui::Ui;
+use poe_hook_shared::cmdspec::form_line;
 
 use super::layout_form::LayoutForm;
 use crate::devlink::{Cmd, CmdArg};
@@ -12,8 +13,16 @@ fn layout_kind(k: &str) -> bool {
     matches!(k, "area" | "seed" | "topology" | "orientation")
 }
 
+/// What a form holds for one command.
+#[derive(Default)]
+struct Values {
+    args: Vec<String>,
+    /// `--flag` values; a switch is `on` when set.
+    flags: Vec<String>,
+}
+
 pub struct CommandsView {
-    values: HashMap<String, Vec<String>>,
+    values: HashMap<String, Values>,
     forms: HashMap<String, LayoutForm>,
 }
 
@@ -25,49 +34,76 @@ impl CommandsView {
         }
     }
 
-    /// One command's form: its arguments as widgets and a Run button.
-    pub fn draw_command(&mut self, ui: &Ui, c: &Cmd, admin: bool, prefix: &str) {
-        let _id = ui.push_id(&c.name);
-        let values = self
-            .values
-            .entry(c.name.clone())
-            .or_insert_with(|| vec![String::new(); c.args.len()]);
-        ui.text(format!("{prefix}{}", c.name));
-        if c.admin {
-            ui.same_line();
-            ui.text_colored(
-                if admin {
-                    super::theme::WARN
-                } else {
-                    super::theme::muted(ui)
-                },
-                "[admin]",
-            );
+    /// Every command of a Debug tab that has no hand-laid form.
+    pub fn draw_page(&mut self, ui: &Ui, page: &str, cmds: &[Cmd], skip: &[&str], prefix: &str) {
+        for c in cmds
+            .iter()
+            .filter(|c| c.overlay.as_deref() == Some(page))
+            .filter(|c| !skip.contains(&c.name().as_str()))
+        {
+            self.draw_command(ui, c, prefix);
+            ui.separator();
         }
+    }
+
+    /// One command's form: its arguments and flags as widgets and a Run button.
+    pub fn draw_command(&mut self, ui: &Ui, c: &Cmd, prefix: &str) {
+        let name = c.name();
+        let _id = ui.push_id(&name);
+        ui.text(format!("{prefix}{name}"));
         ui.same_line();
-        ui.text_disabled(&c.help);
+        ui.text_disabled(&c.summary);
+        let values = self.values.entry(name.clone()).or_insert_with(|| Values {
+            args: vec![String::new(); c.args.len()],
+            flags: vec![String::new(); c.flags.len()],
+        });
         let has_layout = c.args.iter().any(|a| a.kind == "area");
+        let mut first = true;
+        let mut place = |ui: &Ui| {
+            if !first {
+                ui.same_line();
+            }
+            first = false;
+        };
         for (i, a) in c.args.iter().enumerate() {
             if has_layout && layout_kind(&a.kind) {
                 continue;
             }
-            ui.same_line();
-            arg_widget(ui, a, &mut values[i]);
+            place(ui);
+            arg_widget(ui, a, &mut values.args[i]);
+        }
+        for (i, f) in c.flags.iter().enumerate() {
+            place(ui);
+            match &f.kind {
+                Some(kind) => {
+                    let a = CmdArg {
+                        name: format!("--{}", f.name),
+                        kind: kind.clone(),
+                        optional: true,
+                    };
+                    arg_widget(ui, &a, &mut values.flags[i]);
+                }
+                None => {
+                    let mut on = values.flags[i] == "on";
+                    if ui.checkbox(format!("--{}", f.name), &mut on) {
+                        values.flags[i] = if on { "on".into() } else { String::new() };
+                    }
+                }
+            }
         }
         if has_layout {
             let form = self
                 .forms
-                .entry(c.name.clone())
+                .entry(name.clone())
                 .or_insert_with(LayoutForm::new);
-            form.draw(ui, &c.name);
+            form.draw(ui, &name);
+        } else {
+            place(ui);
         }
-        if !has_layout {
-            ui.same_line();
-        }
-        if ui.button(format!("Run##{}", c.name)) {
-            let line = build_line(c, &self.values[&c.name], self.forms.get(&c.name));
+        if ui.button(format!("Run##{name}")) {
+            let line = build_line(c, &self.values[&name], self.forms.get(&name));
             crate::devlink::command(&line);
-            if let Some(f) = self.forms.get(&c.name) {
+            if let Some(f) = self.forms.get(&name) {
                 f.used();
             }
         }
@@ -119,6 +155,26 @@ fn arg_widget(ui: &Ui, a: &CmdArg, value: &mut String) {
                 }
             }
         }
+        "player" => {
+            let names: Vec<String> = crate::devlink::online()
+                .into_iter()
+                .map(|o| o.character)
+                .collect();
+            ui.set_next_item_width(120.0);
+            ui.input_text(&label, value).build();
+            if !names.is_empty() {
+                ui.same_line();
+                let mut pick = 0usize;
+                let mut items = vec!["pick".to_string()];
+                items.extend(names);
+                ui.set_next_item_width(120.0);
+                if ui.combo_simple_string(format!("##pick{}", a.name), &mut pick, &items)
+                    && pick > 0
+                {
+                    *value = items[pick].clone();
+                }
+            }
+        }
         "rest" => {
             ui.set_next_item_width(320.0);
             ui.input_text(&label, value).build();
@@ -130,48 +186,20 @@ fn arg_widget(ui: &Ui, a: &CmdArg, value: &mut String) {
     }
 }
 
-/// The command line from the form: arguments in order; an empty optional argument followed
-/// by a filled one gets the kind's "default" word, trailing empty ones are left out.
-fn build_line(c: &Cmd, values: &[String], form: Option<&LayoutForm>) -> String {
+/// The command line from the form.
+fn build_line(c: &Cmd, values: &Values, form: Option<&LayoutForm>) -> String {
     let layout: Vec<String> = form
         .map(|f| f.args().split(' ').map(str::to_owned).collect())
         .unwrap_or_default();
-    let mut words: Vec<String> = Vec::new();
+    let mut args = Vec::with_capacity(c.args.len());
     let mut li = 0;
     for (i, a) in c.args.iter().enumerate() {
         if form.is_some() && layout_kind(&a.kind) {
-            words.push(layout.get(li).cloned().unwrap_or_default());
+            args.push(layout.get(li).cloned().unwrap_or_default());
             li += 1;
-            continue;
+        } else {
+            args.push(values.args.get(i).cloned().unwrap_or_default());
         }
-        words.push(
-            values
-                .get(i)
-                .cloned()
-                .unwrap_or_default()
-                .trim()
-                .to_string(),
-        );
     }
-    while words.last().is_some_and(String::is_empty) {
-        words.pop();
-    }
-    let words: Vec<String> = words
-        .into_iter()
-        .zip(&c.args)
-        .map(|(w, a)| {
-            if !w.is_empty() {
-                return w;
-            }
-            match a.kind.as_str() {
-                "seed" => "random".into(),
-                "topology" | "orientation" => "natural".into(),
-                _ => "-".into(),
-            }
-        })
-        .collect();
-    std::iter::once(c.name.clone())
-        .chain(words)
-        .collect::<Vec<_>>()
-        .join(" ")
+    form_line(c, &args, &values.flags)
 }

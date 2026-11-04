@@ -1,8 +1,10 @@
-//! Debug page (our server only): the server's commands as forms and a console. Tabs: Help
-//! (every command, searchable, with its form), Console (raw command line), and one tab per
-//! feature area. The area tabs are shells until their step lands; World works today.
+//! Debug page (our server only): the server's commands. Tabs: Help (every command, searchable,
+//! with its form), Console (raw command line with completion), and one tab per feature area:
+//! hand-laid controls for the common actions, then a generated form for every other command the
+//! registry assigns to the tab, so nothing lacks an overlay counterpart.
 
 use imgui::Ui;
+use poe_hook_shared::cmdspec::{Suggest, common_prefix, quote, suggest};
 
 use super::{
     Page,
@@ -24,8 +26,13 @@ pub struct DebugView {
     nonce: u32,
     refocus: bool,
     last_request: Option<std::time::Instant>,
+    /// The name list request last sent: asked once per word typed.
+    asked: Option<(String, String)>,
     tx: i32,
     ty: i32,
+    scale: String,
+    announce: String,
+    mute_for: String,
 }
 
 impl DebugView {
@@ -41,8 +48,12 @@ impl DebugView {
             nonce: 0,
             refocus: false,
             last_request: None,
+            asked: None,
             tx: 0,
             ty: 0,
+            scale: "1".into(),
+            announce: String::new(),
+            mute_for: "30m".into(),
         }
     }
 
@@ -51,23 +62,28 @@ impl DebugView {
             Page::DebugHelp => self.help(ui),
             Page::DebugConsole => self.console(ui),
             Page::DebugWorld => self.world(ui),
-            Page::DebugCharacter => shell(
+            Page::DebugPlayers => self.players(ui),
+            Page::DebugCharacter => self.character(ui),
+            Page::DebugStats => self.area_tab(
                 ui,
-                "Level, XP, points and class",
-                "P9 (levels and XP), P15 (passives)",
+                "Debug>Stats",
+                "Stat editor",
+                "P9 (items, stats pipeline)",
             ),
-            Page::DebugStats => shell(ui, "Stat editor", "P9 (items, stats pipeline)"),
-            Page::DebugItems => shell(ui, "Item creator", "P11 (item creator)"),
-            Page::DebugMonsters => shell(ui, "Monster spawner and inspector", "P17 (monsters)"),
-            Page::DebugLife => shell(
+            Page::DebugItems => {
+                self.area_tab(ui, "Debug>Items", "Item creator", "P11 (item creator)")
+            }
+            Page::DebugMonsters => self.area_tab(
                 ui,
+                "Debug>Monsters",
+                "Monster spawner and inspector",
+                "P17 (monsters)",
+            ),
+            Page::DebugLife => self.area_tab(
+                ui,
+                "Debug>Life",
                 "Life, mana and energy shield",
                 "P13 (life, damage, death)",
-            ),
-            Page::DebugPlayers => shell(
-                ui,
-                "Online players, kick, mute, announce",
-                "P7 (command framework)",
             ),
             _ => {}
         }
@@ -97,16 +113,15 @@ impl DebugView {
     fn help(&mut self, ui: &Ui) {
         widgets::header(
             ui,
-            "Every server command with its usage; pick one to get its form.",
-            "The same commands work in chat as !name. Aliases and flags come with the command \
-             framework (P7).",
+            "Every server command you may use; pick one for its usage and form.",
+            "The same commands work in chat with the prefix. Search covers names, aliases and \
+             summaries.",
         );
         let Some((cmds, me)) = self.registry(ui) else {
             return;
         };
         let admin = me.as_ref().is_some_and(|m| m.admin);
         let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
-        let cmds: Vec<Cmd> = cmds.into_iter().filter(|c| admin || !c.admin).collect();
         if let Some(m) = &me {
             widgets::chip(
                 ui,
@@ -125,20 +140,18 @@ impl DebugView {
             .iter()
             .filter(|c| {
                 q.is_empty()
-                    || c.name.to_lowercase().contains(&q)
-                    || c.help.to_lowercase().contains(&q)
-                    || c.group.to_lowercase().contains(&q)
+                    || c.name().to_lowercase().contains(&q)
+                    || c.summary.to_lowercase().contains(&q)
+                    || c.aliases.iter().any(|a| a.to_lowercase().contains(&q))
             })
             .collect();
         widgets::counter(ui, &format!("{} commands", shown.len()));
         let mut groups: Vec<&str> = Vec::new();
         for c in &shown {
-            if !groups.contains(&c.group.as_str()) {
-                groups.push(&c.group);
+            if !groups.contains(&c.category.as_str()) {
+                groups.push(&c.category);
             }
         }
-        let height = (ui.content_region_avail()[1] - 150.0).max(160.0);
-        let _ = height;
         let sel = self.help_sel.clone();
         let mut picked = None;
         let forms = &mut self.forms;
@@ -153,32 +166,23 @@ impl DebugView {
                     || {
                         for g in &groups {
                             ui.text_disabled(g);
-                            for c in shown.iter().filter(|c| c.group == *g) {
+                            for c in shown.iter().filter(|c| c.category == *g) {
+                                let name = c.name();
                                 if ui
-                                    .selectable_config(format!("  {}##h{}", c.name, c.name))
-                                    .selected(sel.as_deref() == Some(c.name.as_str()))
+                                    .selectable_config(format!("  {name}##h{name}"))
+                                    .selected(sel.as_deref() == Some(name.as_str()))
                                     .build()
                                 {
-                                    picked = Some(c.name.clone());
+                                    picked = Some(name);
                                 }
                             }
                         }
                     },
                     || match shown
                         .iter()
-                        .find(|c| sel.as_deref() == Some(c.name.as_str()))
+                        .find(|c| sel.as_deref() == Some(c.name().as_str()))
                     {
-                        Some(c) => {
-                            ui.text(usage(c, &prefix));
-                            ui.text_wrapped(&c.help);
-                            ui.text_disabled(format!(
-                                "Permission: {}   Group: {}",
-                                if c.admin { "admin" } else { "everyone" },
-                                c.group
-                            ));
-                            ui.separator();
-                            forms.draw_command(ui, c, admin, &prefix);
-                        }
+                        Some(c) => help_pane(ui, c, &prefix, forms),
                         None => widgets::empty(ui, "Pick a command on the left."),
                     },
                 );
@@ -192,12 +196,12 @@ impl DebugView {
         widgets::header(
             ui,
             "Run any server command; results come back as ack lines.",
-            "Up/Down recall earlier lines, Tab completes the command name.",
+            "Up/Down recall earlier lines. Tab completes command names, subcommands, flags, \
+             choices and names from the game data (the list comes from the server).",
         );
         let Some((cmds, me)) = self.registry(ui) else {
             return;
         };
-        let admin = me.as_ref().is_some_and(|m| m.admin);
         let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
         let h = (ui.content_region_avail()[1] - 120.0).max(100.0);
         ui.child_window("console_out")
@@ -221,24 +225,24 @@ impl DebugView {
                     ui.set_scroll_here_y(1.0);
                 }
             });
-        let names: Vec<&str> = cmds
-            .iter()
-            .filter(|c| admin || !c.admin)
-            .map(|c| c.name.as_str())
-            .collect();
-        let word = self
-            .console
-            .trim_start_matches(&*prefix)
-            .split(' ')
-            .next()
-            .unwrap_or("")
-            .to_string();
-        let one_word = !self.console.trim_start().contains(' ');
-        let matches: Vec<&str> = names
-            .iter()
-            .copied()
-            .filter(|n| n.starts_with(&word))
-            .collect();
+        // What can follow what is typed: from the registry, or asked of the server.
+        let line = self.console.trim_start_matches(&*prefix).to_string();
+        let typed = suggest(&cmds, &line);
+        let (start, word) = (typed.start, typed.word.to_string());
+        let offered: Vec<(String, String)> = match &typed.suggest {
+            Suggest::Nothing => Vec::new(),
+            Suggest::Words(words) => words.iter().map(|w| (w.clone(), String::new())).collect(),
+            Suggest::Remote { kind, typed } => {
+                let want = (kind.clone(), typed.clone());
+                if self.asked.as_ref() != Some(&want) {
+                    devlink::request_completion(kind, typed);
+                    self.asked = Some(want);
+                }
+                devlink::completion()
+                    .filter(|c| c.kind == *kind && c.typed == *typed)
+                    .map_or(Vec::new(), |c| c.names)
+            }
+        };
         if self.refocus {
             self.refocus = false;
             ui.set_keyboard_focus_here();
@@ -276,13 +280,23 @@ impl DebugView {
             self.nonce += 1;
             self.refocus = true;
         }
-        if active && one_word && ui.is_key_pressed(imgui::Key::Tab) && !matches.is_empty() {
-            self.console = common_prefix(&matches);
-            if matches.len() == 1 {
-                self.console.push(' ');
+        if active && ui.is_key_pressed(imgui::Key::Tab) && !offered.is_empty() {
+            let ids: Vec<&str> = offered.iter().map(|o| o.0.as_str()).collect();
+            let shared = common_prefix(&ids);
+            let bare = word.trim_start_matches('"').to_lowercase();
+            // Several matches found by a display name need not share a useful start.
+            let insert = if ids.len() == 1 {
+                Some(format!("{} ", quote(ids[0])))
+            } else if shared.to_lowercase().starts_with(&bare) && shared.len() > bare.len() {
+                Some(shared)
+            } else {
+                None
+            };
+            if let Some(insert) = insert {
+                self.console = format!("{}{insert}", &line[..start]);
+                self.nonce += 1;
+                self.refocus = true;
             }
-            self.nonce += 1;
-            self.refocus = true;
         }
         if enter || run {
             let line = self
@@ -298,24 +312,38 @@ impl DebugView {
                 }
                 self.hist_pos = None;
                 self.console.clear();
+                self.asked = None;
                 self.nonce += 1;
                 self.refocus = true;
             }
         }
-        if !word.is_empty() && one_word {
-            let list: Vec<&str> = matches.iter().copied().take(8).collect();
-            ui.text_disabled(format!("suggestions: {}", list.join(" | ")));
-        } else {
-            ui.text_disabled(" ");
+        // The suggestion strip: a click takes the word.
+        ui.text_disabled("suggestions:");
+        let mut take = None;
+        for (i, (id, display)) in offered.iter().take(8).enumerate() {
+            ui.same_line();
+            let label = if display.is_empty() {
+                format!("{id}##s{i}")
+            } else {
+                format!("{display} ({id})##s{i}")
+            };
+            if ui.small_button(label) {
+                take = Some(id.clone());
+            }
+        }
+        if let Some(id) = take {
+            self.console = format!("{}{} ", &line[..start], quote(&id));
+            self.nonce += 1;
+            self.refocus = true;
         }
     }
 
     fn world(&mut self, ui: &Ui) {
         widgets::header(
             ui,
-            "Instances on the server, a new-instance form and teleport.",
-            "Chat equivalents: !transfer <area> [seed] [topology] [orientation], !instance_new, \
-             !join <id>, !close <id>, !teleport <x> <y>.",
+            "Instances on the server, a new-instance form, teleport and time.",
+            "Chat equivalents: !go <area> [seed] [topology] [orientation], !instance new, \
+             !join <id>, !instance close <id>, !tp <x> <y>, !stuck, !time scale <factor>.",
         );
         ui.text("Teleport");
         ui.same_line();
@@ -326,7 +354,7 @@ impl DebugView {
         ui.input_int("y##tp", &mut self.ty);
         ui.same_line();
         if ui.button("Teleport") {
-            devlink::command(&format!("teleport {} {}", self.tx, self.ty));
+            devlink::command(&format!("tp {} {}", self.tx, self.ty));
         }
         ui.same_line();
         if ui.button("Here")
@@ -335,47 +363,217 @@ impl DebugView {
             self.tx = p.grid.0;
             self.ty = p.grid.1;
         }
+        ui.same_line();
+        if ui.button("Stuck") {
+            devlink::command("stuck");
+        }
+        ui.text("Time scale");
+        ui.same_line();
+        ui.set_next_item_width(80.0);
+        ui.input_text("##scale", &mut self.scale).build();
+        ui.same_line();
+        if ui.button("Apply##scale") {
+            devlink::command(&format!("time scale {}", self.scale.trim()));
+        }
+        ui.same_line();
+        if ui.button("Reset instance") {
+            devlink::command("instance reset");
+        }
+        ui.same_line();
+        ui.text_disabled(format!(
+            "now {}   seed {}",
+            devlink::live("time_scale").unwrap_or_else(|| "-".into()),
+            devlink::live("seed").unwrap_or_else(|| "-".into())
+        ));
         ui.separator();
         let h = (ui.content_region_avail()[1] - 120.0).max(160.0);
+        let (cmds, me) = devlink::registry();
+        let prefix = me.map_or("!".to_string(), |m| m.prefix);
         ui.child_window("world_box").size([0.0, h]).build(ui, || {
             self.instances.draw(ui);
+            ui.separator();
+            self.forms.draw_page(
+                ui,
+                "Debug>World",
+                &cmds,
+                &[
+                    "tp",
+                    "stuck",
+                    "time scale",
+                    "instance new",
+                    "instance transfer",
+                    "instance join",
+                    "instance close",
+                    "instance reset",
+                ],
+                &prefix,
+            );
         });
     }
-}
 
-fn shell(ui: &Ui, what: &str, step: &str) {
-    widgets::header(ui, what, "");
-    ui.spacing();
-    ui.text_disabled(format!("Comes with {step}."));
-    ui.text_disabled("Until then the Help and Console tabs run the commands that exist.");
-}
-
-/// The usage line: `!name <required> [optional]`.
-fn usage(c: &Cmd, prefix: &str) -> String {
-    let args: Vec<String> = c
-        .args
-        .iter()
-        .map(|a| {
-            if a.optional {
-                format!("[{}]", a.name)
-            } else {
-                format!("<{}>", a.name)
-            }
-        })
-        .collect();
-    format!("{prefix}{} {}", c.name, args.join(" "))
-        .trim_end()
-        .to_string()
-}
-
-fn common_prefix(items: &[&str]) -> String {
-    let mut p = items[0].to_string();
-    for s in &items[1..] {
-        while !s.starts_with(&p) {
-            p.pop();
+    fn players(&mut self, ui: &Ui) {
+        widgets::header(
+            ui,
+            "Who is online, with kick, mute, teleport and summon; announcements and accounts.",
+            "Chat equivalents: !who, !kick <player> [reason], !mute <player> [duration], !unmute \
+             <player>, !tp <player>, !summon <player>, !announce <message>.",
+        );
+        ui.text("Announce");
+        ui.same_line();
+        ui.set_next_item_width(-90.0);
+        ui.input_text("##announce", &mut self.announce).build();
+        ui.same_line();
+        if ui.button("Send") && !self.announce.trim().is_empty() {
+            devlink::command(&format!("announce {}", self.announce.trim()));
+            self.announce.clear();
         }
+        ui.text("Mute for");
+        ui.same_line();
+        ui.set_next_item_width(80.0);
+        ui.input_text("##mute_for", &mut self.mute_for).build();
+        let h = (ui.content_region_avail()[1] - 120.0).max(160.0);
+        let (cmds, me) = devlink::registry();
+        let prefix = me.map_or("!".to_string(), |m| m.prefix);
+        let online = devlink::online();
+        let mute_for = self.mute_for.trim().to_string();
+        let forms = &mut self.forms;
+        ui.child_window("players_box").size([0.0, h]).build(ui, || {
+            if online.is_empty() {
+                widgets::empty(ui, "No list from the server yet (it comes every second).");
+            } else if let Some(_t) = ui.begin_table_header_with_flags(
+                "online_v1",
+                [
+                    "Character",
+                    "Account",
+                    "Level",
+                    "League",
+                    "Area",
+                    "Instance",
+                    "",
+                ]
+                .map(imgui::TableColumnSetup::new),
+                super::table_opts(),
+            ) {
+                for o in &online {
+                    let _id = ui.push_id(o.character.as_str());
+                    for text in [
+                        &o.character,
+                        &o.account,
+                        &o.level,
+                        &o.league,
+                        &o.area,
+                        &o.instance,
+                    ] {
+                        ui.table_next_column();
+                        ui.text(text);
+                    }
+                    ui.table_next_column();
+                    let who = quote(&o.character);
+                    if ui.small_button("Kick") {
+                        devlink::command(&format!("player kick {who}"));
+                    }
+                    ui.same_line();
+                    if o.muted {
+                        if ui.small_button("Unmute") {
+                            devlink::command(&format!("player unmute {who}"));
+                        }
+                    } else if ui.small_button("Mute") {
+                        devlink::command(
+                            &format!("player mute {who} {mute_for}").trim().to_string(),
+                        );
+                    }
+                    ui.same_line();
+                    if ui.small_button("TP to") {
+                        devlink::command(&format!("tp {who}"));
+                    }
+                    ui.same_line();
+                    if ui.small_button("Summon") {
+                        devlink::command(&format!("summon {who}"));
+                    }
+                }
+            }
+            ui.separator();
+            forms.draw_page(
+                ui,
+                "Debug>Players",
+                &cmds,
+                &["player kick", "player unmute", "summon", "announce"],
+                &prefix,
+            );
+        });
     }
-    p
+
+    fn character(&mut self, ui: &Ui) {
+        widgets::header(
+            ui,
+            "Your character as the server sees it. Level, XP, points and class change here once \
+             they exist.",
+            "Comes with P9 (levels and XP) and P15 (passives).",
+        );
+        let value = |key: &str| devlink::live(key).unwrap_or_else(|| "-".into());
+        ui.text(format!(
+            "{}   level {}   class {}   league {}",
+            value("character"),
+            value("level"),
+            value("class"),
+            value("league")
+        ));
+        ui.text_disabled(format!(
+            "{}   instance {}   cell {}",
+            value("area"),
+            value("instance"),
+            value("cell")
+        ));
+        ui.separator();
+        self.generated(ui, "Debug>Character");
+    }
+
+    /// A tab whose controls come with a later step: says which, and has the forms that exist.
+    fn area_tab(&mut self, ui: &Ui, page: &str, what: &str, step: &str) {
+        widgets::header(ui, what, "");
+        ui.text_disabled(format!("Comes with {step}."));
+        ui.separator();
+        self.generated(ui, page);
+    }
+
+    fn generated(&mut self, ui: &Ui, page: &str) {
+        let (cmds, me) = devlink::registry();
+        let prefix = me.map_or("!".to_string(), |m| m.prefix);
+        let h = (ui.content_region_avail()[1] - 120.0).max(120.0);
+        let forms = &mut self.forms;
+        ui.child_window("generated_box")
+            .size([0.0, h])
+            .build(ui, || {
+                forms.draw_page(ui, page, &cmds, &[], &prefix);
+            });
+    }
+}
+
+/// The right pane of Help: usage, text, examples, aliases and the form.
+fn help_pane(ui: &Ui, c: &Cmd, prefix: &str, forms: &mut CommandsView) {
+    ui.text(format!("{prefix}{}", c.usage()));
+    ui.text_wrapped(&c.summary);
+    if c.help != c.summary {
+        ui.text_wrapped(&c.help);
+    }
+    for f in &c.flags {
+        ui.text_disabled(format!("--{}: {}", f.name, f.help));
+    }
+    if !c.examples.is_empty() {
+        let list: Vec<String> = c.examples.iter().map(|e| format!("{prefix}{e}")).collect();
+        ui.text_wrapped(format!("Examples: {}", list.join("   ")));
+    }
+    if !c.aliases.is_empty() {
+        let list: Vec<String> = c.aliases.iter().map(|a| format!("{prefix}{a}")).collect();
+        ui.text_wrapped(format!("Aliases: {}", list.join(" ")));
+    }
+    ui.text_disabled(format!(
+        "Permission: {}   Overlay: {}",
+        if c.admin { "admin" } else { "player" },
+        c.overlay.as_deref().unwrap_or("-")
+    ));
+    ui.separator();
+    forms.draw_command(ui, c, prefix);
 }
 
 /// The last 20 ack lines of any command, at the bottom of every Debug tab.
@@ -398,15 +596,4 @@ fn results_strip(ui: &Ui) {
             );
         }
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use super::common_prefix;
-
-    #[test]
-    fn completion_stops_where_the_names_differ() {
-        assert_eq!(common_prefix(&["item_give", "item_edit"]), "item_");
-        assert_eq!(common_prefix(&["teleport"]), "teleport");
-    }
 }

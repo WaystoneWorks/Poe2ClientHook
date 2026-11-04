@@ -39,6 +39,7 @@ poe-hook-mods = { path = "poe-hook-mods", default-features = false }
 log = { version = "0.4", features = ["std", "serde"] }
 ilhook = "2"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 sha2 = "0.10"
 toml = "0.9"
 ash = { version = "0.38", default-features = false, features = ["std", "debug"] }

@@ -94,25 +94,7 @@ fn receiver() {
     }
 }
 
-/// One argument of a server command (`commands::wire` on the server).
-#[derive(Clone, Debug)]
-pub struct CmdArg {
-    pub name: String,
-    /// `int`, `text`, `rest`, `bool`, `choice=a|b`, `area`, `seed`, `topology`,
-    /// `orientation`, `instance`, `player`, `minutes`.
-    pub kind: String,
-    pub optional: bool,
-}
-
-/// A server command, from the server's registry.
-#[derive(Clone, Debug)]
-pub struct Cmd {
-    pub name: String,
-    pub group: String,
-    pub admin: bool,
-    pub args: Vec<CmdArg>,
-    pub help: String,
-}
+pub use poe_hook_shared::cmdspec::{CmdArg, CmdSpec as Cmd};
 
 /// Who we are on the server.
 #[derive(Clone, Debug, Default)]
@@ -144,6 +126,115 @@ static INSTANCES: Mutex<Option<(Instant, Vec<Inst>, u64)>> = Mutex::new(None);
 static STAGING: Mutex<Vec<Inst>> = Mutex::new(Vec::new());
 /// Command results (`ack`), newest last.
 static RESULTS: Mutex<VecDeque<(u64, String, String)>> = Mutex::new(VecDeque::new());
+/// Live values for the Debug tabs (`state` lines).
+static LIVE: Mutex<Vec<(String, String)>> = Mutex::new(Vec::new());
+/// The online players (`online` lines; admins only).
+static ONLINE: Mutex<Vec<OnlineRow>> = Mutex::new(Vec::new());
+/// The newest completion answer.
+static COMPLETION: Mutex<Option<Completion>> = Mutex::new(None);
+
+/// An online player on the server.
+#[derive(Clone, Debug)]
+pub struct OnlineRow {
+    pub character: String,
+    pub account: String,
+    pub area: String,
+    pub instance: String,
+    pub league: String,
+    pub level: String,
+    pub muted: bool,
+}
+
+/// The server's answer to `complete <kind> <typed>`.
+#[derive(Clone, Debug, Default)]
+pub struct Completion {
+    pub kind: String,
+    pub typed: String,
+    /// `(id, display name)`.
+    pub names: Vec<(String, String)>,
+}
+
+fn handle_state(text: &str) {
+    let mut live = Vec::new();
+    let mut online = Vec::new();
+    for line in text.lines() {
+        let f: Vec<&str> = line.split('\t').collect();
+        match f.as_slice() {
+            ["state", "begin"] => {}
+            ["state", key, value] => live.push(((*key).to_owned(), (*value).to_owned())),
+            [
+                "online",
+                character,
+                account,
+                area,
+                instance,
+                league,
+                level,
+                muted,
+            ] => {
+                online.push(OnlineRow {
+                    character: (*character).to_owned(),
+                    account: (*account).to_owned(),
+                    area: (*area).to_owned(),
+                    instance: (*instance).to_owned(),
+                    league: (*league).to_owned(),
+                    level: (*level).to_owned(),
+                    muted: *muted == "1",
+                });
+            }
+            _ => {}
+        }
+    }
+    *LIVE.lock().unwrap() = live;
+    *ONLINE.lock().unwrap() = online;
+}
+
+fn handle_completion(text: &str) {
+    let mut out = Completion::default();
+    for line in text.lines() {
+        let f: Vec<&str> = line.split('\t').collect();
+        match f.as_slice() {
+            ["completion", kind, typed] => {
+                out.kind = (*kind).to_owned();
+                out.typed = (*typed).to_owned();
+            }
+            ["completion", kind] => out.kind = (*kind).to_owned(),
+            ["name", id, display] => out.names.push(((*id).to_owned(), (*display).to_owned())),
+            _ => {}
+        }
+    }
+    log::info!(
+        "completion {} {:?}: {} names",
+        out.kind,
+        out.typed,
+        out.names.len()
+    );
+    *COMPLETION.lock().unwrap() = Some(out);
+}
+
+/// A live value of the Debug tabs.
+pub fn live(key: &str) -> Option<String> {
+    LIVE.lock()
+        .unwrap()
+        .iter()
+        .find(|(k, _)| k == key)
+        .map(|(_, v)| v.clone())
+}
+
+/// The online players the server last sent.
+pub fn online() -> Vec<OnlineRow> {
+    ONLINE.lock().unwrap().clone()
+}
+
+/// The newest completion answer.
+pub fn completion() -> Option<Completion> {
+    COMPLETION.lock().unwrap().clone()
+}
+
+/// Asks the server for the names of a kind that match `typed`. Not logged: runs while typing.
+pub fn request_completion(kind: &str, typed: &str) -> bool {
+    send(&format!("complete {kind} {typed}"), true)
+}
 
 fn opt<T: std::str::FromStr>(s: &str) -> Option<T> {
     if s.is_empty() { None } else { s.parse().ok() }
@@ -155,28 +246,10 @@ fn handle_registry(text: &str) {
         let f: Vec<&str> = line.split('\t').collect();
         match f.first().copied() {
             Some("cmds") if f.get(1) == Some(&"begin") => reg.0.clear(),
-            Some("cmd") if f.len() >= 6 => {
-                let args = f[4]
-                    .split(',')
-                    .filter(|a| !a.is_empty())
-                    .filter_map(|a| {
-                        let (name, kind) = a.split_once(':')?;
-                        let optional = kind.ends_with('?');
-                        Some(CmdArg {
-                            name: name.to_owned(),
-                            kind: kind.trim_end_matches('?').to_owned(),
-                            optional,
-                        })
-                    })
-                    .collect();
-                reg.0.push(Cmd {
-                    name: f[1].to_owned(),
-                    group: f[2].to_owned(),
-                    admin: f[3] == "1",
-                    args,
-                    help: f[5].to_owned(),
-                });
-            }
+            Some("cmdspec") if f.len() >= 2 => match serde_json::from_str(f[1]) {
+                Ok(spec) => reg.0.push(spec),
+                Err(e) => log::warn!("debug link: bad cmdspec: {e}"),
+            },
             Some("you") if f.len() >= 4 => {
                 reg.1 = Some(Me {
                     account: f[1].to_owned(),
@@ -312,6 +385,14 @@ fn handle(text: &str) {
     }
     if text.starts_with("instances\t") {
         handle_instances(text);
+        return;
+    }
+    if text.starts_with("state\t") {
+        handle_state(text);
+        return;
+    }
+    if text.starts_with("completion\t") {
+        handle_completion(text);
         return;
     }
     let values: Vec<(String, String)> = text

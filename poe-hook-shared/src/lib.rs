@@ -4,6 +4,7 @@
 pub mod abi;
 pub mod alert;
 pub mod batch_jobs;
+pub mod cmdspec;
 pub mod config;
 pub mod login;
 pub mod mem;
