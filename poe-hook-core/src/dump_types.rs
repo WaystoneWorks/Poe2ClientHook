@@ -605,7 +605,7 @@ fn log_player_line(pos: usize, n: usize) {
     let wp_end = read::<usize>(grid + 0x8c).unwrap_or(0);
     let wp_index = read::<i32>(grid + 0xe4).unwrap_or(0);
     log::info!(
-        "LINE frame={n} s={},{} p={:.4},{:.4} q={},{} e={},{} cur={},{} flag={} swap={} sign={} slope={:.5} minacc={:.4} len={:.4} T={:.5} el={:.5} thr={:.5} acc={:.5} pend={:.5} wp={}/{}",
+        "LINE frame={n} s={},{} p={:.4},{:.4} q={},{} e={},{} cur={},{} flag={} swap={} sign={} slope={:.5} minacc={:.4} len={:.4} T={:.5} el={:.5} thr={:.5} acc={:.5} pend={:.5} wp={}/{} o={}",
         i(0x00),
         i(0x04),
         f(0x0c),
@@ -629,6 +629,8 @@ fn log_player_line(pos: usize, n: usize) {
         f(0x90),
         wp_index,
         wp_end.saturating_sub(wp_begin) / 8,
+        // Orientation mode +0x1e3 (Positioned_MoveToWaypoint faces the waypoint in 1, 3, 4).
+        read::<u8>(pos + 0x1e3).unwrap_or(0xff),
     );
 }
 
@@ -675,20 +677,31 @@ fn track_player(entity: usize) {
                     let a = read::<usize>(actor + o).filter(|&a| a > 0x10000)?;
                     let ty = read::<u16>(a + 0x120)?;
                     let fl = read::<u16>(a + 0x144).unwrap_or(0);
+                    // Roll-start facing (0x14197e160): byte +0x142 bit 4 and the skill id
+                    // act+0xf8 -> +0x40 compared with Actor +0x2b4.
+                    let b142 = read::<u8>(a + 0x142).unwrap_or(0);
+                    let sid = read::<usize>(a + 0xf8)
+                        .filter(|&k| k > 0x10000)
+                        .and_then(|k| read::<u32>(k + 0x40))
+                        .unwrap_or(0);
                     let vt = read::<usize>(a).unwrap_or(0);
                     let vt = MAIN
                         .get()
                         .map_or(vt, |m| if m.contains(vt) { m.to_ghidra(vt) } else { vt });
-                    Some(format!("+{o:#x}:{ty:#06x}/{fl:#x}/vt{vt:#x}"))
+                    Some(format!("+{o:#x}:{ty:#06x}/{fl:#x}/vt{vt:#x}/142={b142:#x}/id={sid:#x}"))
                 })
                 .collect();
             let state = format!(
-                "2a0={:#x} 2a1={:#x} 2a2={:#x} 915={} 916={}",
+                "2a0={:#x} 2a1={:#x} 2a2={:#x} 915={} 916={} 2b4={:#x} 2b8new={}",
                 read::<u8>(actor + 0x2a0).unwrap_or(0),
                 read::<u8>(actor + 0x2a1).unwrap_or(0),
                 read::<u8>(actor + crate::sigs::off().actor_sprint_flags).unwrap_or(0),
                 read::<u8>(actor + 0x915).unwrap_or(0),
-                read::<u8>(actor + 0x916).unwrap_or(0)
+                read::<u8>(actor + 0x916).unwrap_or(0),
+                // Last ended action's skill id and its timer (writer 0x141e45250); 2b8new is
+                // 1 while the timer is under 0.1 s, so each write shows as a 0 -> 1 edge.
+                read::<u32>(actor + 0x2b4).unwrap_or(0),
+                u8::from(read::<f32>(actor + 0x2b8).unwrap_or(1.0) < 0.1)
             );
             // Facing: Positioned +0x44c (radians, written by SetOrientation 0x141ddc820 unless
             // the orientation is locked, +0x1e5 bit 1); logged when it changes by > 0.05.
