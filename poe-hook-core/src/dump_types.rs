@@ -521,6 +521,7 @@ fn log_player_frame(entity: usize, n: usize, dt: f32) {
         read::<f32>(pos + crate::sigs::off().positioned_world_y).unwrap_or(0.0),
     );
     log_player_line(pos, n);
+    log_input_edges(n);
     let mut last = LAST.lock().unwrap();
     if *last != (x.to_bits(), y.to_bits()) {
         let (lx, ly) = (f32::from_bits(last.0), f32::from_bits(last.1));
@@ -532,6 +533,57 @@ fn log_player_frame(entity: usize, n: usize, dt: f32) {
             read::<i32>(pos + crate::sigs::off().positioned_grid_x).unwrap_or(0),
             read::<i32>(pos + crate::sigs::off().positioned_grid_y).unwrap_or(0)
         );
+    }
+}
+
+/// Movement research: the user's real key and mouse-button presses, polled once per player
+/// update with `GetAsyncKeyState` and logged on change as `INPUT frame=N down|up|tap 0xVK NAME`
+/// (`tap`: pressed and released between two polls). Keys posted by `auto_keys` do not show here
+/// (they are logged as `raw input key` / `posted key`).
+fn log_input_edges(n: usize) {
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
+    static HELD: std::sync::Mutex<[bool; 256]> = std::sync::Mutex::new([false; 256]);
+    let mut held = HELD.lock().unwrap();
+    for vk in 1..256usize {
+        // Left/right Shift, Ctrl, Alt repeat the generic 0x10-0x12.
+        if (0xa0..=0xa5).contains(&vk) {
+            continue;
+        }
+        let state = unsafe { GetAsyncKeyState(vk as i32) } as u16;
+        let down = state & 0x8000 != 0;
+        let kind = match (held[vk], down) {
+            (false, true) => "down",
+            (true, false) => "up",
+            (false, false) if state & 1 != 0 => "tap",
+            _ => continue,
+        };
+        held[vk] = down;
+        log::info!("INPUT frame={n} {kind} {vk:#04x} {}", key_name(vk));
+    }
+}
+
+fn key_name(vk: usize) -> String {
+    match vk {
+        0x01 => "LMB".into(),
+        0x02 => "RMB".into(),
+        0x04 => "MMB".into(),
+        0x05 => "X1".into(),
+        0x06 => "X2".into(),
+        0x08 => "Backspace".into(),
+        0x09 => "Tab".into(),
+        0x0d => "Enter".into(),
+        0x10 => "Shift".into(),
+        0x11 => "Ctrl".into(),
+        0x12 => "Alt".into(),
+        0x1b => "Esc".into(),
+        0x20 => "Space".into(),
+        0x25 => "Left".into(),
+        0x26 => "Up".into(),
+        0x27 => "Right".into(),
+        0x28 => "Down".into(),
+        0x30..=0x39 | 0x41..=0x5a => (vk as u8 as char).to_string(),
+        0x70..=0x7b => format!("F{}", vk - 0x6f),
+        _ => "?".into(),
     }
 }
 
