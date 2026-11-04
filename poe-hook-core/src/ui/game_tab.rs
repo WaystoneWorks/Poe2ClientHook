@@ -5,8 +5,12 @@ use std::{collections::HashMap, time::Instant};
 
 use imgui::{ListClipper, Ui};
 
+use super::widgets;
+
 pub struct StatsView {
     filter: String,
+    changed_only: bool,
+    set: usize,
     /// (set, key) → (value, when it last changed).
     seen: HashMap<(u32, u32), (i32, Instant)>,
 }
@@ -15,19 +19,46 @@ impl StatsView {
     pub fn new() -> Self {
         Self {
             filter: String::new(),
+            changed_only: false,
+            set: 0,
             seen: HashMap::new(),
         }
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        ui.set_next_item_width(320.0);
-        ui.input_text("Filter (stat id or key)", &mut self.filter)
-            .build();
+        widgets::header(
+            ui,
+            "The player's stats by name, live; yellow = changed in the last 3 s.",
+            "Set 0 is the player's own stats; names come from Stats.dat. A server column for \
+             comparing with the server's values comes with the stats pipeline (P8, P9).",
+        );
         let sets = crate::inspect::player_stats();
+        widgets::filter(
+            ui,
+            "stats_filter",
+            &mut self.filter,
+            "filter stat id/name",
+            260.0,
+        );
+        ui.same_line();
+        ui.checkbox("changed only", &mut self.changed_only);
+        ui.same_line();
+        let mut items = vec!["all sets".to_string()];
+        items.extend(sets.iter().map(|(s, _)| {
+            if *s == 0 {
+                "0 own".to_string()
+            } else {
+                s.to_string()
+            }
+        }));
+        self.set = self.set.min(items.len() - 1);
+        ui.set_next_item_width(100.0);
+        ui.combo_simple_string("##stat_set", &mut self.set, &items);
         if sets.is_empty() {
-            ui.text_disabled("No player stats yet.");
+            widgets::empty(ui, "No player stats yet: enter an area.");
             return;
         }
+        let want_set = (self.set > 0).then(|| sets[self.set - 1].0);
         let f = self.filter.to_lowercase();
         let now = Instant::now();
         let mut rows = Vec::new();
@@ -40,16 +71,16 @@ impl StatsView {
                     None => now - std::time::Duration::from_secs(3600),
                 };
                 self.seen.insert((*set, key), (value, changed));
-                if f.is_empty() || name.contains(&f) || key.to_string() == f {
+                let recent = now.duration_since(changed).as_secs_f32() < 3.0;
+                if want_set.is_none_or(|w| w == *set)
+                    && (!self.changed_only || recent)
+                    && (f.is_empty() || name.contains(&f) || key.to_string() == f)
+                {
                     rows.push((*set, key, name, value, changed));
                 }
             }
         }
-        ui.text_disabled(format!(
-            "{} sets, {} stats shown (set 0 = the player's own stats; names from Stats.dat)",
-            sets.len(),
-            rows.len()
-        ));
+        widgets::counter(ui, &format!("rows {}", widgets::thousands(rows.len())));
         if let Some(_t) = ui.begin_table_header_with_flags(
             "stats",
             [
@@ -63,7 +94,7 @@ impl StatsView {
             let mut clipper = ListClipper::new(rows.len()).begin(ui);
             while clipper.step() {
                 for i in clipper.display_start()..clipper.display_end() {
-                    let (set, key, name, value, changed) = rows[i as usize];
+                    let (set, key, name, value, changed) = rows[i];
                     let recent = now.duration_since(changed).as_secs_f32() < 3.0;
                     ui.table_next_column();
                     ui.text(set.to_string());
@@ -83,39 +114,66 @@ impl StatsView {
     }
 }
 
-pub fn draw_actions(ui: &Ui) {
-    if ui.button("Clear") {
-        crate::actions::clear();
+pub struct ActionsView {
+    paused: Option<Vec<crate::actions::Event>>,
+}
+
+impl ActionsView {
+    pub fn new() -> Self {
+        Self { paused: None }
     }
-    ui.same_line();
-    ui.text_disabled(
-        "The player's Actor actions (slot 0 = +0x238, 1 = +0x240), names from ActionTypes.dat",
-    );
-    let events = crate::actions::events();
-    ui.child_window("actions_list").build(ui, || {
-        let mut clipper = ListClipper::new(events.len()).begin(ui);
-        while clipper.step() {
-            for i in clipper.display_start()..clipper.display_end() {
-                let e = &events[i as usize];
-                let line = format!(
-                    "{} frame {:6} slot {} {:5} {:24} key {:5} action {:#x}",
-                    crate::util::clock(e.unix_ms),
-                    e.frame,
-                    e.slot,
-                    if e.started { "start" } else { "end" },
-                    e.name(),
-                    e.kind,
-                    e.action
-                );
-                if e.started {
-                    ui.text(line);
-                } else {
-                    ui.text_disabled(line);
+
+    pub fn draw(&mut self, ui: &Ui) {
+        widgets::header(
+            ui,
+            "The player's Actor actions (slot 0 = +0x238, 1 = +0x240), newest first.",
+            "Names come from ActionTypes.dat.",
+        );
+        let mut paused = self.paused.is_some();
+        if ui.checkbox("pause", &mut paused) {
+            self.paused = paused.then(crate::actions::events);
+        }
+        ui.same_line();
+        if ui.button("Clear") {
+            crate::actions::clear();
+            self.paused = None;
+        }
+        let events = self.paused.clone().unwrap_or_else(crate::actions::events);
+        widgets::counter(ui, &format!("{} events", widgets::thousands(events.len())));
+        if events.is_empty() {
+            widgets::empty(ui, "No actions yet: move or use a skill.");
+            return;
+        }
+        if let Some(_t) = ui.begin_table_header_with_flags(
+            "actions",
+            ["time", "frame", "slot", "", "action", "type id", "id"]
+                .map(imgui::TableColumnSetup::new),
+            super::table_opts(),
+        ) {
+            let mut clipper = ListClipper::new(events.len()).begin(ui);
+            while clipper.step() {
+                for i in clipper.display_start()..clipper.display_end() {
+                    let e = &events[events.len() - 1 - i];
+                    ui.table_next_column();
+                    ui.text(crate::util::clock(e.unix_ms));
+                    ui.table_next_column();
+                    ui.text(e.frame.to_string());
+                    ui.table_next_column();
+                    ui.text(e.slot.to_string());
+                    ui.table_next_column();
+                    if e.started {
+                        ui.text_colored(super::theme::OK, "start");
+                    } else {
+                        ui.text_disabled("end");
+                    }
+                    ui.table_next_column();
+                    ui.text(e.name());
+                    ui.table_next_column();
+                    ui.text(e.kind.to_string());
+                    ui.table_next_column();
+                    ui.text(format!("{:#x}", e.action));
                 }
             }
         }
-        if ui.scroll_y() >= ui.scroll_max_y() - 40.0 {
-            ui.set_scroll_here_y(1.0);
-        }
-    });
+    }
 }

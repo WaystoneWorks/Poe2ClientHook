@@ -5,7 +5,7 @@ use std::sync::atomic::Ordering;
 
 use imgui::Ui;
 
-use super::settings;
+use super::{settings, widgets};
 
 pub struct SettingsView {
     /// The scale slider's value while it is edited.
@@ -24,6 +24,12 @@ impl SettingsView {
     pub fn draw(&mut self, ui: &Ui) {
         let cfg = crate::config();
         let read_only = crate::host::read_only();
+        widgets::header(
+            ui,
+            "The overlay's own settings and the deployed config.",
+            "Saved in logs/poe-hook/overlay.toml, which a deploy never overwrites. poe-hook.toml \
+             is written by deploys: edit it, then Reload core.",
+        );
         ui.text("General");
         let mut popups = settings::get().show_slow_hook_popups;
         if ui.checkbox("Show slow hook popups", &mut popups) {

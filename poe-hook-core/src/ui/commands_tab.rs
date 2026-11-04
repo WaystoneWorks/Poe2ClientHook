@@ -1,5 +1,5 @@
-//! Commands tab (our server only): a form for every command in the server's registry (the
-//! same commands as `!name` in chat), grouped as the server groups them, and their results.
+//! Command forms for the Debug page (our server only): a form for a command of the server's
+//! registry (the same commands as `!name` in chat).
 
 use std::collections::HashMap;
 
@@ -15,7 +15,6 @@ fn layout_kind(k: &str) -> bool {
 pub struct CommandsView {
     values: HashMap<String, Vec<String>>,
     forms: HashMap<String, LayoutForm>,
-    last_request: Option<std::time::Instant>,
 }
 
 impl CommandsView {
@@ -23,81 +22,11 @@ impl CommandsView {
         Self {
             values: HashMap::new(),
             forms: HashMap::new(),
-            last_request: None,
         }
     }
 
-    pub fn draw(&mut self, ui: &Ui) {
-        let (cmds, me) = crate::devlink::registry();
-        if cmds.is_empty() {
-            ui.text_disabled("No command list from the server yet (needs position sync and [instance] debug_link).");
-            // Ask again now and then (e.g. after a core reload).
-            if self.last_request.is_none_or(|t| t.elapsed().as_secs() >= 3)
-                && crate::devlink::state().is_some()
-            {
-                crate::devlink::command("registry");
-                self.last_request = Some(std::time::Instant::now());
-            }
-            return;
-        }
-        let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
-        match &me {
-            Some(m) => ui.text(format!(
-                "Account {} ({}). In chat: {prefix}name args, {prefix}help.",
-                m.account,
-                if m.admin {
-                    "admin"
-                } else {
-                    "not an admin: admin commands are refused"
-                }
-            )),
-            None => ui.text_disabled("account unknown"),
-        }
-        ui.same_line();
-        if ui.small_button("Reload list") {
-            crate::devlink::command("registry");
-        }
-        let mut groups: Vec<&str> = Vec::new();
-        for c in &cmds {
-            if !groups.contains(&c.group.as_str()) {
-                groups.push(&c.group);
-            }
-        }
-        let admin = me.as_ref().is_some_and(|m| m.admin);
-        let avail = ui.content_region_avail();
-        ui.child_window("commands")
-            .size([0.0, (avail[1] * 0.7).max(200.0)])
-            .build(ui, || {
-                for g in &groups {
-                    if !ui.collapsing_header(
-                        format!("{g}##group"),
-                        imgui::TreeNodeFlags::DEFAULT_OPEN,
-                    ) {
-                        continue;
-                    }
-                    for c in cmds.iter().filter(|c| c.group == *g) {
-                        self.draw_command(ui, c, admin, &prefix);
-                    }
-                }
-            });
-        ui.separator();
-        ui.text("Results");
-        ui.child_window("results").border(true).build(ui, || {
-            for (ms, cmd, result) in crate::devlink::results().iter().rev() {
-                let color = if result.starts_with("ok") {
-                    super::theme::OK
-                } else {
-                    super::theme::BAD
-                };
-                ui.text_colored(
-                    color,
-                    format!("{} {cmd} -> {result}", crate::util::clock(*ms)),
-                );
-            }
-        });
-    }
-
-    fn draw_command(&mut self, ui: &Ui, c: &Cmd, admin: bool, prefix: &str) {
+    /// One command's form: its arguments as widgets and a Run button.
+    pub fn draw_command(&mut self, ui: &Ui, c: &Cmd, admin: bool, prefix: &str) {
         let _id = ui.push_id(&c.name);
         let values = self
             .values

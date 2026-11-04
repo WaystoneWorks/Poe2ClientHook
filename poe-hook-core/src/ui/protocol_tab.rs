@@ -3,6 +3,8 @@
 
 use imgui::Ui;
 
+use super::widgets;
+
 use crate::{
     packets::Dir,
     protocol::{self, Key, OpInfo},
@@ -41,8 +43,19 @@ impl ProtocolView {
             self.ops = protocol::snapshot();
             self.refreshed = Some(std::time::Instant::now());
         }
-        ui.set_next_item_width(220.0);
-        ui.input_text("Filter##proto", &mut self.filter).build();
+        widgets::header(
+            ui,
+            "Per opcode: what the field tracer learned and the analyzer's view of each field.",
+            "The tracer records the client's own reads and writes; the table is over the captured \
+             samples. Export now writes protocol.tsv and ghidra_labels.tsv to the session folder.",
+        );
+        widgets::filter(
+            ui,
+            "proto_filter",
+            &mut self.filter,
+            "filter opcodes",
+            220.0,
+        );
         ui.same_line();
         ui.checkbox("no name yet##proto", &mut self.unnamed_only);
         ui.same_line();
@@ -53,15 +66,24 @@ impl ProtocolView {
                 crate::host::session_dir().display()
             ));
         }
+        widgets::counter(ui, &format!("{} opcodes", self.ops.len()));
+        if self.ops.is_empty() {
+            widgets::empty(ui, "No opcodes traced yet: connect to a server.");
+            return;
+        }
         let f = self.filter.to_lowercase();
-        let height = ui.content_region_avail()[1];
-        ui.child_window("proto_list")
-            .size([360.0, height])
-            .border(true)
-            .build(ui, || {
-                for ((c, d, op), info) in &self.ops {
+        let selected = std::cell::Cell::new(self.selected);
+        let ops = &self.ops;
+        let unnamed_only = self.unnamed_only;
+        let (note, note_for) = (&mut self.note, &mut self.note_for);
+        widgets::split(
+            ui,
+            "protocol",
+            360.0,
+            || {
+                for ((c, d, op), info) in ops {
                     let name = crate::packets::name(*c, *d, *op);
-                    if self.unnamed_only && name.is_some() {
+                    if unnamed_only && name.is_some() {
                         continue;
                     }
                     let line = format!(
@@ -85,42 +107,40 @@ impl ProtocolView {
                     let label = format!("{line} ({}){mark}##{c:?}{d:?}{op}", info.count);
                     if ui
                         .selectable_config(label)
-                        .selected(self.selected == Some(key))
+                        .selected(selected.get() == Some(key))
                         .build()
                     {
-                        self.selected = Some(key);
+                        selected.set(Some(key));
                     }
                 }
-            });
-        ui.same_line();
-        ui.child_window("proto_detail")
-            .size([0.0, height])
-            .border(true)
-            .build(ui, || {
-                if let Some(key) = self.selected {
-                    if self.note_for != Some(key) {
-                        self.note = crate::notes::opcode_note(key.0, key.1, key.2);
-                        self.note_for = Some(key);
+            },
+            || {
+                if let Some(key) = selected.get() {
+                    if *note_for != Some(key) {
+                        *note = crate::notes::opcode_note(key.0, key.1, key.2);
+                        *note_for = Some(key);
                     }
-                    ui.text("Your note on this opcode (what you think it does):");
-                    ui.input_text_multiline("##proto_note", &mut self.note, [-1.0, 54.0])
+                    ui.text_disabled("Your note on this opcode (what you think it does):");
+                    ui.input_text_multiline("##proto_note", note, [-1.0, 54.0])
                         .build();
                     if ui.button("Save note##proto") {
-                        crate::notes::set_opcode_note(key.0, key.1, key.2, &self.note);
+                        crate::notes::set_opcode_note(key.0, key.1, key.2, note);
                         crate::ui::notice(format!("Note saved for {:#06x}", key.2));
                     }
                     ui.separator();
                 }
-                self.detail(ui)
-            });
+                Self::detail(ui, ops, selected.get());
+            },
+        );
+        self.selected = selected.get();
     }
 
-    fn detail(&self, ui: &Ui) {
-        let Some(key) = self.selected else {
-            ui.text_disabled("Select an opcode.");
+    fn detail(ui: &Ui, ops: &[(Key, OpInfo)], selected: Option<Key>) {
+        let Some(key) = selected else {
+            widgets::empty(ui, "Select an opcode on the left.");
             return;
         };
-        let Some((_, info)) = self.ops.iter().find(|(k, _)| *k == key) else {
+        let Some((_, info)) = ops.iter().find(|(k, _)| *k == key) else {
             return;
         };
         let (c, d, op) = key;

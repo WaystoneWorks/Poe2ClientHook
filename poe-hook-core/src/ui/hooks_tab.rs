@@ -5,6 +5,8 @@ use std::time::Instant;
 
 use imgui::Ui;
 
+use super::widgets;
+
 pub struct HooksView {
     /// Previous totals, for per-second rates.
     last: Vec<(&'static str, u64, u64)>,
@@ -37,12 +39,27 @@ impl HooksView {
             self.last = stats.iter().map(|(n, c, t, _)| (*n, *c, *t)).collect();
             self.last_at = Instant::now();
         }
+        widgets::header(
+            ui,
+            "Time spent in each of our hook callbacks, sorted by ms/s.",
+            "They run on game threads, so their time is the game's time. ms/s = milliseconds of \
+             game-thread time per second. A callback over 50 ms is also logged and shown as a \
+             notice (Settings can turn the popup off).",
+        );
         if ui.button("Reset counters") {
             crate::hooks::reset_stats();
             self.last.clear();
         }
-        ui.same_line();
-        ui.text_disabled("ms/s = milliseconds of game-thread time per second spent in the hook");
+        widgets::counter(ui, &format!("{} callbacks", stats.len()));
+        if stats.is_empty() {
+            widgets::empty(ui, "No hooks installed.");
+            return;
+        }
+        let mut order: Vec<usize> = (0..stats.len()).collect();
+        order.sort_by(|&a, &b| {
+            let load = |i: usize| self.rates.get(i).map_or(0.0, |r| r.1);
+            load(b).total_cmp(&load(a))
+        });
         if let Some(_t) = ui.begin_table_header_with_flags(
             "hook_stats",
             [
@@ -55,7 +72,8 @@ impl HooksView {
             ],
             crate::ui::table_opts(),
         ) {
-            for (i, (name, calls, total, max)) in stats.iter().enumerate() {
+            for i in order {
+                let (name, calls, total, max) = &stats[i];
                 let (rate, load) = self.rates.get(i).copied().unwrap_or_default();
                 ui.table_next_column();
                 ui.text(name);

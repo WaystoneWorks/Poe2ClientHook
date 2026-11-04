@@ -3,12 +3,48 @@
 
 use imgui::Ui;
 
-pub fn draw(ui: &Ui) {
-    let notes = crate::notes::all();
-    ui.text_disabled(format!(
-        "{} notes; file: logs/poe-hook/packet_notes.tsv (kept across sessions). Write them in the Packets or Protocol tab.",
-        notes.len()
-    ));
+use super::widgets;
+
+pub struct NotesView {
+    filter: String,
+}
+
+impl NotesView {
+    pub fn new() -> Self {
+        Self {
+            filter: String::new(),
+        }
+    }
+
+    pub fn draw(&mut self, ui: &Ui) {
+        draw(ui, &mut self.filter);
+    }
+}
+
+fn draw(ui: &Ui, filter: &mut String) {
+    widgets::header(
+        ui,
+        "Every packet note, opcode notes first.",
+        "Saved in logs/poe-hook/packet_notes.tsv (kept across sessions). Write them in the \
+         Messages or Protocol page.",
+    );
+    widgets::filter(ui, "notes_filter", filter, "filter notes", 260.0);
+    let f = filter.to_lowercase();
+    let notes: Vec<_> = crate::notes::all()
+        .into_iter()
+        .filter(|n| {
+            f.is_empty()
+                || n.text.to_lowercase().contains(&f)
+                || format!("{:#06x}", n.opcode).contains(&f)
+                || crate::packets::name(n.channel, n.dir, n.opcode)
+                    .is_some_and(|x| x.to_lowercase().contains(&f))
+        })
+        .collect();
+    widgets::counter(ui, &format!("{} notes", notes.len()));
+    if notes.is_empty() {
+        widgets::empty(ui, "No notes yet: write one on the Messages tab.");
+        return;
+    }
     if let Some(_t) = ui.begin_table_header_with_flags(
         "notes",
         [

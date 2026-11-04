@@ -50,6 +50,17 @@ pub fn verified() -> bool {
     LOADED.get().is_some_and(Loaded::verified)
 }
 
+/// Every feature's health from the signature resolution: (name, ok, problems).
+pub fn feature_health() -> Vec<(String, bool, Vec<String>)> {
+    LOADED.get().map_or_else(Vec::new, |l| {
+        l.resolution()
+            .features
+            .values()
+            .map(|f| (f.name.clone(), f.ok, f.problems.clone()))
+            .collect()
+    })
+}
+
 /// Whether every signature and field `feature` needs resolved.
 pub fn feature_ok(feature: &str) -> bool {
     LOADED.get().is_some_and(|l| l.feature_ok(feature))

@@ -6,6 +6,8 @@ use std::{sync::Mutex, time::Instant};
 
 use imgui::{ListClipper, Ui};
 
+use super::widgets;
+
 use crate::scanner::Region;
 
 /// A region requested by another tab (address expression, size).
@@ -48,9 +50,13 @@ impl ScannerView {
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        ui.set_next_item_width(320.0);
-        ui.input_text("address (watch syntax)", &mut self.expr)
-            .build();
+        widgets::header(
+            ui,
+            "Watch a memory region change live.",
+            "Red = just changed, orange = changed recently, yellow = differs from the baseline. \
+             Address syntax is the Watches page's. Other pages send a region here (component scan).",
+        );
+        widgets::filter(ui, "scan_expr", &mut self.expr, "address expression", 320.0);
         ui.same_line();
         ui.set_next_item_width(120.0);
         ui.input_int("size", &mut self.len);
@@ -59,7 +65,8 @@ impl ScannerView {
             self.region = Some(Region::new(self.expr.clone(), self.len.max(16) as usize));
         }
         let Some(r) = self.region.as_mut() else {
-            ui.text_disabled(
+            widgets::empty(
+                ui,
                 "Enter an address (e.g. pos, actor, [player+0x10]+0x8) and press Watch.",
             );
             return;
@@ -76,11 +83,7 @@ impl ScannerView {
             ui.text_colored(super::theme::BAD, e);
             return;
         }
-        ui.text_disabled(format!(
-            "{:#x}, {} bytes; red = just changed, orange = changed recently, yellow = differs from baseline",
-            r.addr.unwrap_or(0),
-            r.len
-        ));
+        widgets::counter(ui, &format!("{:#x}, {} bytes", r.addr.unwrap_or(0), r.len));
         let rows: Vec<usize> = (0..r.bytes.len())
             .step_by(16)
             .filter(|&row| !self.changed_only || r.row_differs(row))

@@ -20,6 +20,8 @@ pub struct Settings {
     pub sidebar_folded: Vec<String>,
     /// Replaces `overlay.scale` of `poe-hook.toml` when set (applies at the next start).
     pub scale_override: Option<f32>,
+    /// Left-pane widths of the list/detail pages (draggable splitters), by page id.
+    pub split_widths: std::collections::BTreeMap<String, f32>,
 }
 
 impl Default for Settings {
@@ -29,6 +31,7 @@ impl Default for Settings {
             last_page: String::new(),
             sidebar_folded: vec!["RESEARCH".to_string()],
             scale_override: None,
+            split_widths: Default::default(),
         }
     }
 }
@@ -139,6 +142,7 @@ mod tests {
             last_page: "Packets".into(),
             sidebar_folded: vec![],
             scale_override: Some(1.5),
+            split_widths: [("packets".to_string(), 420.0)].into(),
         };
         s.write(&p).unwrap();
         assert!(!d.join("overlay.toml.tmp").exists());

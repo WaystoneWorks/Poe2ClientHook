@@ -4,6 +4,8 @@
 
 use imgui::Ui;
 
+use super::widgets;
+
 use crate::packets::{Channel, Dir};
 
 pub struct CoverageView {
@@ -22,44 +24,74 @@ impl CoverageView {
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        ui.set_next_item_width(220.0);
-        ui.input_text("Filter##cov", &mut self.filter).build();
+        widgets::header(
+            ui,
+            "Every opcode seen, with counts on official and our servers, and its visibility.",
+            "All sessions are merged in logs/poe-hook/coverage.tsv. \"official only\" lists what \
+             official servers send that ours never did: the server's to-do list. The visible \
+             column hides the opcode in the Messages tab.",
+        );
+        widgets::filter(
+            ui,
+            "cov_filter",
+            &mut self.filter,
+            "filter name/0x..",
+            220.0,
+        );
         ui.same_line();
-        ui.checkbox("official only (never on ours)", &mut self.official_only);
+        ui.checkbox("official only", &mut self.official_only);
         ui.same_line();
         ui.checkbox("no name yet", &mut self.unnamed_only);
+        let f = self.filter.to_lowercase();
         let rows: Vec<_> = crate::packets::coverage()
             .into_iter()
             .filter(|((c, d, op), s)| {
                 let name = crate::packets::name(*c, *d, *op);
                 (!self.official_only || (s.official > 0 && s.private == 0))
                     && (!self.unnamed_only || name.is_none())
-                    && (self.filter.is_empty()
+                    && (f.is_empty()
                         || format!("{op:#06x} {}", name.unwrap_or(""))
                             .to_lowercase()
-                            .contains(&self.filter.to_lowercase()))
+                            .contains(&f))
             })
             .collect();
-        ui.text_disabled(format!(
-            "{} opcodes; file: logs/poe-hook/coverage.tsv (merged across sessions)",
-            rows.len()
-        ));
+        ui.same_line();
+        if ui.button("Hide listed") {
+            for ((c, d, op), _) in &rows {
+                crate::hidden::set_hidden(crate::hidden::key(*c, *d, *op), true);
+            }
+        }
+        ui.same_line();
+        if ui.button("Show all") {
+            crate::hidden::clear();
+        }
+        widgets::counter(ui, &format!("{} opcodes", widgets::thousands(rows.len())));
+        if rows.is_empty() {
+            widgets::empty(ui, "No opcodes yet: connect to a server.");
+            return;
+        }
         if let Some(_t) = ui.begin_table_header_with_flags(
-            "coverage",
+            "coverage2",
             [
-                imgui::TableColumnSetup::new("channel"),
-                imgui::TableColumnSetup::new("dir"),
-                imgui::TableColumnSetup::new("opcode"),
-                imgui::TableColumnSetup::new("name"),
-                imgui::TableColumnSetup::new("official"),
-                imgui::TableColumnSetup::new("ours"),
-                imgui::TableColumnSetup::new("session"),
-                imgui::TableColumnSetup::new("size"),
-            ],
-            crate::ui::table_opts(),
+                "visible", "channel", "dir", "opcode", "name", "official", "ours", "session",
+                "size",
+            ]
+            .map(imgui::TableColumnSetup::new),
+            crate::ui::table_opts().flags(
+                imgui::TableFlags::RESIZABLE
+                    | imgui::TableFlags::ROW_BG
+                    | imgui::TableFlags::BORDERS_INNER_V
+                    | imgui::TableFlags::SCROLL_Y,
+            ),
         ) {
             for ((c, d, op), s) in rows {
                 let name = crate::packets::name(c, d, op);
+                let key = crate::hidden::key(c, d, op);
+                ui.table_next_column();
+                let mut visible = !crate::hidden::is_hidden(key);
+                if ui.checkbox(format!("##vis{}_{}_{op}", c.name(), d.name()), &mut visible) {
+                    crate::hidden::set_hidden(key, !visible);
+                }
                 ui.table_next_column();
                 ui.text(c.name());
                 ui.table_next_column();

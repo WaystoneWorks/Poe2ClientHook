@@ -4,9 +4,9 @@
 mod alert;
 mod commands_tab;
 mod coverage_tab;
+mod debug_tab;
 mod follow;
 mod game_tab;
-mod gamelog_tab;
 mod hooks_tab;
 mod inspect_tab;
 mod instances_tab;
@@ -23,6 +23,7 @@ mod settings_tab;
 mod status_tab;
 pub mod theme;
 mod timing_tab;
+pub mod widgets;
 
 use std::{
     sync::Mutex,
@@ -65,24 +66,33 @@ pub struct App {
     log: log_tab::LogView,
     packets: packets_tab::PacketsView,
     coverage: coverage_tab::CoverageView,
+    notes: notes_tab::NotesView,
     timing: timing_tab::TimingView,
-    gamelog: gamelog_tab::GameLogView,
     entities: inspect_tab::EntitiesView,
     watches: inspect_tab::WatchesView,
     hooks: hooks_tab::HooksView,
     protocol: protocol_tab::ProtocolView,
     scanner: scanner_tab::ScannerView,
     stats: game_tab::StatsView,
+    actions: game_tab::ActionsView,
     minimap: minimap_tab::MinimapView,
     server: server_tab::ServerView,
-    commands: commands_tab::CommandsView,
-    instances: instances_tab::InstancesView,
+    debug: debug_tab::DebugView,
     settings: settings_tab::SettingsView,
     page: Page,
     /// The sub-page last shown per sidebar entry (an entry with tabs opens on it again).
     last_tab: Vec<(&'static str, Page)>,
     page_search: String,
     palette_query: String,
+    /// `POE_HOOK_OVERLAY_TOUR` (game tests): shows every page in turn and snapshots each.
+    tour: Option<Tour>,
+}
+
+/// The overlay tour: the page index, when it was shown, and whether its snapshot was taken.
+struct Tour {
+    index: usize,
+    since: Instant,
+    shot: bool,
 }
 
 impl App {
@@ -92,22 +102,27 @@ impl App {
             log: log_tab::LogView::new(),
             packets: packets_tab::PacketsView::new(),
             coverage: coverage_tab::CoverageView::new(),
+            notes: notes_tab::NotesView::new(),
             timing: timing_tab::TimingView::new(),
-            gamelog: gamelog_tab::GameLogView::new(),
             entities: inspect_tab::EntitiesView::new(),
             watches: inspect_tab::WatchesView::new(),
             hooks: hooks_tab::HooksView::new(),
             protocol: protocol_tab::ProtocolView::new(),
             scanner: scanner_tab::ScannerView::new(),
             stats: game_tab::StatsView::new(),
+            actions: game_tab::ActionsView::new(),
             minimap: minimap_tab::MinimapView::new(),
             server: server_tab::ServerView::new(),
-            commands: commands_tab::CommandsView::new(),
-            instances: instances_tab::InstancesView::new(),
+            debug: debug_tab::DebugView::new(),
             page: load_page(),
             last_tab: Vec::new(),
             page_search: String::new(),
             palette_query: String::new(),
+            tour: std::env::var_os("POE_HOOK_OVERLAY_TOUR").map(|_| Tour {
+                index: usize::MAX,
+                since: Instant::now(),
+                shot: true,
+            }),
         }
     }
 
@@ -123,6 +138,7 @@ impl App {
         if !visible {
             return;
         }
+        self.tour_step();
         let toggle = crate::config().overlay.toggle_key;
         ui.window("poe-hook##main2")
             .size([1500.0, 780.0], Condition::FirstUseEver)
@@ -142,6 +158,36 @@ impl App {
                 });
             });
         let _ = toggle;
+    }
+
+    /// One step of the overlay tour: every 3 s the next page, with a snapshot 1.5 s after it
+    /// is shown. The log lines `overlay tour: <Page>` and `overlay tour: done` let the test
+    /// pair each page with its screenshot.
+    fn tour_step(&mut self) {
+        let Some(t) = self.tour.as_mut() else {
+            return;
+        };
+        let all: Vec<Page> = pages().map(|(_, p, _)| p).filter(|p| visible(*p)).collect();
+        if t.index != usize::MAX && t.index >= all.len() {
+            return;
+        }
+        if !t.shot && t.since.elapsed() >= Duration::from_millis(1500) {
+            t.shot = true;
+            log::info!("overlay tour: {:?}", all[t.index]);
+            crate::snapshot::request();
+        } else if t.shot && t.since.elapsed() >= Duration::from_secs(3) {
+            let next = t.index.wrapping_add(1);
+            t.index = next;
+            t.since = Instant::now();
+            t.shot = false;
+            match all.get(next) {
+                Some(p) => {
+                    let p = *p;
+                    self.go(p);
+                }
+                None => log::info!("overlay tour: done"),
+            }
+        }
     }
 
     /// The sidebar: groups (folding headers; Research starts folded) and their entries (our
@@ -233,9 +279,9 @@ impl App {
         let Some(e) = entry_of(self.page) else {
             return;
         };
-        if e.pages.len() > 1 {
+        if e.pages.iter().filter(|(p, _)| visible(*p)).count() > 1 {
             let mut first = true;
-            for (page, name) in e.pages {
+            for (page, name) in e.pages.iter().filter(|(p, _)| visible(*p)) {
                 if !first {
                     ui.same_line();
                 }
@@ -258,26 +304,35 @@ impl App {
 
     fn draw_page(&mut self, ui: &Ui, plots: &dear_implot::PlotContext) {
         // A page of our server only, while connected to an official one: back home.
-        if page_is_custom(self.page) && !custom_server() {
-            self.page = Page::Status;
+        if !visible(self.page) {
+            self.page = if page_is_custom(self.page) && custom_server() {
+                Page::DebugHelp
+            } else {
+                Page::Status
+            };
         }
         self.page_tabs(ui);
         match self.page {
             Page::Status => status_tab::draw(ui),
             Page::Log => self.log.draw(ui),
-            Page::GameLog => self.gamelog.draw(ui),
-            Page::Instances => self.instances.draw(ui),
-            Page::Commands => self.commands.draw(ui),
-            Page::Server => self.server.draw_server(ui),
-            Page::Desync => self.server.draw_desync(ui, plots),
+            Page::DebugHelp
+            | Page::DebugConsole
+            | Page::DebugCharacter
+            | Page::DebugStats
+            | Page::DebugItems
+            | Page::DebugWorld
+            | Page::DebugMonsters
+            | Page::DebugLife
+            | Page::DebugPlayers => self.debug.draw(ui, self.page),
+            Page::Sync => self.server.draw(ui, plots),
             Page::Packets => self.packets.draw(ui),
             Page::Protocol => self.protocol.draw(ui),
             Page::Coverage => self.coverage.draw(ui),
-            Page::Notes => notes_tab::draw(ui),
+            Page::Notes => self.notes.draw(ui),
             Page::Timing => self.timing.draw(ui, plots),
             Page::Player => inspect_tab::draw_player(ui),
             Page::Stats => self.stats.draw(ui),
-            Page::Actions => game_tab::draw_actions(ui),
+            Page::Actions => self.actions.draw(ui),
             Page::Entities => self.entities.draw(ui),
             Page::Watches => self.watches.draw(ui),
             Page::Minimap => self.minimap.draw(ui),
@@ -384,7 +439,7 @@ impl App {
             }
             // A bare command that needs arguments: open its form instead of running it.
             Some(PaletteItem::Command(line, needs_args)) if needs_args && !line.contains(' ') => {
-                self.go(Page::Commands);
+                self.go(Page::DebugHelp);
                 ui.close_current_popup();
             }
             Some(PaletteItem::Command(line, _)) => {
@@ -405,23 +460,31 @@ enum PaletteItem {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Page {
     Status,
-    Log,
-    GameLog,
-    Instances,
-    Commands,
-    Server,
-    Desync,
-    Packets,
-    Protocol,
-    Coverage,
-    Notes,
-    Timing,
+    /// Player > Overview.
     Player,
     Stats,
     Actions,
     Entities,
     Watches,
     Minimap,
+    DebugHelp,
+    DebugConsole,
+    DebugCharacter,
+    DebugStats,
+    DebugItems,
+    DebugWorld,
+    DebugMonsters,
+    DebugLife,
+    DebugPlayers,
+    Sync,
+    Log,
+    /// Packets > Messages.
+    Packets,
+    /// Packets > Opcodes.
+    Coverage,
+    Notes,
+    Protocol,
+    Timing,
     Scanner,
     Hooks,
     Settings,
@@ -451,14 +514,16 @@ const GROUPS: &[Group] = &[
                 pages: &[(Page::Status, "Status")],
             },
             Entry {
-                name: "Game",
+                name: "Player",
                 pages: &[
-                    (Page::Player, "Player"),
+                    (Page::Player, "Overview"),
                     (Page::Stats, "Stats"),
                     (Page::Actions, "Actions"),
-                    (Page::Entities, "Entities"),
-                    (Page::Watches, "Watches"),
                 ],
+            },
+            Entry {
+                name: "Entities",
+                pages: &[(Page::Entities, "Entities"), (Page::Watches, "Watches")],
             },
             Entry {
                 name: "Minimap",
@@ -467,20 +532,26 @@ const GROUPS: &[Group] = &[
         ],
     },
     Group {
-        name: "SERVER",
+        name: "DEBUG",
         custom: true,
         entries: &[
             Entry {
-                name: "Instances",
-                pages: &[(Page::Instances, "Instances")],
-            },
-            Entry {
-                name: "Commands",
-                pages: &[(Page::Commands, "Commands")],
+                name: "Debug",
+                pages: &[
+                    (Page::DebugHelp, "Help"),
+                    (Page::DebugConsole, "Console"),
+                    (Page::DebugCharacter, "Character"),
+                    (Page::DebugStats, "Stats"),
+                    (Page::DebugItems, "Items"),
+                    (Page::DebugWorld, "World"),
+                    (Page::DebugMonsters, "Monsters"),
+                    (Page::DebugLife, "Life"),
+                    (Page::DebugPlayers, "Players"),
+                ],
             },
             Entry {
                 name: "Sync",
-                pages: &[(Page::Server, "Sync state"), (Page::Desync, "Desync")],
+                pages: &[(Page::Sync, "Sync")],
             },
         ],
     },
@@ -488,8 +559,8 @@ const GROUPS: &[Group] = &[
         name: "LOGS",
         custom: false,
         entries: &[Entry {
-            name: "Live logs",
-            pages: &[(Page::Log, "Log"), (Page::GameLog, "Game log")],
+            name: "Log",
+            pages: &[(Page::Log, "Log")],
         }],
     },
     Group {
@@ -497,14 +568,20 @@ const GROUPS: &[Group] = &[
         custom: false,
         entries: &[
             Entry {
-                name: "Network",
+                name: "Packets",
                 pages: &[
-                    (Page::Packets, "Packets"),
-                    (Page::Protocol, "Protocol"),
-                    (Page::Coverage, "Coverage"),
+                    (Page::Packets, "Messages"),
+                    (Page::Coverage, "Opcodes"),
                     (Page::Notes, "Notes"),
-                    (Page::Timing, "Timing"),
                 ],
+            },
+            Entry {
+                name: "Protocol",
+                pages: &[(Page::Protocol, "Protocol")],
+            },
+            Entry {
+                name: "Timing",
+                pages: &[(Page::Timing, "Timing")],
             },
             Entry {
                 name: "RE tools",
@@ -546,9 +623,28 @@ fn page_is_custom(page: Page) -> bool {
     })
 }
 
-/// Whether the page may be shown now (our server's pages only while on our server).
+/// Debug tabs only admins see: every one but Help and Console (hidden, not greyed out, once
+/// the server has said the account is not an admin).
+fn admin_only(page: Page) -> bool {
+    matches!(
+        page,
+        Page::DebugCharacter
+            | Page::DebugStats
+            | Page::DebugItems
+            | Page::DebugWorld
+            | Page::DebugMonsters
+            | Page::DebugLife
+            | Page::DebugPlayers
+    )
+}
+
+/// Whether the page may be shown now: our server's pages only while on our server, and the
+/// admin-only tabs only for admins.
 fn visible(page: Page) -> bool {
-    !page_is_custom(page) || custom_server()
+    if page_is_custom(page) && !custom_server() {
+        return false;
+    }
+    !(admin_only(page) && crate::devlink::registry().1.is_some_and(|m| !m.admin))
 }
 
 fn save_page(page: Page) {
@@ -647,23 +743,28 @@ mod tests {
     fn every_page_is_in_the_sidebar_once() {
         let all = [
             Page::Status,
-            Page::Log,
-            Page::GameLog,
-            Page::Instances,
-            Page::Commands,
-            Page::Server,
-            Page::Desync,
-            Page::Packets,
-            Page::Protocol,
-            Page::Coverage,
-            Page::Notes,
-            Page::Timing,
             Page::Player,
             Page::Stats,
             Page::Actions,
             Page::Entities,
             Page::Watches,
             Page::Minimap,
+            Page::DebugHelp,
+            Page::DebugConsole,
+            Page::DebugCharacter,
+            Page::DebugStats,
+            Page::DebugItems,
+            Page::DebugWorld,
+            Page::DebugMonsters,
+            Page::DebugLife,
+            Page::DebugPlayers,
+            Page::Sync,
+            Page::Log,
+            Page::Packets,
+            Page::Coverage,
+            Page::Notes,
+            Page::Protocol,
+            Page::Timing,
             Page::Scanner,
             Page::Hooks,
             Page::Settings,
@@ -683,8 +784,25 @@ mod tests {
                 .contains(&"RESEARCH".to_string())
         );
         assert_eq!(entry_of(Page::Settings).unwrap().name, "Settings");
-        assert!(page_is_custom(Page::Desync));
+        assert!(page_is_custom(Page::Sync));
+        assert!(page_is_custom(Page::DebugWorld));
         assert!(!page_is_custom(Page::Log));
-        assert_eq!(entry_of(Page::GameLog).unwrap().name, "Live logs");
+    }
+
+    #[test]
+    fn merged_pages_share_one_entry() {
+        assert_eq!(entry_of(Page::Stats).unwrap().name, "Player");
+        assert_eq!(entry_of(Page::Actions).unwrap().name, "Player");
+        assert_eq!(entry_of(Page::Notes).unwrap().name, "Packets");
+        assert_eq!(entry_of(Page::Coverage).unwrap().name, "Packets");
+        assert_eq!(entry_of(Page::DebugConsole).unwrap().name, "Debug");
+    }
+
+    #[test]
+    fn only_help_and_console_are_open_to_everyone() {
+        assert!(!admin_only(Page::DebugHelp));
+        assert!(!admin_only(Page::DebugConsole));
+        assert!(admin_only(Page::DebugPlayers));
+        assert!(admin_only(Page::DebugWorld));
     }
 }

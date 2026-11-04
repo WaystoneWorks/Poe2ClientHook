@@ -6,32 +6,51 @@
 
 use imgui::Ui;
 
+use super::widgets;
 use crate::minimap::Grid;
 
 pub struct MinimapView {
     layer: usize,
-    radius: i32,
     cell_px: f32,
+    follow: bool,
+    show_server: bool,
+    /// The centre cell while not following.
+    anchor: (i64, i64),
 }
 
 impl MinimapView {
     pub fn new() -> Self {
         Self {
             layer: 1,
-            radius: 60,
             cell_px: 4.0,
+            follow: true,
+            show_server: true,
+            anchor: (0, 0),
         }
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        ui.set_next_item_width(140.0);
+        widgets::header(
+            ui,
+            "The client's cell grids around the player.",
+            "Shade = the grid's 4-bit value. Which grid is walkability is not settled: the player \
+             was seen standing on grid 0 = 0 with grids 1-3 = 5. Export writes the area's layout \
+             and grids for validating our terrain generator, also on official servers.",
+        );
+        ui.set_next_item_width(70.0);
         ui.combo_simple_string("grid", &mut self.layer, &["0", "1", "2", "3"]);
         ui.same_line();
-        ui.set_next_item_width(160.0);
-        ui.slider("radius (cells)", 20, 200, &mut self.radius);
-        ui.same_line();
         ui.set_next_item_width(140.0);
-        ui.slider("cell px", 1.0, 10.0, &mut self.cell_px);
+        ui.slider("zoom", 1.0, 10.0, &mut self.cell_px);
+        ui.same_line();
+        if ui.checkbox("follow player", &mut self.follow)
+            && !self.follow
+            && let Some(p) = crate::inspect::player()
+        {
+            self.anchor = (p.grid.0 as i64, p.grid.1 as i64);
+        }
+        ui.same_line();
+        ui.checkbox("server position", &mut self.show_server);
         ui.same_line();
         if ui.button("Export area") {
             let ok = crate::dump_types::export_layout_now();
@@ -48,29 +67,40 @@ impl MinimapView {
             });
         }
         let Some(grid) = Grid::current(self.layer) else {
-            ui.text_disabled("No terrain (not in an area yet).");
+            widgets::empty(ui, "No terrain: enter an area.");
             return;
         };
         let Some(p) = crate::inspect::player() else {
-            ui.text_disabled("No player yet.");
+            widgets::empty(ui, "No player yet.");
             return;
         };
-        let (px, py) = (p.grid.0 as i64, p.grid.1 as i64);
+        let (px, py) = if self.follow {
+            (p.grid.0 as i64, p.grid.1 as i64)
+        } else {
+            self.anchor
+        };
         let here: Vec<String> = (0..4)
             .map(|l| {
                 Grid::current(l)
-                    .and_then(|g| g.get(px, py))
+                    .and_then(|g| g.get(p.grid.0 as i64, p.grid.1 as i64))
                     .map_or("-".into(), |v| v.to_string())
             })
             .collect();
-        ui.text(format!(
-            "area {}x{} cells; player cell ({px}, {py}); grids 0-3 here: {}",
-            grid.cells_x,
-            grid.cells_y,
-            here.join(" ")
-        ));
-        let r = self.radius as i64;
+        widgets::counter(
+            ui,
+            &format!(
+                "area {}x{}  player ({}, {})  grids here: {}",
+                grid.cells_x,
+                grid.cells_y,
+                p.grid.0,
+                p.grid.1,
+                here.join(" ")
+            ),
+        );
         let cell = self.cell_px;
+        let avail = ui.content_region_avail();
+        let side = avail[0].min(avail[1]).max(cell * 3.0);
+        let r = (((side / cell) as i64 - 1) / 2).max(1);
         let origin = ui.cursor_screen_pos();
         let size = (2 * r + 1) as f32 * cell;
         let draw = ui.get_window_draw_list();
@@ -108,10 +138,13 @@ impl MinimapView {
             }
         }
         // The player and its facing (angle 0 = +y; atan2(dy, dx) + pi/2).
-        let c = [
-            origin[0] + (r as f32 + 0.5) * cell,
-            origin[1] + (r as f32 + 0.5) * cell,
-        ];
+        let at = |gx: i64, gy: i64| {
+            [
+                origin[0] + ((gx - px + r) as f32 + 0.5) * cell,
+                origin[1] + ((r - (gy - py)) as f32 + 0.5) * cell,
+            ]
+        };
+        let c = at(p.grid.0 as i64, p.grid.1 as i64);
         draw.add_circle(c, (cell * 1.5).max(3.0), [1.0, 0.9, 0.2, 1.0])
             .filled(true)
             .build();
@@ -124,16 +157,46 @@ impl MinimapView {
         )
         .thickness(2.0)
         .build();
-        if let Some(s) = crate::devlink::server_cell() {
-            let sx = origin[0] + ((s.0 as i64 - px + r) as f32 + 0.5) * cell;
-            let sy = origin[1] + ((r - (s.1 as i64 - py)) as f32 + 0.5) * cell;
-            draw.add_circle([sx, sy], (cell * 1.5).max(3.0), [0.3, 0.7, 1.0, 1.0])
+        if self.show_server
+            && let Some(s) = crate::devlink::server_cell()
+        {
+            let sc = at(s.0 as i64, s.1 as i64);
+            draw.add_circle(sc, (cell * 1.5).max(3.0), [0.3, 0.7, 1.0, 1.0])
                 .thickness(2.0)
                 .build();
         }
         ui.dummy([size, size]);
-        ui.text_disabled(
-            "yellow = client position and facing, blue ring = the server's position (our server)",
+        // Hover: the cell under the mouse and its four grid values.
+        if ui.is_item_hovered() {
+            let m = ui.io().mouse_pos();
+            let gx = px + ((m[0] - origin[0]) / cell).floor() as i64 - r;
+            let gy = py + r - ((m[1] - origin[1]) / cell).floor() as i64;
+            let vals: Vec<String> = (0..4)
+                .map(|l| {
+                    Grid::current(l)
+                        .and_then(|g| g.get(gx, gy))
+                        .map_or("-".into(), |v| v.to_string())
+                })
+                .collect();
+            ui.tooltip_text(format!("cell {gx}, {gy}\ngrids 0-3: {}", vals.join(" ")));
+        }
+        // Legend in the corner.
+        let lx = origin[0] + 8.0;
+        let ly = origin[1] + 8.0;
+        draw.add_text(
+            [lx, ly],
+            [1.0, 0.9, 0.2, 1.0],
+            "yellow: client position, facing",
+        );
+        draw.add_text(
+            [lx, ly + 16.0],
+            [0.3, 0.7, 1.0, 1.0],
+            "blue ring: server position",
+        );
+        draw.add_text(
+            [lx, ly + 32.0],
+            [0.5, 0.9, 0.5, 1.0],
+            "green shade: grid value",
         );
     }
 }

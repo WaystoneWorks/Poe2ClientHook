@@ -2,6 +2,8 @@
 
 use imgui::Ui;
 
+use super::widgets::{self, Tone};
+
 fn mode_line() -> String {
     let cfg = crate::config();
     format!(
@@ -16,23 +18,64 @@ fn mode_line() -> String {
 }
 
 pub fn draw(ui: &Ui) {
-    if crate::host::read_only() {
-        ui.text_colored(
-            super::theme::WARN,
-            "Read-only: nothing is sent, altered or injected; the DLL only observes.",
-        );
+    widgets::header(
+        ui,
+        "Mode, connections, feature health and loaded mods.",
+        "Private = our server. Official read-only = the DLL only observes and logs.",
+    );
+    let cfg = &crate::config().overlay;
+    let read_only = crate::host::read_only();
+    let conns = crate::host::connections();
+    // Chips: the mode, the role, the position sync.
+    if read_only {
+        widgets::chip(ui, "OFFICIAL read-only", Tone::Warn);
+    } else {
+        widgets::chip(ui, "PRIVATE", Tone::Ok);
     }
-    ui.text(mode_line());
+    if let Some(me) = crate::devlink::registry().1 {
+        ui.same_line();
+        if me.admin {
+            widgets::chip(ui, "ADMIN", Tone::Warn);
+        } else {
+            widgets::chip(ui, "player", Tone::Muted);
+        }
+    }
+    if !read_only {
+        ui.same_line();
+        match crate::devlink::state() {
+            Some((age, _)) if age.as_millis() < 2000 => widgets::chip(ui, "sync ok", Tone::Ok),
+            Some(_) => widgets::chip(ui, "sync stale", Tone::Warn),
+            None => widgets::chip(ui, "no sync", Tone::Muted),
+        }
+    }
+    if !crate::sigs::verified() {
+        ui.same_line();
+        widgets::chip(ui, "build NOT verified", Tone::Bad);
+    }
+    if let Some(c) = conns.last() {
+        ui.same_line();
+        ui.text(format!(
+            "{}.{}.{}.{}:{}",
+            c.ip[0], c.ip[1], c.ip[2], c.ip[3], c.port
+        ));
+    }
+    if let Some((_, list, _)) = crate::devlink::instances()
+        && let Some(i) = list.iter().find(|i| i.current)
+    {
+        ui.same_line();
+        let name = crate::areas::find(&i.area).map_or("", |a| a.name.as_str());
+        ui.text(format!("{name} ({})", i.area));
+    }
     ui.text(format!(
-        "debug core {} (load #{})",
+        "{:.0} fps   core {} (load #{}{})   session {}",
+        ui.io().framerate(),
         env!("CARGO_PKG_VERSION"),
-        crate::host::reload_count()
+        crate::host::reload_count(),
+        "",
+        crate::host::session_dir()
+            .file_name()
+            .map_or(String::new(), |n| n.to_string_lossy().into_owned())
     ));
-    ui.text(format!(
-        "session folder: {}",
-        crate::host::session_dir().display()
-    ));
-    ui.text(format!("{:.0} fps", ui.io().framerate()));
     if ui.button("Reload core") {
         crate::host::request_reload();
     }
@@ -44,42 +87,102 @@ pub fn draw(ui: &Ui) {
     if ui.button("Hide overlay") {
         crate::overlay::set_visible(false);
     }
-    let cfg = &crate::config().overlay;
+    ui.same_line();
     ui.text_disabled(format!(
-        "keys: {:#04x} shows/hides the overlay, {:#04x} saves a snapshot",
+        "keys: {:#04x} shows/hides, {:#04x} snapshot",
         cfg.toggle_key, cfg.snapshot_key
     ));
+    if read_only {
+        ui.text_colored(
+            super::theme::WARN,
+            "Nothing is sent, altered or injected; the DLL only observes.",
+        );
+    }
     ui.separator();
-    ui.text("Connections");
-    if let Some(_t) = ui.begin_table_header_with_flags(
-        "conns",
-        [
-            imgui::TableColumnSetup::new("#"),
-            imgui::TableColumnSetup::new("socket"),
-            imgui::TableColumnSetup::new("address"),
-            imgui::TableColumnSetup::new("kind"),
-            imgui::TableColumnSetup::new("time"),
-        ],
-        crate::ui::table_opts(),
+    if ui.collapsing_header(
+        format!("Connections ({})##conns", conns.len()),
+        imgui::TreeNodeFlags::DEFAULT_OPEN,
     ) {
-        for c in crate::host::connections().iter().rev() {
-            ui.table_next_column();
-            ui.text(c.seq.to_string());
-            ui.table_next_column();
-            ui.text(format!("{:#x}", c.socket));
-            ui.table_next_column();
-            ui.text(format!(
-                "{}.{}.{}.{}:{}",
-                c.ip[0], c.ip[1], c.ip[2], c.ip[3], c.port
-            ));
-            ui.table_next_column();
-            ui.text(if c.external { "external" } else { "local" });
-            ui.table_next_column();
-            ui.text(crate::util::clock(c.unix_ms));
+        if conns.is_empty() {
+            widgets::empty(ui, "No connection yet.");
+        }
+        if let Some(_t) = ui.begin_table_header_with_flags(
+            "conns2",
+            ["time", "kind", "address", "socket", "trusted"].map(imgui::TableColumnSetup::new),
+            crate::ui::table_opts(),
+        ) {
+            for c in conns.iter().rev() {
+                ui.table_next_column();
+                ui.text(crate::util::clock(c.unix_ms));
+                ui.table_next_column();
+                ui.text(if c.external { "external" } else { "local" });
+                ui.table_next_column();
+                ui.text(format!(
+                    "{}.{}.{}.{}:{}",
+                    c.ip[0], c.ip[1], c.ip[2], c.ip[3], c.port
+                ));
+                ui.table_next_column();
+                ui.text(format!("{:#x}", c.socket));
+                ui.table_next_column();
+                if c.trusted() {
+                    ui.text_colored(super::theme::OK, "yes");
+                } else {
+                    ui.text_colored(super::theme::BAD, "no");
+                }
+            }
+        }
+    }
+    let health = crate::sigs::feature_health();
+    let off: Vec<_> = health.iter().filter(|(_, ok, _)| !ok).collect();
+    let title = if off.is_empty() {
+        format!("Features: {} ok", health.len())
+    } else {
+        format!(
+            "Features: {} ok, {} OFF ({})",
+            health.len() - off.len(),
+            off.len(),
+            off.iter()
+                .map(|(n, ..)| n.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    };
+    let _c =
+        (!off.is_empty()).then(|| ui.push_style_color(imgui::StyleColor::Text, super::theme::BAD));
+    let open = ui.collapsing_header(format!("{title}##features"), imgui::TreeNodeFlags::empty());
+    drop(_c);
+    if open {
+        for (name, ok, problems) in &health {
+            if *ok {
+                ui.text_colored(super::theme::OK, format!("ok   {name}"));
+            } else {
+                ui.text_colored(
+                    super::theme::BAD,
+                    format!("OFF  {name}: {}", problems.join("; ")),
+                );
+            }
+        }
+        if health.is_empty() {
+            widgets::empty(ui, "Signature table not loaded.");
+        }
+    }
+    let mods = crate::host::mod_report()
+        .and_then(|b| poe_hook_shared::modreport::ModReport::decode(&b).ok())
+        .map(|r| r.mods)
+        .unwrap_or_default();
+    if ui.collapsing_header(
+        format!("Loaded mods ({})##mods", mods.len()),
+        imgui::TreeNodeFlags::empty(),
+    ) {
+        if mods.is_empty() {
+            widgets::empty(ui, "No mods loaded.");
+        }
+        for m in &mods {
+            ui.text(format!("{} {}", m.id, m.version));
         }
     }
     ui.separator();
-    ui.text(vulkan_line());
+    ui.text_disabled(vulkan_line());
 }
 
 fn vulkan_line() -> String {

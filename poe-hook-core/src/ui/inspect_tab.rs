@@ -2,39 +2,52 @@
 
 use imgui::{ListClipper, Ui};
 
+use super::widgets::{self, Tone, split};
+
 use crate::watches::{KINDS, Kind, Watch};
 
 pub fn draw_player(ui: &Ui) {
+    widgets::header(
+        ui,
+        "The local player's entity, live.",
+        "Found when the player entity is created or ticks. Cells = world / (250/23).",
+    );
     let Some(p) = crate::inspect::player() else {
-        ui.text_disabled("No player entity yet (it is found when it is created or ticks).");
+        widgets::empty(ui, "No player entity yet: enter an area.");
         return;
     };
-    ui.text(format!("entity {:#x}  id {}", p.entity, p.id));
-    ui.text(format!("grid ({}, {})", p.grid.0, p.grid.1));
-    ui.text(format!(
-        "world ({:.2}, {:.2})  =  cells ({:.2}, {:.2})",
-        p.world.0,
-        p.world.1,
-        p.world.0 / (250.0 / 23.0),
-        p.world.1 / (250.0 / 23.0)
-    ));
-    ui.text(format!(
-        "facing {:.3} rad ({:.1} deg){}",
-        p.facing,
-        p.facing.to_degrees(),
-        if p.facing_locked { "  locked" } else { "" }
-    ));
-    ui.text(format!("actions {:#06x} / {:#06x}", p.action, p.action2));
-    ui.text(format!("WASD direction ({}, {})", p.wasd.0, p.wasd.1));
-    ui.text(format!(
-        "actor flags +0x2a2 = {:#04x}{}",
-        p.flags,
-        if p.flags & 0x20 != 0 {
-            " (sprint held)"
-        } else {
-            ""
-        }
-    ));
+    ui.child_window("overview")
+        .border(true)
+        .size([520.0, 0.0])
+        .build(ui, || {
+            ui.text(format!("Entity {:#x}   id {}", p.entity, p.id));
+            ui.separator();
+            ui.text(format!("Cell  {}, {}", p.grid.0, p.grid.1));
+            ui.text(format!(
+                "World {:.2}, {:.2}   = cells {:.2}, {:.2}",
+                p.world.0,
+                p.world.1,
+                p.world.0 / (250.0 / 23.0),
+                p.world.1 / (250.0 / 23.0)
+            ));
+            ui.text(format!(
+                "Facing {:.3} rad ({:.1} deg)",
+                p.facing,
+                p.facing.to_degrees()
+            ));
+            if p.facing_locked {
+                ui.same_line();
+                widgets::chip(ui, "locked", Tone::Warn);
+            }
+            ui.separator();
+            ui.text(format!("Actions {:#06x} / {:#06x}", p.action, p.action2));
+            ui.text(format!("WASD direction ({}, {})", p.wasd.0, p.wasd.1));
+            ui.text(format!("Actor flags +0x2a2 = {:#04x}", p.flags));
+            if p.flags & 0x20 != 0 {
+                ui.same_line();
+                widgets::chip(ui, "sprint held", Tone::Ok);
+            }
+        });
 }
 
 pub struct EntitiesView {
@@ -53,11 +66,14 @@ impl EntitiesView {
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        ui.set_next_item_width(260.0);
-        ui.input_text("Filter (path or id)", &mut self.filter)
-            .build();
+        widgets::header(
+            ui,
+            "Entities created in this area (from the initial-state reader).",
+            "Pick one to see its components; scan sends a component to the Scanner.",
+        );
+        widgets::filter(ui, "ent_filter", &mut self.filter, "filter path/id", 260.0);
         ui.same_line();
-        ui.checkbox("alive only", &mut self.alive_only);
+        ui.checkbox("alive", &mut self.alive_only);
         let f = self.filter.to_lowercase();
         let rows: Vec<_> = crate::entities::list()
             .into_iter()
@@ -73,62 +89,83 @@ impl EntitiesView {
                         || e.id.to_string() == f)
             })
             .collect();
-        ui.text_disabled(format!(
-            "{} entities created in this area (from the initial-state reader)",
-            rows.len()
-        ));
-        if let Some(_t) = ui.begin_table_header_with_flags(
-            "entity_list",
-            [
-                imgui::TableColumnSetup::new("id").fixed_width(110.0),
-                imgui::TableColumnSetup::new("address").fixed_width(260.0),
-                imgui::TableColumnSetup::new("type").fixed_width(420.0),
-                imgui::TableColumnSetup::new("grid").fixed_width(140.0),
-                imgui::TableColumnSetup::new("components").fixed_width(110.0),
-            ],
-            crate::ui::table_opts(),
-        ) {
-            let mut clipper = ListClipper::new(rows.len()).begin(ui);
-            while clipper.step() {
-                for i in clipper.display_start()..clipper.display_end() {
-                    let (e, l) = &rows[i as usize];
-                    ui.table_next_column();
-                    if ui
-                        .selectable_config(format!("{:#x}##ent{}", e.id, e.ptr))
-                        .selected(self.selected == Some(e.ptr))
-                        .span_all_columns(true)
-                        .build()
-                    {
-                        self.selected = Some(e.ptr);
+        widgets::counter(ui, &format!("{} entities", widgets::thousands(rows.len())));
+        if rows.is_empty() {
+            widgets::empty(ui, "No entities yet: enter an area.");
+            return;
+        }
+        let selected = std::cell::Cell::new(self.selected);
+        split(
+            ui,
+            "entities",
+            560.0,
+            || {
+                if let Some(_t) = ui.begin_table_header_with_flags(
+                    "entity_list2",
+                    ["id", "type", "grid"].map(imgui::TableColumnSetup::new),
+                    crate::ui::table_opts().flags(
+                        imgui::TableFlags::RESIZABLE
+                            | imgui::TableFlags::ROW_BG
+                            | imgui::TableFlags::BORDERS_INNER_V
+                            | imgui::TableFlags::SCROLL_Y,
+                    ),
+                ) {
+                    let mut clipper = ListClipper::new(rows.len()).begin(ui);
+                    while clipper.step() {
+                        for i in clipper.display_start()..clipper.display_end() {
+                            let (e, l) = &rows[i];
+                            ui.table_next_column();
+                            if ui
+                                .selectable_config(format!("{:#x}##ent{}", e.id, e.ptr))
+                                .selected(selected.get() == Some(e.ptr))
+                                .span_all_columns(true)
+                                .build()
+                            {
+                                selected.set(Some(e.ptr));
+                            }
+                            ui.table_next_column();
+                            let name = if e.path.is_empty() {
+                                format!("key {:#010x}", e.type_key)
+                            } else {
+                                e.path.clone()
+                            };
+                            if l.alive {
+                                ui.text(name);
+                            } else {
+                                ui.text_disabled(format!("{name} (gone)"));
+                            }
+                            ui.table_next_column();
+                            ui.text(l.grid.map_or("-".into(), |g| format!("{}, {}", g.0, g.1)));
+                        }
                     }
-                    ui.table_next_column();
-                    if l.alive {
-                        ui.text(format!("{:#x}", e.ptr));
-                    } else {
-                        ui.text_disabled(format!("{:#x} (gone)", e.ptr));
-                    }
-                    ui.table_next_column();
+                }
+            },
+            || match rows.iter().find(|(e, _)| Some(e.ptr) == selected.get()) {
+                Some((e, l)) => {
                     ui.text(if e.path.is_empty() {
                         format!("key {:#010x}", e.type_key)
                     } else {
                         e.path.clone()
                     });
-                    ui.table_next_column();
-                    ui.text(l.grid.map_or("-".into(), |g| format!("({}, {})", g.0, g.1)));
-                    ui.table_next_column();
-                    ui.text(e.components.len().to_string());
-                    if ui.is_item_hovered() {
-                        let list: Vec<String> =
-                            e.components.iter().map(|v| format!("{v:#x}")).collect();
-                        ui.tooltip_text(format!("component vtables:\n{}", list.join("\n")));
+                    ui.text_disabled(format!(
+                        "id {:#x}   address {:#x}   grid {}",
+                        e.id,
+                        e.ptr,
+                        l.grid.map_or("-".into(), |g| format!("{}, {}", g.0, g.1))
+                    ));
+                    if let Some(p) = crate::inspect::player()
+                        && let Some(g) = l.grid
+                    {
+                        let d = ((g.0 - p.grid.0) as f32).hypot((g.1 - p.grid.1) as f32);
+                        ui.text_disabled(format!("distance {d:.0} cells"));
                     }
+                    ui.separator();
+                    components(ui, e.ptr);
                 }
-            }
-        }
-        if let Some(ptr) = self.selected {
-            ui.separator();
-            components(ui, ptr);
-        }
+                None => widgets::empty(ui, "Pick an entity on the left."),
+            },
+        );
+        self.selected = selected.get();
     }
 }
 
@@ -190,17 +227,17 @@ impl WatchesView {
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        ui.text_wrapped(
-            "Read-only memory watches. Syntax: numbers (0x.. hex; 0x14.. = Ghidra address), \
-             + and -, [expr] reads a pointer; names: player, pos, actor, exe. \
-             Example: pos+0x44c (f32 facing).",
+        widgets::header(
+            ui,
+            "Read-only memory watches.",
+            "Syntax: numbers (0x.. hex; 0x14.. = Ghidra address), + and -, [expr] reads a \
+             pointer; names: player, pos, actor, exe. Example: pos+0x44c (f32 facing).",
         );
-        ui.set_next_item_width(360.0);
-        ui.input_text("expression", &mut self.new_expr).build();
+        widgets::filter(ui, "watch_expr", &mut self.new_expr, "expression", 360.0);
         ui.same_line();
         ui.set_next_item_width(90.0);
         let names: Vec<&str> = KINDS.iter().map(|k| k.name()).collect();
-        ui.combo_simple_string("type", &mut self.new_kind, &names);
+        ui.combo_simple_string("##kind", &mut self.new_kind, &names);
         ui.same_line();
         if ui.button("Add") && !self.new_expr.trim().is_empty() {
             self.list.push(Watch {
@@ -209,19 +246,29 @@ impl WatchesView {
             });
             crate::watches::save(&self.list);
         }
-        ui.separator();
+        widgets::counter(ui, &format!("{} watches", self.list.len()));
+        if self.list.is_empty() {
+            widgets::empty(ui, "No watches yet: add an expression above.");
+            return;
+        }
         let mut remove = None;
-        for (i, w) in self.list.iter().enumerate() {
-            if ui.small_button(format!("x##w{i}")) {
-                remove = Some(i);
+        if let Some(_t) = ui.begin_table_header_with_flags(
+            "watches",
+            ["", "type", "expression", "value"].map(imgui::TableColumnSetup::new),
+            crate::ui::table_opts(),
+        ) {
+            for (i, w) in self.list.iter().enumerate() {
+                ui.table_next_column();
+                if ui.small_button(format!("x##w{i}")) {
+                    remove = Some(i);
+                }
+                ui.table_next_column();
+                ui.text(w.kind.name());
+                ui.table_next_column();
+                ui.text(&w.expr);
+                ui.table_next_column();
+                ui.text(crate::watches::value(w));
             }
-            ui.same_line();
-            ui.text(format!(
-                "{:4} {:32} = {}",
-                w.kind.name(),
-                w.expr,
-                crate::watches::value(w)
-            ));
         }
         if let Some(i) = remove {
             self.list.remove(i);
