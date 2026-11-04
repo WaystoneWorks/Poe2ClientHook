@@ -30,6 +30,7 @@ mod notes;
 mod overlay;
 mod packets;
 mod path_log;
+mod phase_log;
 mod position_sync;
 mod protocol;
 mod scanner;
@@ -201,6 +202,11 @@ fn start_features(config: &Config, main: &Module) {
         "path_log",
         read_only,
         || path_log::init(main),
+    );
+    report(
+        "phase_log",
+        std::env::var_os("POE_HOOK_PHASE_LOG").is_some() && !read_only,
+        || phase_log::init(main),
     );
     report("crash_log", f.crash_log, || crash::init(main));
     report("exit_trace", f.crash_log, || exit_trace::init(main));
