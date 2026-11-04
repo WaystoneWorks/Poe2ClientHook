@@ -25,7 +25,7 @@ impl InstancesView {
         };
         if !me.as_ref().is_some_and(|m| m.admin) {
             ui.text_colored(
-                [1.0, 0.6, 0.4, 1.0],
+                super::theme::WARN,
                 "Your account does not have the admin role: the server refuses these commands.",
             );
         }
@@ -58,7 +58,7 @@ impl InstancesView {
             for inst in &list {
                 ui.table_next_column();
                 if inst.current {
-                    ui.text_colored([0.5, 1.0, 0.5, 1.0], format!("{} (you)", inst.id));
+                    ui.text_colored(super::theme::OK, format!("{} (you)", inst.id));
                 } else {
                     ui.text(inst.id.to_string());
                 }

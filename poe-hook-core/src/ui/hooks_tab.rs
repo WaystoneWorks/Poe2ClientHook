@@ -75,13 +75,13 @@ impl HooksView {
                 ui.table_next_column();
                 let max_ms = *max as f64 / 1e6;
                 if max_ms > 16.0 {
-                    ui.text_colored([1.0, 0.45, 0.35, 1.0], format!("{max_ms:.2}"));
+                    ui.text_colored(super::theme::BAD, format!("{max_ms:.2}"));
                 } else {
                     ui.text(format!("{max_ms:.2}"));
                 }
                 ui.table_next_column();
                 if load > 2.0 {
-                    ui.text_colored([1.0, 0.75, 0.3, 1.0], format!("{load:.2}"));
+                    ui.text_colored(super::theme::WARN, format!("{load:.2}"));
                 } else {
                     ui.text(format!("{load:.2}"));
                 }

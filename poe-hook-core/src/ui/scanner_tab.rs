@@ -73,7 +73,7 @@ impl ScannerView {
         ui.set_next_item_width(120.0);
         ui.combo_simple_string("view", &mut self.view, &["hex", "u32", "f32", "pointers"]);
         if let Some(e) = &r.error {
-            ui.text_colored([1.0, 0.4, 0.4, 1.0], e);
+            ui.text_colored(super::theme::BAD, e);
             return;
         }
         ui.text_disabled(format!(
@@ -98,10 +98,10 @@ impl ScannerView {
                             ui.same_line();
                             let age = r.changed_at[b].map(|t| now.duration_since(t).as_secs_f32());
                             let color = match age {
-                                Some(a) if a < 0.5 => [1.0, 0.25, 0.25, 1.0],
-                                Some(a) if a < 3.0 => [1.0, 0.6 + a * 0.1, 0.3, 1.0],
-                                _ if r.baseline.get(b) != r.bytes.get(b) => [1.0, 0.9, 0.3, 1.0],
-                                _ => [0.7, 0.7, 0.7, 1.0],
+                                Some(a) if a < 0.5 => super::theme::BAD,
+                                Some(a) if a < 3.0 => super::theme::WARN,
+                                _ if r.baseline.get(b) != r.bytes.get(b) => super::theme::WARN,
+                                _ => super::theme::muted(ui),
                             };
                             ui.text_colored(color, format!("{:02x}", r.bytes[b]));
                             if ui.is_item_hovered() {

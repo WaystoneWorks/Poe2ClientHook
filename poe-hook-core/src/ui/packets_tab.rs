@@ -274,8 +274,8 @@ impl PacketsView {
                             _ => line,
                         };
                         let color = match m.dir {
-                            Dir::In => [0.6, 0.85, 1.0, 1.0],
-                            Dir::Out => [1.0, 0.85, 0.55, 1.0],
+                            Dir::In => super::theme::OK,
+                            Dir::Out => super::theme::WARN,
                         };
                         let _c = ui.push_style_color(imgui::StyleColor::Text, color);
                         let selected = self.selected == Some(m.seq);

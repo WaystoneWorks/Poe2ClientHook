@@ -80,9 +80,13 @@ pub fn set_visible(v: bool) {
     VISIBLE.store(v, Ordering::SeqCst);
 }
 
-/// The context, and the heading font (Cinzel) when it loaded.
-fn create_context() -> (imgui::Context, Option<imgui::FontId>) {
-    let cfg = &crate::config().overlay;
+/// The context: ImGui's stock dark style and built-in font at the overlay scale
+/// (`overlay.toml` `scale_override`, else `overlay.scale` of `poe-hook.toml`).
+fn create_context() -> imgui::Context {
+    let scale = crate::ui::settings::get()
+        .scale_override
+        .unwrap_or(crate::config().overlay.scale)
+        .clamp(0.5, 4.0);
     let mut ctx = imgui::Context::create();
     ctx.set_ini_filename(Some(
         poe_hook_shared::exe_dir()
@@ -90,32 +94,13 @@ fn create_context() -> (imgui::Context, Option<imgui::FontId>) {
             .join("poe-hook")
             .join("imgui.ini"),
     ));
-    let size = (16.0 * cfg.scale).round();
-    match imgui::StbTrueTypeFontData::from_slice(include_bytes!("../../assets/DejaVuSansMono.ttf"))
-    {
-        Ok(data) => {
-            ctx.font_atlas()
-                .add_font(&[imgui::FontSource::stb_truetype_with_size(data, size)]);
-        }
-        Err(e) => log::warn!("overlay font: {e:?}"),
-    }
-    let mut heading = None;
-    // Headings: Cinzel (SIL OFL, assets/Cinzel-OFL.txt), the launcher's heading font.
-    match imgui::StbTrueTypeFontData::from_slice(include_bytes!("../../assets/Cinzel.ttf")) {
-        Ok(data) => {
-            let id = ctx
-                .font_atlas()
-                .add_font(&[imgui::FontSource::stb_truetype_with_size(
-                    data,
-                    (size * 1.1).round(),
-                )]);
-            heading = Some(id);
-        }
-        Err(e) => log::warn!("overlay heading font: {e:?}"),
-    }
+    let size = (13.0 * scale).round();
+    let _ = ctx
+        .font_atlas()
+        .add_font(&[imgui::FontSource::default_font_with_size(size)]);
     crate::ui::theme::apply(ctx.style_mut());
-    ctx.style_mut().scale_all_sizes(cfg.scale);
-    (ctx, heading)
+    ctx.style_mut().scale_all_sizes(scale);
+    ctx
 }
 
 /// `vkQueuePresentKHR` callback (any of the game's present threads).
@@ -221,12 +206,12 @@ fn frame(
     if overlay.is_none() {
         match gpu::Gpu::new(state, vk::Queue::from_raw(queue)) {
             Ok(gpu) => {
-                let (ctx, heading) = create_context();
+                let ctx = create_context();
                 *overlay = Some(Overlay {
                     gpu,
                     plots: dear_implot::PlotContext::create(&ctx),
                     ctx,
-                    app: App::new(heading),
+                    app: App::new(),
                     last: Instant::now(),
                 })
             }

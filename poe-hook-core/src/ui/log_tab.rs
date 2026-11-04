@@ -128,13 +128,12 @@ impl LogView {
                 while clipper.step() {
                     for row in clipper.display_start()..clipper.display_end() {
                         let r = &self.records[self.shown[row as usize]];
-                        let color = match r.level {
-                            1 => super::theme::DANGER,
-                            2 => super::theme::WARN,
-                            4 | 5 => super::theme::MUTED,
-                            _ => super::theme::TEXT,
-                        };
-                        ui.text_colored(color, &r.line);
+                        match r.level {
+                            1 => ui.text_colored(super::theme::BAD, &r.line),
+                            2 => ui.text_colored(super::theme::WARN, &r.line),
+                            4 | 5 => ui.text_colored(super::theme::muted(ui), &r.line),
+                            _ => ui.text(&r.line),
+                        }
                     }
                 }
                 self.follow.end(ui, self.shown.len());

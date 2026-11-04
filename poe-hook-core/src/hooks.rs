@@ -146,14 +146,22 @@ fn slow_call(slot: usize, ns: u64) {
     static LAST: Mutex<Option<Instant>> = Mutex::new(None);
     let name = NAMES.lock().unwrap().get(slot).copied().unwrap_or("?");
     log::warn!("slow hook: {name} took {:.1} ms", ns as f64 / 1e6);
-    let mut last = LAST.lock().unwrap();
-    if last.is_none_or(|t| t.elapsed() > Duration::from_secs(5)) {
-        *last = Some(Instant::now());
-        crate::ui::notice(format!(
-            "Slow hook: {name} took {:.0} ms (Hooks tab)",
-            ns as f64 / 1e6
-        ));
+    let popups = crate::ui::settings::show_slow_hook_popups();
+    if let Some(text) = slow_notice(name, ns, popups, &mut LAST.lock().unwrap()) {
+        crate::ui::notice(text);
     }
+}
+
+/// The popup text for a slow hook: none when popups are off, or one was shown in the last 5 s.
+fn slow_notice(name: &str, ns: u64, popups: bool, last: &mut Option<Instant>) -> Option<String> {
+    if !popups || last.is_some_and(|t| t.elapsed() <= Duration::from_secs(5)) {
+        return None;
+    }
+    *last = Some(Instant::now());
+    Some(format!(
+        "Slow hook: {name} took {:.0} ms (Hooks tab)",
+        ns as f64 / 1e6
+    ))
 }
 
 /// Per callback: name, calls, total and maximum time (ns).
@@ -233,5 +241,23 @@ pub fn remove_all() {
     std::thread::sleep(Duration::from_millis(100));
     for t in std::mem::take(&mut *THREADS.lock().unwrap()) {
         let _ = t.join();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_slow_hook_pops_up_only_when_allowed_and_not_repeated() {
+        let mut last = None;
+        assert_eq!(slow_notice("tick", 60_000_000, false, &mut last), None);
+        assert!(
+            last.is_none(),
+            "an off setting does not use up the 5 s window"
+        );
+        let text = slow_notice("tick", 60_000_000, true, &mut last).unwrap();
+        assert!(text.contains("tick") && text.contains("60 ms"));
+        assert_eq!(slow_notice("tick", 60_000_000, true, &mut last), None);
     }
 }

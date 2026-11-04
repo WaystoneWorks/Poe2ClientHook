@@ -232,7 +232,9 @@ fn area_json() -> String {
     let id = read::<usize>(row)
         .map(|p| wide_cstr(p, 64))
         .unwrap_or_default();
-    let name = crate::areas::find(&id).map(|a| a.name.as_str()).unwrap_or("");
+    let name = crate::areas::find(&id)
+        .map(|a| a.name.as_str())
+        .unwrap_or("");
     format!(
         "{{\"id\":{},\"name\":{},\"hash16\":{},\"kind\":{},\"tile_hash\":{}}}",
         json_str(&id),

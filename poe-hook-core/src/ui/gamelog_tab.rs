@@ -46,14 +46,13 @@ impl GameLogView {
                 while clipper.step() {
                     for i in clipper.display_start()..clipper.display_end() {
                         let l = &lines[i as usize];
-                        let color = if l.contains("[CRIT") || l.contains("[ERROR") {
-                            super::theme::DANGER
+                        if l.contains("[CRIT") || l.contains("[ERROR") {
+                            ui.text_colored(super::theme::BAD, l);
                         } else if l.contains("[WARN") {
-                            super::theme::WARN
+                            ui.text_colored(super::theme::WARN, l);
                         } else {
-                            super::theme::TEXT
-                        };
-                        ui.text_colored(color, l);
+                            ui.text(l);
+                        }
                     }
                 }
                 self.follow.end(ui, lines.len());

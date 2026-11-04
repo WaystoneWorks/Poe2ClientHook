@@ -72,13 +72,13 @@ impl CoverageView {
                 ui.table_next_column();
                 match name {
                     Some(n) => ui.text(n),
-                    None => ui.text_colored([1.0, 0.6, 0.4, 1.0], "?"),
+                    None => ui.text_colored(super::theme::WARN, "?"),
                 }
                 ui.table_next_column();
                 ui.text(s.official.to_string());
                 ui.table_next_column();
                 if s.private == 0 && s.official > 0 {
-                    ui.text_colored([1.0, 0.6, 0.4, 1.0], "0");
+                    ui.text_colored(super::theme::WARN, "0");
                 } else {
                     ui.text(s.private.to_string());
                 }

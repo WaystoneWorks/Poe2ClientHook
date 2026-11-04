@@ -111,7 +111,9 @@ struct Out {
 
 /// FNV-1a 64 (the server's `check_grid_hashes` hashes its own `PWG1` bytes the same way).
 fn fnv1a64(bytes: &[u8]) -> u64 {
-    bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| (h ^ b as u64).wrapping_mul(0x100_0000_01b3))
+    bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
+        (h ^ b as u64).wrapping_mul(0x100_0000_01b3)
+    })
 }
 
 struct Shared {

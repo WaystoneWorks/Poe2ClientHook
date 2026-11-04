@@ -85,9 +85,9 @@ impl CommandsView {
         ui.child_window("results").border(true).build(ui, || {
             for (ms, cmd, result) in crate::devlink::results().iter().rev() {
                 let color = if result.starts_with("ok") {
-                    [0.6, 1.0, 0.6, 1.0]
+                    super::theme::OK
                 } else {
-                    [1.0, 0.6, 0.5, 1.0]
+                    super::theme::BAD
                 };
                 ui.text_colored(
                     color,
@@ -108,9 +108,9 @@ impl CommandsView {
             ui.same_line();
             ui.text_colored(
                 if admin {
-                    [0.8, 0.8, 0.4, 1.0]
+                    super::theme::WARN
                 } else {
-                    [0.6, 0.6, 0.6, 1.0]
+                    super::theme::muted(ui)
                 },
                 "[admin]",
             );

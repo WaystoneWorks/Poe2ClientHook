@@ -304,9 +304,11 @@ fn start_features(config: &Config, main: &Module) {
         .and_then(|v| v.parse::<u64>().ok())
         .filter(|&ms| ms > 1)
         .unwrap_or(f.state_export_ms);
-    report("state_export", f.state_export || state_env.is_some(), || {
-        state_export::init(state_ms)
-    });
+    report(
+        "state_export",
+        f.state_export || state_env.is_some(),
+        || state_export::init(state_ms),
+    );
     // The server debug link (our server only).
     if !read_only {
         devlink::start();

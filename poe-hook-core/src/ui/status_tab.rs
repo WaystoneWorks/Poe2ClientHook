@@ -18,7 +18,7 @@ fn mode_line() -> String {
 pub fn draw(ui: &Ui) {
     if crate::host::read_only() {
         ui.text_colored(
-            [1.0, 0.75, 0.2, 1.0],
+            super::theme::WARN,
             "Read-only: nothing is sent, altered or injected; the DLL only observes.",
         );
     }

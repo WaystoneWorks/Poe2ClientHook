@@ -64,7 +64,11 @@ fn position() -> Option<(usize, u8, u16)> {
     if read::<u32>(world + 0x678)? != key {
         return None;
     }
-    Some((world, read::<u8>(world + 0x67c)?, read::<u16>(world + 0x67e)?))
+    Some((
+        world,
+        read::<u8>(world + 0x67c)?,
+        read::<u16>(world + 0x67e)?,
+    ))
 }
 
 fn ghidra(addr: usize) -> usize {
@@ -126,7 +130,11 @@ unsafe extern "win64" fn on_phase(regs: *mut Registers, _user: usize) {
     }
     if let Some((_, comp, phase)) = position() {
         let ra = read::<usize>(r.rsp as usize).unwrap_or(0);
-        log::info!("PH {} {comp} {phase} {:#x}", crate::dump_types::player_frame(), ghidra(ra));
+        log::info!(
+            "PH {} {comp} {phase} {:#x}",
+            crate::dump_types::player_frame(),
+            ghidra(ra)
+        );
     }
 }
 

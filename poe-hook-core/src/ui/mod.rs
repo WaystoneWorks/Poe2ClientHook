@@ -3,7 +3,6 @@
 
 mod commands_tab;
 mod coverage_tab;
-mod features_tab;
 mod follow;
 mod game_tab;
 mod gamelog_tab;
@@ -18,6 +17,8 @@ mod packets_tab;
 mod protocol_tab;
 mod scanner_tab;
 mod server_tab;
+pub mod settings;
+mod settings_tab;
 mod status_tab;
 pub mod theme;
 mod timing_tab;
@@ -73,8 +74,7 @@ pub struct App {
     server: server_tab::ServerView,
     commands: commands_tab::CommandsView,
     instances: instances_tab::InstancesView,
-    /// The heading font (Cinzel), when it loaded.
-    heading: Option<imgui::FontId>,
+    settings: settings_tab::SettingsView,
     page: Page,
     /// The sub-page last shown per sidebar entry (an entry with tabs opens on it again).
     last_tab: Vec<(&'static str, Page)>,
@@ -83,9 +83,9 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(heading: Option<imgui::FontId>) -> Self {
+    pub fn new() -> Self {
         Self {
-            heading,
+            settings: settings_tab::SettingsView::new(),
             log: log_tab::LogView::new(),
             packets: packets_tab::PacketsView::new(),
             coverage: coverage_tab::CoverageView::new(),
@@ -179,27 +179,23 @@ impl App {
                 .entries
                 .iter()
                 .any(|e| e.pages.iter().any(|(p, _)| *p == self.page));
-            let flags = if g.folded && !here {
-                imgui::TreeNodeFlags::empty()
-            } else {
-                imgui::TreeNodeFlags::DEFAULT_OPEN
-            };
-            let open = {
-                // Separate bindings: tokens drop in reverse order (an array would drop them
-                // first-to-last, which ImGui's scope check refuses).
-                let _c0 = ui.push_style_color(imgui::StyleColor::Header, [0.0; 4]);
-                let _c1 = ui.push_style_color(imgui::StyleColor::HeaderHovered, theme::SURFACE_2);
-                let _c2 = ui.push_style_color(imgui::StyleColor::HeaderActive, theme::SURFACE_3);
-                let _c3 = ui.push_style_color(imgui::StyleColor::Text, theme::GOLD);
-                ui.collapsing_header(g.name, flags)
-            };
+            // The user's folds come from overlay.toml; the group of the page shown starts open.
+            let folded = settings::get().sidebar_folded.iter().any(|n| n == g.name);
+            ui.set_next_item_open_with_cond(here || !folded, Condition::Once);
+            let open = ui.collapsing_header(g.name, imgui::TreeNodeFlags::empty());
+            if ui.is_item_toggled_open() {
+                settings::update(|s| {
+                    s.sidebar_folded.retain(|n| n != g.name);
+                    if !open {
+                        s.sidebar_folded.push(g.name.to_string());
+                    }
+                });
+            }
             if !open {
                 continue;
             }
             for e in g.entries {
                 let selected = e.pages.iter().any(|(p, _)| *p == self.page);
-                let _c =
-                    selected.then(|| ui.push_style_color(imgui::StyleColor::Text, theme::GOLD_2));
                 if ui
                     .selectable_config(format!("  {}##nav", e.name))
                     .selected(selected)
@@ -228,12 +224,11 @@ impl App {
         save_page(page);
     }
 
-    /// The page's heading and, for an entry with several pages, its tabs.
-    fn page_head(&mut self, ui: &Ui) {
+    /// For an entry with several pages: its tabs.
+    fn page_tabs(&mut self, ui: &Ui) {
         let Some(e) = entry_of(self.page) else {
             return;
         };
-        theme::heading(ui, self.heading, e.name);
         if e.pages.len() > 1 {
             let mut first = true;
             for (page, name) in e.pages {
@@ -243,16 +238,6 @@ impl App {
                 first = false;
                 let on = *page == self.page;
                 let w = ui.calc_text_size(name)[0] + 20.0;
-                // Separate bindings: tokens drop in reverse order (an array would drop them
-                // first-to-last, which ImGui's scope check refuses).
-                let _c0 = ui.push_style_color(
-                    imgui::StyleColor::Text,
-                    if on { theme::GOLD_2 } else { theme::MUTED },
-                );
-                let _c1 = ui.push_style_color(
-                    imgui::StyleColor::Header,
-                    theme::with_alpha(theme::CRIMSON, 0.4),
-                );
                 if ui
                     .selectable_config(format!("{name}##tab"))
                     .selected(on)
@@ -263,9 +248,8 @@ impl App {
                     self.go(*page);
                 }
             }
+            ui.separator();
         }
-        ui.separator();
-        ui.spacing();
     }
 
     fn draw_page(&mut self, ui: &Ui, plots: &dear_implot::PlotContext) {
@@ -273,7 +257,7 @@ impl App {
         if page_is_custom(self.page) && !custom_server() {
             self.page = Page::Status;
         }
-        self.page_head(ui);
+        self.page_tabs(ui);
         match self.page {
             Page::Status => status_tab::draw(ui),
             Page::Log => self.log.draw(ui),
@@ -295,7 +279,7 @@ impl App {
             Page::Minimap => self.minimap.draw(ui),
             Page::Scanner => self.scanner.draw(ui),
             Page::Hooks => self.hooks.draw(ui),
-            Page::Features => features_tab::draw(ui),
+            Page::Settings => self.settings.draw(ui),
         }
     }
 
@@ -436,7 +420,7 @@ enum Page {
     Minimap,
     Scanner,
     Hooks,
-    Features,
+    Settings,
 }
 
 /// A sidebar entry: its pages show as tabs when there are several.
@@ -450,8 +434,6 @@ struct Group {
     name: &'static str,
     /// Pages of our server only (hidden while read-only).
     custom: bool,
-    /// Starts folded (the research tools).
-    folded: bool,
     entries: &'static [Entry],
 }
 
@@ -459,7 +441,6 @@ const GROUPS: &[Group] = &[
     Group {
         name: "PLAY",
         custom: false,
-        folded: false,
         entries: &[
             Entry {
                 name: "Status",
@@ -484,7 +465,6 @@ const GROUPS: &[Group] = &[
     Group {
         name: "SERVER",
         custom: true,
-        folded: false,
         entries: &[
             Entry {
                 name: "Instances",
@@ -503,7 +483,6 @@ const GROUPS: &[Group] = &[
     Group {
         name: "LOGS",
         custom: false,
-        folded: false,
         entries: &[Entry {
             name: "Live logs",
             pages: &[(Page::Log, "Log"), (Page::GameLog, "Game log")],
@@ -512,7 +491,6 @@ const GROUPS: &[Group] = &[
     Group {
         name: "RESEARCH",
         custom: false,
-        folded: true,
         entries: &[
             Entry {
                 name: "Network",
@@ -533,10 +511,9 @@ const GROUPS: &[Group] = &[
     Group {
         name: "SETTINGS",
         custom: false,
-        folded: false,
         entries: &[Entry {
-            name: "Features",
-            pages: &[(Page::Features, "Features")],
+            name: "Settings",
+            pages: &[(Page::Settings, "Settings")],
         }],
     },
 ];
@@ -570,20 +547,13 @@ fn visible(page: Page) -> bool {
     !page_is_custom(page) || custom_server()
 }
 
-fn page_path() -> std::path::PathBuf {
-    poe_hook_shared::exe_dir()
-        .join("logs")
-        .join("poe-hook")
-        .join("overlay_page.txt")
-}
-
 fn save_page(page: Page) {
-    let _ = std::fs::write(page_path(), format!("{page:?}"));
+    settings::update(|s| s.last_page = format!("{page:?}"));
 }
 
-/// The page selected last time (kept across sessions).
+/// The page selected last time (kept across sessions in `overlay.toml`).
 fn load_page() -> Page {
-    let name = std::fs::read_to_string(page_path()).unwrap_or_default();
+    let name = settings::get().last_page;
     pages()
         .map(|(_, p, _)| p)
         .find(|p| format!("{p:?}") == name.trim())
@@ -692,7 +662,7 @@ mod tests {
             Page::Minimap,
             Page::Scanner,
             Page::Hooks,
-            Page::Features,
+            Page::Settings,
         ];
         for p in all {
             assert_eq!(pages().filter(|(_, q, _)| *q == p).count(), 1, "{p:?}");
@@ -702,7 +672,13 @@ mod tests {
 
     #[test]
     fn groups_fold_and_hide_as_agreed() {
-        assert!(GROUPS.iter().find(|g| g.name == "RESEARCH").unwrap().folded);
+        assert!(GROUPS.iter().any(|g| g.name == "RESEARCH"));
+        assert!(
+            settings::Settings::default()
+                .sidebar_folded
+                .contains(&"RESEARCH".to_string())
+        );
+        assert_eq!(entry_of(Page::Settings).unwrap().name, "Settings");
         assert!(page_is_custom(Page::Desync));
         assert!(!page_is_custom(Page::Log));
         assert_eq!(entry_of(Page::GameLog).unwrap().name, "Live logs");

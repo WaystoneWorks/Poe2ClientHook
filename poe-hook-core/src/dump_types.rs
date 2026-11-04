@@ -688,7 +688,9 @@ fn track_player(entity: usize) {
                     let vt = MAIN
                         .get()
                         .map_or(vt, |m| if m.contains(vt) { m.to_ghidra(vt) } else { vt });
-                    Some(format!("+{o:#x}:{ty:#06x}/{fl:#x}/vt{vt:#x}/142={b142:#x}/id={sid:#x}"))
+                    Some(format!(
+                        "+{o:#x}:{ty:#06x}/{fl:#x}/vt{vt:#x}/142={b142:#x}/id={sid:#x}"
+                    ))
                 })
                 .collect();
             let state = format!(
@@ -850,9 +852,10 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                     }
                 }
                 // Positioned height as the client samples it (0x141de5510 returns f32 in xmm0).
-                if let (Some(pa), Some(pos)) =
-                    (probe().filter(|_| game_calls), read::<usize>(begin_components(entity)))
-                {
+                if let (Some(pa), Some(pos)) = (
+                    probe().filter(|_| game_calls),
+                    read::<usize>(begin_components(entity)),
+                ) {
                     let height: extern "win64" fn(usize) -> f32 =
                         unsafe { std::mem::transmute(pa.height) };
                     log::info!("  positioned height {}", height(pos));

@@ -73,7 +73,7 @@ impl StatsView {
                     ui.text(name);
                     ui.table_next_column();
                     if recent {
-                        ui.text_colored([1.0, 0.5, 0.3, 1.0], value.to_string());
+                        ui.text_colored(super::theme::WARN, value.to_string());
                     } else {
                         ui.text(value.to_string());
                     }
