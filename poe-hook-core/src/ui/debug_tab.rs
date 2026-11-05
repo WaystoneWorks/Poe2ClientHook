@@ -31,6 +31,9 @@ pub struct DebugView {
     tx: i32,
     ty: i32,
     scale: String,
+    /// Act number (WorldAreas.Act; the interludes are 6) and area id for the travel unlocks.
+    unlock_act: i32,
+    unlock_area: String,
     announce: String,
     mute_for: String,
 }
@@ -52,6 +55,8 @@ impl DebugView {
             tx: 0,
             ty: 0,
             scale: "1".into(),
+            unlock_act: 1,
+            unlock_area: String::new(),
             announce: String::new(),
             mute_for: "30m".into(),
         }
@@ -400,6 +405,29 @@ impl DebugView {
             devlink::live("time_scale").unwrap_or_else(|| "-".into()),
             devlink::live("seed").unwrap_or_else(|| "-".into())
         ));
+        ui.text("Travel");
+        ui.same_line();
+        if ui.button("Unlock all acts") {
+            devlink::command("waypoint unlock all");
+        }
+        ui.same_line();
+        ui.set_next_item_width(90.0);
+        ui.input_int("act (6 = interludes)##unlock", &mut self.unlock_act);
+        ui.same_line();
+        if ui.button("Unlock act") {
+            devlink::command(&format!("waypoint unlock act {}", self.unlock_act));
+        }
+        ui.same_line();
+        ui.set_next_item_width(110.0);
+        ui.input_text("area##unlock", &mut self.unlock_area).build();
+        ui.same_line();
+        if ui.button("Unlock waypoint") && !self.unlock_area.trim().is_empty() {
+            devlink::command(&format!("waypoint unlock waypoint {}", self.unlock_area.trim()));
+        }
+        ui.same_line();
+        if ui.button("Unlock checkpoints here") {
+            devlink::command("checkpoint unlock all");
+        }
         ui.separator();
         let h = (ui.content_region_avail()[1] - 120.0).max(160.0);
         let (cmds, me) = devlink::registry();
@@ -420,6 +448,8 @@ impl DebugView {
                     "instance join",
                     "instance close",
                     "instance reset",
+                    "waypoint unlock",
+                    "checkpoint unlock",
                 ],
                 &prefix,
             );
