@@ -68,10 +68,10 @@ impl DebugView {
                 ui,
                 "Debug>Stats",
                 "Stat editor",
-                "P9 (items, stats pipeline)",
+                "P10 (items, stats pipeline)",
             ),
             Page::DebugItems => {
-                self.area_tab(ui, "Debug>Items", "Item creator", "P11 (item creator)")
+                self.area_tab(ui, "Debug>Items", "Item creator", "P12 (item creator)")
             }
             Page::DebugMonsters => self.area_tab(
                 ui,
@@ -523,7 +523,7 @@ impl DebugView {
             ui,
             "Your character as the server sees it. Level, XP, points and class change here once \
              they exist.",
-            "Comes with P9 (levels and XP) and P15 (passives).",
+            "Comes with P10 (levels and XP) and P15 (passives).",
         );
         let value = |key: &str| devlink::live(key).unwrap_or_else(|| "-".into());
         ui.text(format!(

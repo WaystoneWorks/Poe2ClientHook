@@ -30,7 +30,7 @@ impl StatsView {
             ui,
             "The player's stats by name, live; yellow = changed in the last 3 s.",
             "Set 0 is the player's own stats; names come from Stats.dat. A server column for \
-             comparing with the server's values comes with the stats pipeline (P8, P9).",
+             comparing with the server's values comes with the stats pipeline (P10).",
         );
         let sets = crate::inspect::player_stats();
         widgets::filter(
