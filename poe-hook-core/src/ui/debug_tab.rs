@@ -422,7 +422,10 @@ impl DebugView {
         ui.input_text("area##unlock", &mut self.unlock_area).build();
         ui.same_line();
         if ui.button("Unlock waypoint") && !self.unlock_area.trim().is_empty() {
-            devlink::command(&format!("waypoint unlock waypoint {}", self.unlock_area.trim()));
+            devlink::command(&format!(
+                "waypoint unlock waypoint {}",
+                self.unlock_area.trim()
+            ));
         }
         ui.same_line();
         if ui.button("Unlock checkpoints here") {
