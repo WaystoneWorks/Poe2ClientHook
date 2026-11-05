@@ -1,6 +1,6 @@
 //! Authenticated side channel between the client DLL and our instance server: position
-//! reports, the debug link (overlay commands and state), the terrain upload and the report of
-//! the loaded client mods.
+//! reports, the debug link (overlay commands and state) and the report of the loaded client
+//! mods.
 //!
 //! Everything here is pure (no Windows calls), so the DLL and the server share one
 //! implementation and test it on the host. Wire format: `docs/protocol/side-channel.md`.
@@ -33,27 +33,24 @@ pub const VERSION: u8 = 1;
 pub const HEADER_LEN: usize = 22;
 /// Truncated HMAC length.
 pub const TAG_LEN: usize = 16;
-/// First four bytes of a terrain upload on the instance TCP port (never a valid game opcode).
-pub const UPLOAD_MAGIC: [u8; 4] = *b"PSUP";
-/// First four bytes of the server's answer to an upload.
-pub const UPLOAD_REPLY_MAGIC: [u8; 4] = *b"PSUR";
-/// Reply status: the offer is wanted (send the upload) / the upload is stored.
+/// First four bytes of a side stream connection (the mod report) on the instance TCP port
+/// (never a valid game opcode).
+pub const STREAM_MAGIC: [u8; 4] = *b"PSUP";
+/// First four bytes of the server's answer on a side stream connection.
+pub const STREAM_REPLY_MAGIC: [u8; 4] = *b"PSUR";
+/// Reply status: stored.
 pub const REPLY_OK: u8 = 0;
-/// Same value, read as the answer to an offer.
-pub const REPLY_SEND: u8 = 0;
-/// The server already has this terrain.
-pub const REPLY_HAVE: u8 = 1;
-/// Refused: invalid, too large or inconsistent.
+/// Refused: invalid or too large.
 pub const REPLY_REJECTED: u8 = 2;
 /// Refused: unknown session, bad tag or replayed counter.
 pub const REPLY_AUTH: u8 = 3;
 
-/// The server's answer on the upload connection: `b"PSUR"`, `u8 status`, `u16 length`, text.
+/// The server's answer on a side stream connection: `b"PSUR"`, `u8 status`, `u16 length`, text.
 /// It is not authenticated (it only tells the client what to do next).
 pub fn encode_reply(status: u8, text: &str) -> Vec<u8> {
     let text = &text.as_bytes()[..text.len().min(512)];
     let mut out = Vec::with_capacity(7 + text.len());
-    out.extend_from_slice(&UPLOAD_REPLY_MAGIC);
+    out.extend_from_slice(&STREAM_REPLY_MAGIC);
     out.push(status);
     out.extend_from_slice(&(text.len() as u16).to_le_bytes());
     out.extend_from_slice(text);
@@ -70,9 +67,10 @@ pub enum Kind {
     Command = 2,
     /// Server to client, UDP: `key\tvalue` debug state, registry and instance lists.
     Debug = 3,
-    /// Client to server, TCP: the terrain layout and grid of an area ([`Upload`]).
+    /// Retired: the terrain upload (the server generates every area itself). The server refuses
+    /// it; the number stays taken.
     Upload = 4,
-    /// Client to server, TCP: `u32 tile hash`, asks whether the server wants that terrain.
+    /// Retired: the terrain upload's offer. Refused like [`Kind::Upload`].
     UploadOffer = 5,
     /// Client to server, TCP: the client mods the hook has loaded
     /// ([`crate::modreport::ModReport`]); sent once per instance session.
@@ -322,89 +320,6 @@ impl ReportPayload {
     }
 }
 
-/// Size limits of a terrain upload (the server's config).
-#[derive(Debug, Clone, Copy)]
-pub struct UploadLimits {
-    /// Largest layout after decompression.
-    pub layout: usize,
-    /// Largest grid after decompression.
-    pub grid: usize,
-}
-
-/// A terrain upload: the layout TSV and the cell grid (`PWG1`) of one tile hash.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Upload {
-    pub tile_hash: u32,
-    pub layout: Vec<u8>,
-    pub grid: Vec<u8>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum UploadError {
-    Truncated,
-    /// Unknown compression byte.
-    Encoding(u8),
-    /// The data does not decompress, or exceeds the limit.
-    Inflate(&'static str),
-}
-
-impl std::fmt::Display for UploadError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Truncated => write!(f, "truncated upload"),
-            Self::Encoding(e) => write!(f, "unknown encoding {e}"),
-            Self::Inflate(what) => write!(f, "{what} does not inflate within its limit"),
-        }
-    }
-}
-
-impl Upload {
-    /// Payload (`Kind::Upload`): `u32 tile hash`, `u8 encoding (1: zlib)`, `u32 layout bytes`,
-    /// `u32 grid bytes` (both as sent), the layout, the grid.
-    pub fn encode(&self) -> Vec<u8> {
-        let layout = miniz_oxide::deflate::compress_to_vec_zlib(&self.layout, 6);
-        let grid = miniz_oxide::deflate::compress_to_vec_zlib(&self.grid, 6);
-        let mut out = Vec::with_capacity(13 + layout.len() + grid.len());
-        out.extend_from_slice(&self.tile_hash.to_le_bytes());
-        out.push(1);
-        out.extend_from_slice(&(layout.len() as u32).to_le_bytes());
-        out.extend_from_slice(&(grid.len() as u32).to_le_bytes());
-        out.extend_from_slice(&layout);
-        out.extend_from_slice(&grid);
-        out
-    }
-
-    pub fn decode(p: &[u8], limits: UploadLimits) -> Result<Self, UploadError> {
-        let head = p.get(..13).ok_or(UploadError::Truncated)?;
-        let tile_hash = u32::from_le_bytes(head[..4].try_into().unwrap());
-        if head[4] != 1 {
-            return Err(UploadError::Encoding(head[4]));
-        }
-        let layout_len = u32::from_le_bytes(head[5..9].try_into().unwrap()) as usize;
-        let grid_len = u32::from_le_bytes(head[9..13].try_into().unwrap()) as usize;
-        let layout = p
-            .get(13..)
-            .and_then(|r| r.get(..layout_len))
-            .ok_or(UploadError::Truncated)?;
-        let grid = p
-            .get(13 + layout_len..)
-            .and_then(|r| r.get(..grid_len))
-            .ok_or(UploadError::Truncated)?;
-        if 13 + layout_len + grid_len != p.len() {
-            return Err(UploadError::Truncated);
-        }
-        let inflate = |data, limit, what| {
-            miniz_oxide::inflate::decompress_to_vec_zlib_with_limit(data, limit)
-                .map_err(|_| UploadError::Inflate(what))
-        };
-        Ok(Self {
-            tile_hash,
-            layout: inflate(layout, limits.layout, "layout")?,
-            grid: inflate(grid, limits.grid, "grid")?,
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -538,59 +453,11 @@ mod tests {
         assert_eq!(ReportPayload::decode(&bytes[..25]), None);
     }
 
-    const LIMITS: UploadLimits = UploadLimits {
-        layout: 1 << 20,
-        grid: 1 << 22,
-    };
-
     #[test]
-    fn upload_offer_is_a_client_frame_and_replies_encode() {
-        let k = keys(4);
-        let f = seal(&k, Kind::UploadOffer, 1, &7u32.to_le_bytes());
-        assert_eq!(
-            open(&k, Dir::ClientToServer, &f).unwrap().kind,
-            Kind::UploadOffer
-        );
-        let r = encode_reply(REPLY_HAVE, "cached");
+    fn replies_encode() {
+        let r = encode_reply(REPLY_REJECTED, "cached");
         assert_eq!(&r[..4], b"PSUR");
-        assert_eq!((r[4], u16::from_le_bytes([r[5], r[6]])), (1, 6));
+        assert_eq!((r[4], u16::from_le_bytes([r[5], r[6]])), (2, 6));
         assert_eq!(&r[7..], b"cached");
-    }
-
-    #[test]
-    fn upload_roundtrip_and_limits() {
-        let up = Upload {
-            tile_hash: 3958003549,
-            layout: b"size\t2\t2\n0\t0\ta.tdt\t0\n".repeat(50),
-            grid: vec![0x55; 100_000],
-        };
-        let bytes = up.encode();
-        assert!(bytes.len() < up.layout.len() + up.grid.len(), "compressed");
-        assert_eq!(Upload::decode(&bytes, LIMITS), Ok(up.clone()));
-        // A decompression bomb stays inside the limit.
-        let bomb = Upload {
-            tile_hash: 1,
-            layout: vec![0; 10],
-            grid: vec![0; 5 << 20],
-        };
-        assert_eq!(
-            Upload::decode(&bomb.encode(), LIMITS),
-            Err(UploadError::Inflate("grid"))
-        );
-        // Truncated and trailing bytes.
-        assert_eq!(
-            Upload::decode(&bytes[..bytes.len() - 1], LIMITS),
-            Err(UploadError::Truncated)
-        );
-        let mut long = bytes.clone();
-        long.push(0);
-        assert_eq!(Upload::decode(&long, LIMITS), Err(UploadError::Truncated));
-        assert_eq!(
-            Upload::decode(&bytes[..5], LIMITS),
-            Err(UploadError::Truncated)
-        );
-        let mut bad = bytes;
-        bad[4] = 9;
-        assert_eq!(Upload::decode(&bad, LIMITS), Err(UploadError::Encoding(9)));
     }
 }

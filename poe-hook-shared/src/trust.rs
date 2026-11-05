@@ -107,7 +107,7 @@ pub fn side_channel_allowed_in(list: &[TrustedServer], read_only: bool, addr: &S
 }
 
 /// Whether the DLL may send anything to `addr` over the side channel (position reports, debug
-/// link commands, terrain upload; `sidechannel.rs`): never while the read-only latch is on
+/// link commands, mod report; `sidechannel.rs`): never while the read-only latch is on
 /// (official servers) and only to loopback or a `trusted_servers` entry. Every outgoing
 /// side-channel send passes this gate.
 pub fn side_channel_allowed(read_only: bool, addr: &SocketAddr) -> bool {

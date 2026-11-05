@@ -219,7 +219,7 @@ fn start_features(config: &Config, main: &Module) {
         read_only,
         || crypto_bypass::init(main),
     );
-    // The authenticated side channel (position reports, debug link, terrain upload) needs the
+    // The authenticated side channel (position reports, debug link, mod report) needs the
     // instance session keys; never captured on official servers.
     report_sig(
         "side_channel",

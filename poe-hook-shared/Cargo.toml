@@ -10,7 +10,6 @@ publish.workspace = true
 hmac = "0.12"
 log.workspace = true
 poe-hook-sig.workspace = true
-miniz_oxide = "0.8"
 serde.workspace = true
 sha2 = "0.10"
 subtle = "2"

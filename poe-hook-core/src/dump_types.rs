@@ -344,9 +344,8 @@ pub fn export_layout_now() -> bool {
 }
 
 /// Writes `terrain_layout_<tile hash>.tsv` to `<dump_dir>/terrain/layouts/` (else next to the
-/// exe): a `size<TAB>w<TAB>h` line, then one `x<TAB>y<TAB>tile path` line per tile. Our server
-/// reads it for spawn placement (a trusted remote server gets it by upload instead), because
-/// its own generator does not cover every area yet.
+/// exe): a `size<TAB>w<TAB>h` line, then one `x<TAB>y<TAB>tile path` line per tile, for
+/// comparing the client's layout with the server's generator (terrain mismatch popup, RE).
 pub(crate) unsafe fn export_layout(world: usize) {
     use poe_hook_shared::mem::{read, wide_string};
     // The terrain object is a member (or pointed-to member) of the world; find it by its
@@ -432,12 +431,7 @@ pub(crate) unsafe fn export_layout(world: usize) {
             out += &format!("{x}\t{y}\t{path}\t{sub}\n");
         }
     }
-    let grid = unsafe { export_grids(terrain, w as usize, h as usize, tile_hash) };
-    // A trusted remote server cannot read our disk: send it the layout and grid
-    // (`side::upload_terrain` refuses official servers and read-only sessions).
-    if let (Some(grid), Some(dest)) = (grid, crate::position_sync::server_addr()) {
-        crate::side::upload_terrain(dest, tile_hash, out.clone().into_bytes(), grid);
-    }
+    unsafe { export_grids(terrain, w as usize, h as usize, tile_hash) };
     let path = crate::dump_path(
         "terrain/layouts",
         &format!("terrain_layout_{tile_hash}.tsv"),

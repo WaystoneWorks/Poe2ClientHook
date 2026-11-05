@@ -1,5 +1,5 @@
 //! Authenticated side channel to our instance server (private mode only): the session keys,
-//! the sealed UDP frames of the position reports and the debug link, and the terrain upload.
+//! the sealed UDP frames of the position reports and the debug link, and the mod report.
 //!
 //! The keys come from the instance session's 64-byte key material, which the game passes to
 //! `0x14212ac10` (the packet-cipher builder of the instance `EnableEncryption` handler, with
@@ -29,9 +29,8 @@ struct Session {
     keys: SessionKeys,
     /// Counter of the UDP stream (reports and commands).
     udp: u64,
-    /// Counter of the upload stream (separate: an upload can take longer than the replay
-    /// window of the UDP stream).
-    upload: u64,
+    /// Counter of the TCP side stream (the mod report; separate from the UDP stream).
+    stream: u64,
     /// Replay window of the server's debug frames.
     debug: ReplayWindow,
 }
@@ -68,7 +67,7 @@ unsafe extern "win64" fn on_instance_ciphers(regs: *mut Registers, _: usize) {
     *SESSION.lock().unwrap() = Some(Session {
         keys,
         udp: 0,
-        upload: 0,
+        stream: 0,
         debug: ReplayWindow::default(),
     });
     report_mods(id);
@@ -115,15 +114,15 @@ fn try_report(dest: ([u8; 4], u16), payload: &[u8]) -> Result<String, String> {
     let frame = {
         let mut guard = SESSION.lock().unwrap();
         let s = guard.as_mut().ok_or("no session")?;
-        s.upload += 1;
-        sc::seal(&s.keys, Kind::ModReport, s.upload, payload)
+        s.stream += 1;
+        sc::seal(&s.keys, Kind::ModReport, s.stream, payload)
     };
     let mut tcp = TcpStream::connect_timeout(&addr, Duration::from_secs(5))
         .map_err(|e| format!("connect {addr}: {e}"))?;
     tcp.set_read_timeout(Some(Duration::from_secs(15))).ok();
     tcp.set_write_timeout(Some(Duration::from_secs(15))).ok();
     let mut msg = Vec::with_capacity(8 + frame.len());
-    msg.extend_from_slice(&sc::UPLOAD_MAGIC);
+    msg.extend_from_slice(&sc::STREAM_MAGIC);
     msg.extend_from_slice(&(frame.len() as u32).to_le_bytes());
     msg.extend_from_slice(&frame);
     tcp.write_all(&msg).map_err(|e| format!("send: {e}"))?;
@@ -167,94 +166,13 @@ pub fn open_debug(frame: &[u8]) -> Option<Vec<u8>> {
     Some(f.payload.to_vec())
 }
 
-/// Sends the terrain of the area just generated to the server (`ip:port`, TCP on the instance
-/// port) from a background thread: first an offer (the server may already have this tile
-/// hash), then the zlib-compressed layout and grid. Does nothing without a session or when
-/// [`allowed`] says no.
-pub fn upload_terrain(dest: ([u8; 4], u16), tile_hash: u32, layout: Vec<u8>, grid: Vec<u8>) {
-    if !allowed(dest.0, dest.1) || session_id().is_none() {
-        log::info!("terrain upload skipped (no trusted side-channel session)");
-        return;
-    }
-    crate::hooks::spawn(move || {
-        for attempt in 1..=3 {
-            match try_upload(dest, tile_hash, &layout, &grid) {
-                Ok(msg) => {
-                    log::info!("terrain upload {tile_hash}: {msg}");
-                    return;
-                }
-                Err(e) => log::warn!("terrain upload {tile_hash} (attempt {attempt}): {e}"),
-            }
-            if !crate::hooks::sleep(Duration::from_secs(2)) {
-                return;
-            }
-        }
-    });
-}
-
-/// One upload connection: offer, then (if wanted) the data. Returns what the server said.
-fn try_upload(
-    dest: ([u8; 4], u16),
-    tile_hash: u32,
-    layout: &[u8],
-    grid: &[u8],
-) -> Result<String, String> {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::from(dest.0)), dest.1);
-    let seal = |kind, payload: &[u8]| -> Result<Vec<u8>, String> {
-        let mut guard = SESSION.lock().unwrap();
-        let s = guard.as_mut().ok_or("no session")?;
-        s.upload += 1;
-        Ok(sc::seal(&s.keys, kind, s.upload, payload))
-    };
-    let mut tcp = TcpStream::connect_timeout(&addr, Duration::from_secs(5))
-        .map_err(|e| format!("connect {addr}: {e}"))?;
-    tcp.set_read_timeout(Some(Duration::from_secs(60))).ok();
-    tcp.set_write_timeout(Some(Duration::from_secs(60))).ok();
-    let send = |tcp: &mut TcpStream, frame: &[u8]| -> Result<(), String> {
-        let mut msg = Vec::with_capacity(8 + frame.len());
-        msg.extend_from_slice(&sc::UPLOAD_MAGIC);
-        msg.extend_from_slice(&(frame.len() as u32).to_le_bytes());
-        msg.extend_from_slice(frame);
-        tcp.write_all(&msg).map_err(|e| format!("send: {e}"))
-    };
-    send(
-        &mut tcp,
-        &seal(Kind::UploadOffer, &tile_hash.to_le_bytes())?,
-    )?;
-    let (status, text) = reply(&mut tcp)?;
-    match status {
-        sc::REPLY_SEND => {}
-        sc::REPLY_HAVE => return Ok(format!("server has it ({text})")),
-        _ => return Err(format!("offer refused ({status}): {text}")),
-    }
-    let payload = sc::Upload {
-        tile_hash,
-        layout: layout.to_vec(),
-        grid: grid.to_vec(),
-    }
-    .encode();
-    log::info!(
-        "terrain upload {tile_hash}: sending {} KiB (layout {} KiB, grid {} KiB unpacked)",
-        payload.len() / 1024,
-        layout.len() / 1024,
-        grid.len() / 1024
-    );
-    send(&mut tcp, &seal(Kind::Upload, &payload)?)?;
-    let (status, text) = reply(&mut tcp)?;
-    if status == sc::REPLY_OK {
-        Ok(format!("stored ({text})"))
-    } else {
-        Err(format!("rejected ({status}): {text}"))
-    }
-}
-
 /// `PSUR`, `u8 status`, `u16 length`, text.
 fn reply(tcp: &mut TcpStream) -> Result<(u8, String), String> {
     let mut head = [0u8; 7];
     tcp.read_exact(&mut head)
         .map_err(|e| format!("reply: {e}"))?;
-    if head[..4] != sc::UPLOAD_REPLY_MAGIC {
-        return Err("not an upload reply".into());
+    if head[..4] != sc::STREAM_REPLY_MAGIC {
+        return Err("not a side stream reply".into());
     }
     let mut text = vec![0u8; u16::from_le_bytes([head[5], head[6]]) as usize];
     tcp.read_exact(&mut text)
