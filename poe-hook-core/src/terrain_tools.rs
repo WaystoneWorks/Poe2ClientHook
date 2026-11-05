@@ -8,7 +8,7 @@
 //!   `meta.txt`, `layout.tsv` (every tile record with the fields the tile hash covers, checked
 //!   by recomputing the hash), `grids.bin` (the four cell grids), `entities.tsv` (objects the
 //!   generator created: doodads and tile entities, with path, cell, world position, facing and
-//!   components). "Export area" in the Minimap tab writes it again with the server's entities
+//!   components). "Export area" on Debug > World writes it again with the server's entities
 //!   and the walkability probe added.
 //! - **Walkability probe**: the cells the player stood on, with each grid layer's value there
 //!   (`probe.tsv`); a walkability layer is never 0 under the player.
@@ -2017,7 +2017,7 @@ fn finish_current() {
     }
 }
 
-/// "Export area" (Minimap tab): writes the current area again with the server's entities and
+/// "Export area" (Debug > World): writes the current area again with the server's entities and
 /// the probe so far. False when no area was exported yet.
 pub fn export_now() -> Option<PathBuf> {
     let area = CURRENT.lock().unwrap().clone()?;

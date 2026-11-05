@@ -341,7 +341,7 @@ impl DebugView {
     fn world(&mut self, ui: &Ui) {
         widgets::header(
             ui,
-            "Instances on the server, a new-instance form, teleport and time.",
+            "Instances on the server, a new-instance form, teleport, time and the area export.",
             "Chat equivalents: !go <area> [seed] [topology] [orientation], !instance new, \
              !join <id>, !instance close <id>, !tp <x> <y>, !stuck, !time scale <factor>.",
         );
@@ -378,6 +378,21 @@ impl DebugView {
         ui.same_line();
         if ui.button("Reset instance") {
             devlink::command("instance reset");
+        }
+        ui.same_line();
+        if ui.button("Export area") {
+            let ok = crate::dump_types::export_layout_now();
+            crate::ui::notice(match crate::terrain_tools::export_now() {
+                Some(dir) => format!(
+                    "Area exported to {} (with server entities and walkability probe)",
+                    dir.display()
+                ),
+                None if ok => {
+                    "Area layout and grids exported (dump_dir terrain/layouts and terrain/grids)"
+                        .into()
+                }
+                None => "No area loaded".to_string(),
+            });
         }
         ui.same_line();
         ui.text_disabled(format!(

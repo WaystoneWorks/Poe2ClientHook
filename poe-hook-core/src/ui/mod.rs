@@ -12,7 +12,6 @@ mod inspect_tab;
 mod instances_tab;
 mod layout_form;
 mod log_tab;
-mod minimap_tab;
 mod notes_tab;
 mod packets_tab;
 mod protocol_tab;
@@ -75,7 +74,6 @@ pub struct App {
     scanner: scanner_tab::ScannerView,
     stats: game_tab::StatsView,
     actions: game_tab::ActionsView,
-    minimap: minimap_tab::MinimapView,
     server: server_tab::ServerView,
     debug: debug_tab::DebugView,
     settings: settings_tab::SettingsView,
@@ -111,7 +109,6 @@ impl App {
             scanner: scanner_tab::ScannerView::new(),
             stats: game_tab::StatsView::new(),
             actions: game_tab::ActionsView::new(),
-            minimap: minimap_tab::MinimapView::new(),
             server: server_tab::ServerView::new(),
             debug: debug_tab::DebugView::new(),
             page: load_page(),
@@ -335,7 +332,6 @@ impl App {
             Page::Actions => self.actions.draw(ui),
             Page::Entities => self.entities.draw(ui),
             Page::Watches => self.watches.draw(ui),
-            Page::Minimap => self.minimap.draw(ui),
             Page::Scanner => self.scanner.draw(ui),
             Page::Hooks => self.hooks.draw(ui),
             Page::Settings => self.settings.draw(ui),
@@ -451,7 +447,6 @@ enum Page {
     Actions,
     Entities,
     Watches,
-    Minimap,
     DebugHelp,
     DebugConsole,
     DebugCharacter,
@@ -509,10 +504,6 @@ const GROUPS: &[Group] = &[
             Entry {
                 name: "Entities",
                 pages: &[(Page::Entities, "Entities"), (Page::Watches, "Watches")],
-            },
-            Entry {
-                name: "Minimap",
-                pages: &[(Page::Minimap, "Minimap")],
             },
         ],
     },
@@ -733,7 +724,6 @@ mod tests {
             Page::Actions,
             Page::Entities,
             Page::Watches,
-            Page::Minimap,
             Page::DebugHelp,
             Page::DebugConsole,
             Page::DebugCharacter,
