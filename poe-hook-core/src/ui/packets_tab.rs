@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use imgui::{ListClipper, Ui};
 
-use super::widgets;
+use super::widgets::{self, Tone};
 
 use crate::packets::{Channel, Dir, Msg};
 
@@ -163,14 +163,25 @@ impl PacketsView {
             ui.checkbox("hide noise (per-frame messages)", &mut self.hide_noise);
         }
         ui.same_line();
-        ui.checkbox("pause", &mut self.paused);
+        ui.checkbox("Freeze", &mut self.paused);
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Stop taking new messages into this list (capture goes on).");
+        }
         ui.same_line();
         let mut following = self.follow.following();
-        if ui.checkbox("follow", &mut following) {
+        if ui.checkbox("Follow", &mut following) {
             if following {
                 self.follow.jump();
             } else {
                 self.follow.pause(self.shown.len());
+            }
+        }
+        if let Some(status) = self.follow.status(self.shown.len()) {
+            ui.same_line();
+            widgets::chip(ui, &status, Tone::Warn);
+            ui.same_line();
+            if ui.small_button("Jump to latest") {
+                self.follow.jump();
             }
         }
         ui.same_line();
@@ -218,12 +229,8 @@ impl PacketsView {
         widgets::split(
             ui,
             "packets",
-            620.0,
+            420.0,
             || {
-                let flags = imgui::TableFlags::RESIZABLE
-                    | imgui::TableFlags::ROW_BG
-                    | imgui::TableFlags::BORDERS_INNER_V
-                    | imgui::TableFlags::SCROLL_Y;
                 if let Some(_t) = crate::ui::list_table(
                     ui,
                     "packet_list",
@@ -274,7 +281,7 @@ impl PacketsView {
                             ));
                         }
                     }
-                    follow.end(ui, shown.len());
+                    follow.end_quiet(ui);
                 }
             },
             || {

@@ -32,7 +32,7 @@ pub fn draw(ui: &Ui) {
     } else {
         widgets::chip(ui, "PRIVATE", Tone::Ok);
     }
-    if let Some(me) = crate::devlink::registry().1 {
+    if let Some(me) = crate::devlink::me() {
         ui.same_line();
         if me.admin {
             widgets::chip(ui, "ADMIN", Tone::Warn);

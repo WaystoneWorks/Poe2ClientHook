@@ -4,7 +4,7 @@ use imgui::{ListClipper, Ui};
 
 use super::widgets::{self, Tone, split};
 
-use crate::watches::{KINDS, Kind, Watch};
+use crate::watches::{KINDS, Watch};
 
 pub fn draw_player(ui: &Ui) {
     widgets::header(
@@ -114,7 +114,7 @@ impl EntitiesView {
         split(
             ui,
             "entities",
-            ui.content_region_avail()[0] * 0.55,
+            440.0,
             || {
                 if let Some(_t) = crate::ui::list_table(
                     ui,
@@ -261,6 +261,7 @@ impl WatchesView {
                 kind: KINDS[self.new_kind],
             });
             crate::watches::save(&self.list);
+            self.new_expr.clear();
         }
         widgets::counter(ui, &widgets::plural(self.list.len(), "watch"));
         if self.list.is_empty() {
@@ -291,6 +292,5 @@ impl WatchesView {
             self.list.remove(i);
             crate::watches::save(&self.list);
         }
-        let _ = Kind::U8;
     }
 }

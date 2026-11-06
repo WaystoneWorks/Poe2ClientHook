@@ -359,6 +359,11 @@ pub fn registry() -> (Vec<Cmd>, Option<Me>) {
     REGISTRY.lock().unwrap().clone()
 }
 
+/// Who we are, as the server said (no copy of the command list).
+pub fn me() -> Option<Me> {
+    REGISTRY.lock().unwrap().1.clone()
+}
+
 /// Whether the server says this account is not an admin (per-frame callers: no copy).
 pub fn not_admin() -> bool {
     REGISTRY

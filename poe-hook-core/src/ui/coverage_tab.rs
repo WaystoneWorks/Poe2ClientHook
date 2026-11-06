@@ -6,7 +6,7 @@ use imgui::Ui;
 
 use super::widgets;
 
-use crate::packets::{Channel, Dir};
+use crate::packets::Dir;
 
 pub struct CoverageView {
     official_only: bool,
@@ -43,7 +43,9 @@ impl CoverageView {
         ui.same_line();
         ui.checkbox("no name yet", &mut self.unnamed_only);
         let f = self.filter.to_lowercase();
-        let rows: Vec<_> = crate::packets::coverage()
+        let all = crate::packets::coverage();
+        let total = all.len();
+        let rows: Vec<_> = all
             .into_iter()
             .filter(|((c, d, op), s)| {
                 let name = crate::packets::name(*c, *d, *op);
@@ -56,18 +58,45 @@ impl CoverageView {
             })
             .collect();
         ui.same_line();
-        if ui.button("Hide listed") {
+        if widgets::confirm_button(
+            ui,
+            "Hide listed",
+            &format!(
+                "Hide the {} listed in the Messages tab?",
+                widgets::plural(rows.len(), "opcode")
+            ),
+            "Hide",
+        ) {
             for ((c, d, op), _) in &rows {
                 crate::hidden::set_hidden(crate::hidden::key(*c, *d, *op), true);
             }
         }
         ui.same_line();
-        if ui.button("Show all") {
+        if widgets::confirm_button(
+            ui,
+            "Show all",
+            "Show every hidden opcode in the Messages tab again?",
+            "Show all",
+        ) {
             crate::hidden::clear();
         }
-        widgets::counter(ui, &format!("{} opcodes", widgets::thousands(rows.len())));
+        widgets::counter(
+            ui,
+            &format!(
+                "{} of {}",
+                widgets::thousands(rows.len()),
+                widgets::plural(total, "opcode")
+            ),
+        );
         if rows.is_empty() {
-            widgets::empty(ui, "No opcodes yet: connect to a server.");
+            widgets::empty(
+                ui,
+                if total == 0 {
+                    "No opcodes yet: connect to a server."
+                } else {
+                    "No opcode matches the filter."
+                },
+            );
             return;
         }
         if let Some(_t) = crate::ui::list_table(
@@ -123,6 +152,5 @@ impl CoverageView {
                 });
             }
         }
-        let _ = Channel::Login;
     }
 }

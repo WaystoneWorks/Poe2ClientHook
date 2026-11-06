@@ -166,8 +166,12 @@ impl ProtocolView {
         });
         for (f, n) in functions.iter().take(6) {
             ui.text(format!(
-                "  {f:#x}  {}  ({n} reads)",
-                crate::symbols::fmt(**f)
+                "  {f:#x}  {}  ({n} {})",
+                crate::symbols::fmt(**f),
+                match d {
+                    Dir::In => "reads",
+                    Dir::Out => "writes",
+                }
             ));
         }
         if functions.is_empty() {

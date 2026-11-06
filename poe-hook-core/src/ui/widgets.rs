@@ -51,7 +51,10 @@ pub fn filter(ui: &Ui, id: &str, buf: &mut String, hint: &str, width: f32) -> bo
 /// A toolbar text box that is not a filter (an address, an expression): no `Ctrl+F`.
 pub fn input_bar(ui: &Ui, id: &str, buf: &mut String, hint: &str, width: f32) -> bool {
     ui.set_next_item_width(px(ui, width));
-    ui.input_text(format!("##{id}"), buf).hint(hint).build()
+    ui.input_text(format!("##{id}"), buf)
+        .hint(hint)
+        .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
+        .build()
 }
 
 /// Text at the right edge of the current row (the toolbar's counters, "1,204 rows").

@@ -55,27 +55,39 @@ impl SettingsView {
         if self.scale <= 0.0 {
             self.scale = in_use;
         }
+        let over = settings::scale_override();
+        let auto = over.unwrap_or(cfg.overlay.scale) <= 0.0;
         widgets::label(ui, "Scale");
-        ui.set_next_item_width(12.0 * ui.current_font_size());
-        ui.slider_config("##scale", 0.5f32, 4.0f32)
-            .build(&mut self.scale);
-        if ui.is_item_deactivated_after_edit() {
-            let v = (self.scale * 4.0).round() / 4.0;
-            self.scale = v;
+        let mut auto_on = auto;
+        if ui.checkbox("Automatic##scale", &mut auto_on) {
+            // Some(0.0) = automatic, also over a fixed overlay.scale in poe-hook.toml.
+            let v = if auto_on { 0.0 } else { in_use };
             settings::update(|s| s.scale_override = Some(v));
+            self.scale = in_use;
+        }
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Display height / 1080 in quarter steps (1.25 at 1440p).");
         }
         ui.same_line();
-        let auto = settings::get().scale_override.unwrap_or(cfg.overlay.scale) <= 0.0;
-        if ui.button("Automatic##scale") {
-            // 0 = automatic, also over a fixed overlay.scale in poe-hook.toml.
-            settings::update(|s| s.scale_override = Some(0.0));
-            self.scale = crate::overlay::wanted_scale(crate::overlay::extent().1);
+        {
+            let _d = ui.begin_disabled_with_cond(auto);
+            ui.set_next_item_width(12.0 * ui.current_font_size());
+            ui.slider_config("##scale", 0.5f32, 4.0f32)
+                .build(&mut self.scale);
+            if ui.is_item_deactivated_after_edit() {
+                let v = (self.scale * 4.0).round() / 4.0;
+                self.scale = v;
+                settings::update(|s| s.scale_override = Some(v));
+            }
+        }
+        if auto {
+            self.scale = in_use;
         }
         ui.same_line();
-        ui.text_disabled(if auto {
-            "automatic: display height / 1080"
-        } else {
-            "set here (overlay.toml) or by overlay.scale of poe-hook.toml"
+        ui.text_disabled(match (auto, over) {
+            (true, _) => format!("{in_use:.2} now"),
+            (false, Some(_)) => format!("fixed {in_use:.2} (overlay.toml)"),
+            (false, None) => format!("fixed {in_use:.2} (overlay.scale of poe-hook.toml)"),
         });
         ui.spacing();
         if ui.collapsing_header(

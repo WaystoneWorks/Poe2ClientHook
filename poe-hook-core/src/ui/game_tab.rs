@@ -81,6 +81,10 @@ impl StatsView {
             }
         }
         widgets::counter(ui, &widgets::plural(rows.len(), "row"));
+        if rows.is_empty() {
+            widgets::empty(ui, "No stat matches the filter.");
+            return;
+        }
         if let Some(_t) = crate::ui::list_table(
             ui,
             "stats",
@@ -131,7 +135,7 @@ impl ActionsView {
             "Names come from ActionTypes.dat.",
         );
         let mut paused = self.paused.is_some();
-        if ui.checkbox("pause", &mut paused) {
+        if ui.checkbox("Freeze", &mut paused) {
             self.paused = paused.then(crate::actions::events);
         }
         ui.same_line();

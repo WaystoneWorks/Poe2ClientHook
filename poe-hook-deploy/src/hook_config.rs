@@ -60,12 +60,37 @@ pub fn table_value(text: &str, table: &str, key: &str) -> Option<String> {
     None
 }
 
-/// Older installs got `[overlay] scale = 1.0`, the default then; the default is now 0
-/// (automatic from the display height). Returns the text with that one value moved over, or
-/// `None` when nothing changes (any other scale is the user's choice and is kept).
+/// The comment the template has above `[overlay] scale`; its presence marks a config that
+/// knows the automatic scale (so the migration below runs once).
+pub const SCALE_COMMENT: &str =
+    "# Text and widget size; 0 = automatic (display height / 1080, so 1.25 at 1440p).";
+
+/// Older installs got `[overlay] scale = 1.0`, the default then, without [`SCALE_COMMENT`]; the
+/// default is now 0 (automatic). Returns the text with that value moved to 0 and the comment
+/// added, or `None` when nothing changes. Runs once: a config with the comment is the user's,
+/// whatever its scale.
 pub fn migrate_overlay_scale(text: &str) -> Option<String> {
+    if text.contains("0 = automatic") {
+        return None;
+    }
     match table_value(text, "overlay", "scale").as_deref() {
-        Some("1.0") | Some("1") => Some(set_key_in_text(text, Some("overlay"), "scale", "0.0")),
+        Some("1.0") | Some("1") => {
+            let moved = set_key_in_text(text, Some("overlay"), "scale", "0.0");
+            let lines: Vec<&str> = moved.lines().collect();
+            let mut out = Vec::with_capacity(lines.len() + 1);
+            let mut inside = false;
+            for l in lines {
+                let t = l.trim();
+                if t.starts_with('[') {
+                    inside = t == "[overlay]";
+                }
+                if inside && t == "scale = 0.0" {
+                    out.push(SCALE_COMMENT);
+                }
+                out.push(l);
+            }
+            Some(out.join("\n") + "\n")
+        }
         _ => None,
     }
 }
@@ -142,7 +167,13 @@ mod tests {
             table_value(&new, "packets", "scale").as_deref(),
             Some("1.0")
         );
+        assert!(new.contains(SCALE_COMMENT));
         assert!(migrate_overlay_scale(&new).is_none());
+        // The user sets 1.0 again after the migration: kept.
+        let chosen = new.replace("scale = 0.0", "scale = 1.0");
+        assert!(migrate_overlay_scale(&chosen).is_none());
+        // The template itself is never touched.
+        assert!(migrate_overlay_scale(crate::DEFAULT_HOOK_CONFIG).is_none());
         let mine = "[overlay]\nscale = 1.5 # big\n";
         assert!(migrate_overlay_scale(mine).is_none());
     }

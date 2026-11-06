@@ -30,7 +30,9 @@ fn draw(ui: &Ui, filter: &mut String) {
     );
     widgets::filter(ui, "notes_filter", filter, "filter notes", 260.0);
     let f = filter.to_lowercase();
-    let notes: Vec<_> = crate::notes::all()
+    let all = crate::notes::all();
+    let total = all.len();
+    let notes: Vec<_> = all
         .into_iter()
         .filter(|n| {
             f.is_empty()
@@ -40,9 +42,23 @@ fn draw(ui: &Ui, filter: &mut String) {
                     .is_some_and(|x| x.to_lowercase().contains(&f))
         })
         .collect();
-    widgets::counter(ui, &widgets::plural(notes.len(), "note"));
+    widgets::counter(
+        ui,
+        &format!(
+            "{} of {}",
+            widgets::thousands(notes.len()),
+            widgets::plural(total, "note")
+        ),
+    );
     if notes.is_empty() {
-        widgets::empty(ui, "No notes yet: write one on the Messages tab.");
+        widgets::empty(
+            ui,
+            if total == 0 {
+                "No notes yet: write one on the Messages tab."
+            } else {
+                "No note matches the filter."
+            },
+        );
         return;
     }
     if let Some(_t) = crate::ui::list_table(

@@ -828,14 +828,14 @@ pub fn set_clipboard(text: &str) {
 fn centred(ui: &Ui, text: &str, y: f32) -> [f32; 2] {
     let [w, _] = ui.io().display_size();
     let tw = ui.calc_text_size(text)[0];
-    [(w - tw) * 0.5 - 8.0, y]
+    [(w - tw) * 0.5 - widgets::px(ui, 8.0), y]
 }
 
 const BADGE: &str = "OFFICIAL: read-only";
 
 fn badge(ui: &Ui) {
     ui.window("##read-only")
-        .position(centred(ui, BADGE, 6.0), Condition::Always)
+        .position(centred(ui, BADGE, widgets::px(ui, 6.0)), Condition::Always)
         .flags(
             WindowFlags::NO_DECORATION
                 | WindowFlags::NO_INPUTS
@@ -861,11 +861,17 @@ fn notices(ui: &Ui) {
     }
     let longest = list
         .iter()
-        .max_by_key(|s| s.len())
+        .max_by(|a, b| ui.calc_text_size(a)[0].total_cmp(&ui.calc_text_size(b)[0]))
         .cloned()
         .unwrap_or_default();
+    // Under the badge (one frame tall plus a margin) when it shows, else near the top.
+    let y = if crate::host::read_only() {
+        widgets::px(ui, 6.0) + ui.frame_height_with_spacing() + widgets::px(ui, 8.0)
+    } else {
+        widgets::px(ui, 6.0)
+    };
     ui.window("##notices")
-        .position(centred(ui, &longest, 44.0), Condition::Always)
+        .position(centred(ui, &longest, y), Condition::Always)
         .flags(
             WindowFlags::NO_DECORATION
                 | WindowFlags::NO_INPUTS

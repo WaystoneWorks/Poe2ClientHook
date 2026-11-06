@@ -76,6 +76,27 @@ impl Follow {
         }
     }
 
+    /// Call last inside a scrolling table: scrolls to the bottom while following; draws nothing
+    /// (the caller shows [`Follow::status`] on its toolbar instead of the corner button).
+    pub fn end_quiet(&mut self, ui: &Ui) {
+        if self.on {
+            ui.set_scroll_y(BOTTOM);
+        }
+    }
+
+    /// "Paused, 12 new" while paused, for a toolbar.
+    pub fn status(&self, lines: usize) -> Option<String> {
+        if self.on {
+            return None;
+        }
+        let new = lines.saturating_sub(self.paused_at);
+        Some(if new > 0 {
+            format!("Paused, {new} new")
+        } else {
+            "Paused".to_string()
+        })
+    }
+
     /// Call last inside the scrolling child: scrolls to the bottom while following, or draws the
     /// "Jump to latest" button in the child's bottom-right corner while paused.
     pub fn end(&mut self, ui: &Ui, lines: usize) {
@@ -90,12 +111,13 @@ impl Follow {
             "Paused  -  Jump to latest".to_string()
         };
         let [w, h] = ui.window_size();
-        let tw = ui.calc_text_size(&label)[0] + 24.0;
+        let k = super::widgets::px(ui, 1.0);
+        let tw = ui.calc_text_size(&label)[0] + 24.0 * k;
         let bh = ui.frame_height();
         // In content coordinates: the visible bottom-right corner (above the scrollbars).
         ui.set_cursor_pos([
-            ui.scroll_x() + (w - tw - 22.0).max(0.0),
-            ui.scroll_y() + (h - bh - 18.0).max(0.0),
+            ui.scroll_x() + (w - tw - 22.0 * k).max(0.0),
+            ui.scroll_y() + (h - bh - 18.0 * k).max(0.0),
         ]);
         if ui.button_with_size(&label, [tw, bh]) {
             self.held = false;

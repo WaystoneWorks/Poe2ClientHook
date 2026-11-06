@@ -79,8 +79,9 @@ impl ScannerView {
         ui.same_line();
         ui.checkbox("rows that changed", &mut self.changed_only);
         ui.same_line();
+        widgets::label(ui, "view");
         ui.set_next_item_width(crate::ui::widgets::px(ui, 120.0));
-        ui.combo_simple_string("view", &mut self.view, &["hex", "u32", "f32", "pointers"]);
+        ui.combo_simple_string("##view", &mut self.view, &["hex", "u32", "f32", "pointers"]);
         if let Some(e) = &r.error {
             ui.text_colored(super::theme::BAD, e);
             return;

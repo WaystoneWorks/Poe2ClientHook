@@ -18,12 +18,12 @@ impl InstancesView {
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        let (_, me) = crate::devlink::registry();
+        let me = crate::devlink::me();
         let Some((age, list, idle)) = crate::devlink::instances() else {
             ui.text_disabled("No instance list from the server yet (needs position sync and [instance] debug_link).");
             return;
         };
-        if !me.as_ref().is_some_and(|m| m.admin) {
+        if me.as_ref().is_some_and(|m| !m.admin) {
             ui.text_colored(
                 super::theme::WARN,
                 "Your account does not have the admin role: the server refuses these commands.",
@@ -115,8 +115,7 @@ impl InstancesView {
                 }
             }
         }
-        ui.separator();
-        ui.text("New instance");
+        ui.separator_with_text("New instance");
         self.form.draw(ui, "new_instance");
         let ready = self.form.has_area();
         {

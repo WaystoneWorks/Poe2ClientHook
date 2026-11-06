@@ -19,7 +19,11 @@ pub struct DebugView {
     instances: InstancesView,
     help_filter: String,
     help_sel: Option<String>,
+    /// Scroll the Help list to the selection once (it came from the palette).
+    help_scroll: bool,
     console: String,
+    /// The Console output follows new results unless scrolled up.
+    console_follow: super::follow::Follow,
     history: Vec<String>,
     hist_pos: Option<usize>,
     /// Changes the console input's id so it reads the buffer again after a recall.
@@ -45,7 +49,9 @@ impl DebugView {
             instances: InstancesView::new(),
             help_filter: String::new(),
             help_sel: None,
+            help_scroll: false,
             console: String::new(),
+            console_follow: super::follow::Follow::new(),
             history: Vec::new(),
             hist_pos: None,
             nonce: 0,
@@ -66,6 +72,7 @@ impl DebugView {
     pub fn select_help(&mut self, name: &str) {
         self.help_filter.clear();
         self.help_sel = Some(name.to_string());
+        self.help_scroll = true;
     }
 
     pub fn draw(&mut self, ui: &Ui, page: Page) {
@@ -85,8 +92,10 @@ impl DebugView {
         } else {
             0.0
         };
+        // Wide rows (World's toolbar, long forms) scroll sideways in a narrow window.
         ui.child_window("debug_body")
             .size([0.0, body_h])
+            .flags(imgui::WindowFlags::HORIZONTAL_SCROLLBAR)
             .build(ui, || self.body(ui, page));
         if strip {
             results_strip(ui, strip_h);
@@ -184,6 +193,7 @@ impl DebugView {
             }
         }
         let sel = self.help_sel.clone();
+        let scroll = std::mem::take(&mut self.help_scroll);
         let mut picked = None;
         let forms = &mut self.forms;
         ui.child_window("help_box").size([0.0, 0.0]).build(ui, || {
@@ -201,7 +211,10 @@ impl DebugView {
                                 .selected(sel.as_deref() == Some(name.as_str()))
                                 .build()
                             {
-                                picked = Some(name);
+                                picked = Some(name.clone());
+                            }
+                            if scroll && sel.as_deref() == Some(name.as_str()) {
+                                ui.set_scroll_here_y(0.5);
                             }
                         }
                     }
@@ -233,11 +246,13 @@ impl DebugView {
         let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
         let h = (ui.content_region_avail()[1] - 2.0 * ui.frame_height_with_spacing())
             .max(widgets::px(ui, 100.0));
+        let follow = &mut self.console_follow;
         ui.child_window("console_out")
             .size([0.0, h])
             .border(true)
             .build(ui, || {
                 let results = devlink::results();
+                follow.begin(ui, results.len());
                 if results.is_empty() {
                     widgets::empty(ui, "Nothing run yet.");
                 }
@@ -245,9 +260,7 @@ impl DebugView {
                     ui.text_disabled(format!("{} > {prefix}{cmd}", crate::util::clock(*ms)));
                     ui.text_colored(result_color(ui, result), format!("  {result}"));
                 }
-                if ui.scroll_y() >= ui.scroll_max_y() - 40.0 {
-                    ui.set_scroll_here_y(1.0);
-                }
+                follow.end(ui, results.len());
             });
         // What can follow what is typed: from the registry, or asked of the server.
         let line = self.console.trim_start_matches(&*prefix).to_string();
@@ -458,7 +471,7 @@ impl DebugView {
             devlink::command(&format!("waypoint unlock act {}", self.unlock_act));
         }
         ui.same_line();
-        ui.set_next_item_width(9.0 * em);
+        ui.set_next_item_width(11.0 * em);
         ui.input_text("##unlock_area", &mut self.unlock_area)
             .hint("area id, e.g. G1_4")
             .build();
@@ -548,12 +561,12 @@ impl DebugView {
             } else if let Some(_t) = ui.begin_table_header_with_flags(
                 "online_v1",
                 [
-                    "Character",
-                    "Account",
-                    "Level",
-                    "League",
-                    "Area",
-                    "Instance",
+                    "character",
+                    "account",
+                    "level",
+                    "league",
+                    "area",
+                    "instance",
                     "",
                 ]
                 .map(imgui::TableColumnSetup::new),
