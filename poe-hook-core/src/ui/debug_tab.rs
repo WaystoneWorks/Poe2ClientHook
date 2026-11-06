@@ -14,6 +14,19 @@ use super::{
 };
 use crate::devlink::{self, Cmd};
 
+/// Moves the Console box's cursor to the end of its text, once.
+struct CursorToEnd<'a>(&'a std::cell::Cell<bool>);
+
+impl imgui::InputTextCallbackHandler for CursorToEnd<'_> {
+    fn on_always(&mut self, mut d: imgui::TextCallbackData<'_>) {
+        if self.0.take() {
+            let n = d.str().len();
+            d.clear_selection();
+            d.set_cursor_pos(n);
+        }
+    }
+}
+
 pub struct DebugView {
     forms: CommandsView,
     instances: InstancesView,
@@ -29,6 +42,10 @@ pub struct DebugView {
     /// Changes the console input's id so it reads the buffer again after a recall.
     nonce: u32,
     refocus: bool,
+    /// The nonce the box last took text for, and "put the cursor at the end": a new id would
+    /// select the whole line, so the next key would wipe it.
+    end_for: u32,
+    to_end: std::cell::Cell<bool>,
     last_request: Option<std::time::Instant>,
     /// The name list request last sent: asked once per word typed.
     asked: Option<(String, String)>,
@@ -56,6 +73,8 @@ impl DebugView {
             hist_pos: None,
             nonce: 0,
             refocus: false,
+            end_for: 0,
+            to_end: std::cell::Cell::new(false),
             last_request: None,
             asked: None,
             tx: 0,
@@ -300,6 +319,10 @@ impl DebugView {
             self.refocus = false;
             ui.set_keyboard_focus_here();
         }
+        if self.end_for != self.nonce {
+            self.end_for = self.nonce;
+            self.to_end.set(true);
+        }
         let _id = ui.push_id(self.nonce as usize);
         ui.set_next_item_width(
             -ui.calc_text_size("Run")[0] - 3.0 * ui.clone_style().item_spacing()[0],
@@ -309,6 +332,8 @@ impl DebugView {
             .hint("command, e.g. help")
             .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .enter_returns_true(true)
+            .callback(CursorToEnd(&self.to_end))
+            .callback_flags(imgui::InputTextCallback::ALWAYS)
             .build();
         let active = ui.is_item_active() || enter;
         ui.same_line();

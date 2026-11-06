@@ -444,7 +444,8 @@ impl App {
             .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .enter_returns_true(true)
             .build();
-        if self.palette_query != before {
+        let query_changed = self.palette_query != before;
+        if query_changed {
             self.palette_sel = 0;
         }
         ui.text_disabled("Up/Down: pick   Enter: open or run   Escape: close");
@@ -459,6 +460,9 @@ impl App {
         self.palette_sel = self.palette_sel.min(items.len().saturating_sub(1));
         let mut chosen: Option<usize> = None;
         ui.child_window("##palette_rows").build(ui, || {
+            if query_changed {
+                ui.set_scroll_y(0.0);
+            }
             if items.is_empty() {
                 widgets::empty(ui, "Nothing matches: try a page name or a command.");
             }

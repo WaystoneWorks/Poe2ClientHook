@@ -31,6 +31,8 @@ impl TimingView {
         widgets::label(ui, "Seconds");
         ui.set_next_item_width(crate::ui::widgets::px(ui, 200.0));
         ui.slider("##seconds", 2, 120, &mut self.seconds);
+        // Ctrl+click types any number.
+        self.seconds = self.seconds.clamp(2, 120);
         ui.same_line();
         if ui.button("Reset") {
             self.reset_at = Some(poe_hook_shared::unix_ms());

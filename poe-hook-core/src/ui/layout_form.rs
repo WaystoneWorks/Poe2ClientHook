@@ -134,7 +134,7 @@ impl LayoutForm {
                     ui.table_next_column();
                     if ui
                         .selectable_config(format!("{}##{}", a.id, a.id))
-                        .selected(a.id.eq_ignore_ascii_case(&self.area))
+                        .selected(a.id.eq_ignore_ascii_case(self.area.trim()))
                         .span_all_columns(true)
                         .build()
                     {

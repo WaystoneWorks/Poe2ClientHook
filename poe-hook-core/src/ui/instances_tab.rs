@@ -95,7 +95,7 @@ impl InstancesView {
                     if widgets::confirm_popup(
                         ui,
                         "##reset_inst",
-                        "Reset this instance? Everyone in it is moved to a fresh copy.",
+                        "Reset? Creates a fresh instance of this area and moves you there; others stay.",
                         "Reset",
                     ) {
                         crate::devlink::command("instance reset");
@@ -132,6 +132,5 @@ impl InstancesView {
                 self.form.used();
             }
         }
-        ui.text_disabled("Chat equivalent: !go <area> [seed] [topology] [orientation], !instance new ..., !join <id>, !instance close <id>");
     }
 }

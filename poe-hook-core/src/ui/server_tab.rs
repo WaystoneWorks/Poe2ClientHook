@@ -71,6 +71,8 @@ impl ServerView {
         widgets::label(ui, "Seconds");
         ui.set_next_item_width(crate::ui::widgets::px(ui, 200.0));
         ui.slider("##seconds_desync", 2, 120, &mut self.seconds);
+        // Ctrl+click types any number.
+        self.seconds = self.seconds.clamp(2, 120);
         let now = poe_hook_shared::unix_ms();
         let since = now.saturating_sub(self.seconds as u64 * 1000);
         let samples = crate::devlink::samples(since);

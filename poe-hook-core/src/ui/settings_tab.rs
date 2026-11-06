@@ -77,7 +77,7 @@ impl SettingsView {
                 .display_format(format)
                 .build(&mut self.scale);
             if ui.is_item_deactivated_after_edit() {
-                let v = (self.scale * 4.0).round() / 4.0;
+                let v = ((self.scale * 4.0).round() / 4.0).clamp(0.5, 4.0);
                 self.scale = v;
                 settings::update(|s| s.scale_override = Some(v));
             }

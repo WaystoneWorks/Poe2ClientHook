@@ -74,13 +74,16 @@ impl CoverageView {
         }
         drop(none);
         ui.same_line();
-        if widgets::confirm_button(
-            ui,
-            "Show all",
-            "Show every hidden opcode in the Messages tab again?",
-            "Show all",
-        ) {
-            crate::hidden::clear();
+        {
+            let _d = ui.begin_disabled_with_cond(crate::hidden::count() == 0);
+            if widgets::confirm_button(
+                ui,
+                "Show all",
+                "Show every hidden opcode in the Messages tab again?",
+                "Show all",
+            ) {
+                crate::hidden::clear();
+            }
         }
         widgets::counter(
             ui,
