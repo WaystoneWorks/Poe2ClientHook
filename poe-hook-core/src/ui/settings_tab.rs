@@ -142,7 +142,7 @@ fn draw_deployed(ui: &Ui, cfg: &poe_hook_shared::config::Config, read_only: bool
     }
     ui.separator();
     ui.text_wrapped(
-        "Read-only (official mode or any external connection): no crypto bypass, no position \
+        "Read-only (official mode or any untrusted connection): no crypto bypass, no position \
          sync, no test input, no memory writes. The overlay only reads memory and captures \
          traffic.",
     );

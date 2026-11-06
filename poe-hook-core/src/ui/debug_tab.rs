@@ -269,7 +269,12 @@ impl DebugView {
             return;
         };
         let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
-        if ui.small_button("Copy results") {
+        let no_results = devlink::results().is_empty();
+        let copy = {
+            let _d = ui.begin_disabled_with_cond(no_results);
+            ui.small_button("Copy results")
+        };
+        if copy {
             let text: Vec<String> = devlink::results()
                 .iter()
                 .map(|(ms, cmd, result)| {
@@ -410,6 +415,8 @@ impl DebugView {
         let mut take = None;
         if offered.is_empty() {
             ui.text_disabled("Tab completes; Up/Down recall; Escape clears.");
+        } else if offered.len() > 8 {
+            ui.text_disabled(format!("Tab (8 of {}):", offered.len()));
         } else {
             ui.text_disabled("Tab:");
         }
@@ -501,7 +508,7 @@ impl DebugView {
             ui.tooltip_text("Write this area's layout and grids under the dump folder.");
         }
         widgets::label(ui, "Unlock");
-        if ui.button("All acts") {
+        if ui.button("All##unlock") {
             devlink::command("waypoint unlock all");
         }
         ui.same_line();
@@ -598,7 +605,7 @@ impl DebugView {
             .hint("30m, 2h, 1d")
             .build();
         ui.same_line();
-        ui.text_disabled("(used by Mute; empty = until unmuted by hand)");
+        ui.text_disabled("(used by Mute; empty = until unmuted or the server restarts)");
         let h = ui.content_region_avail()[1].max(widgets::px(ui, 160.0));
         let (cmds, me) = devlink::registry();
         let prefix = me.map_or("!".to_string(), |m| m.prefix);

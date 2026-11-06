@@ -78,7 +78,7 @@ impl StatsView {
                 }
                 in_set += 1;
                 if (!self.changed_only || recent)
-                    && (f.is_empty() || name.contains(&f) || key.to_string() == f)
+                    && (f.is_empty() || name.to_lowercase().contains(&f) || key.to_string() == f)
                 {
                     rows.push((*set, key, name, value, recent));
                 }

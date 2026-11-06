@@ -1,6 +1,6 @@
-//! Instances tab (our server only): every instance on the server with join/close, and a form
-//! to transfer to a new instance or create one without entering it (area, seed, topology,
-//! orientation). Uses the server's `join`, `close`, `transfer` and `instance_new` commands.
+//! Instances section of the World page (our server only): every instance on the server with
+//! join, reset and close, and a form to go to a new instance or create one without entering it
+//! (area, seed, topology, orientation). Uses the server's `go` and `instance` commands.
 
 use imgui::Ui;
 
@@ -18,19 +18,12 @@ impl InstancesView {
     }
 
     pub fn draw(&mut self, ui: &Ui) {
-        let me = crate::devlink::me();
         let Some((age, list, idle)) = crate::devlink::instances() else {
             ui.text_disabled(
                 "No instance list from the server yet (needs position sync and [dev] debug_link).",
             );
             return;
         };
-        if me.as_ref().is_some_and(|m| !m.admin) {
-            ui.text_colored(
-                super::theme::WARN,
-                "Your account does not have the admin role: the server refuses these commands.",
-            );
-        }
         ui.text(format!(
             "{}, updated {} s ago{}",
             widgets::plural(list.len(), "instance"),
@@ -110,7 +103,17 @@ impl InstancesView {
                 if widgets::confirm_popup(
                     ui,
                     "##close_inst",
-                    &format!("Close instance {}? Players in it are moved out.", inst.id),
+                    &if inst.current {
+                        format!(
+                            "Close instance {}? You are in it: you and everyone there are disconnected.",
+                            inst.id
+                        )
+                    } else {
+                        format!(
+                            "Close instance {}? Players in it are disconnected.",
+                            inst.id
+                        )
+                    },
                     "Close",
                 ) {
                     crate::devlink::command(&format!("instance close {}", inst.id));

@@ -64,6 +64,7 @@ impl ScannerView {
         ui.input_int("##size", &mut self.len);
         ui.same_line();
         if ui.button("Show") || enter {
+            self.len = self.len.clamp(16, crate::scanner::MAX_LEN as i32);
             self.region = Some(Region::new(self.expr.clone(), self.len.max(16) as usize));
         }
         let Some(r) = self.region.as_mut() else {

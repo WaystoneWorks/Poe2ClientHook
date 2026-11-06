@@ -173,11 +173,11 @@ impl ProtocolView {
             crate::packets::name(c, d, op).unwrap_or("(no name in our protocol table)")
         ));
         ui.text(format!(
-            "{} messages, size {}..{} bytes, {} samples kept",
-            info.count,
+            "{}, size {}..{} bytes, {} kept",
+            widgets::plural(info.count as usize, "message"),
             info.min_len,
             info.max_len,
-            info.samples.len()
+            widgets::plural(info.samples.len(), "sample")
         ));
         let mut functions: Vec<_> = info.functions.iter().collect();
         functions.sort_by_key(|(_, n)| std::cmp::Reverse(**n));
@@ -204,8 +204,8 @@ impl ProtocolView {
         layouts.sort_by_key(|(_, n)| std::cmp::Reverse(**n));
         ui.separator();
         ui.text(format!(
-            "Field layouts (offset:size), {} variants:",
-            layouts.len()
+            "Field layouts (offset:size), {}:",
+            widgets::plural(layouts.len(), "variant")
         ));
         for (l, n) in layouts.iter().take(5) {
             ui.text_wrapped(format!("  {n}x  {}", protocol::layout_text(l)));

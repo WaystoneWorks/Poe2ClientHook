@@ -1,5 +1,5 @@
 //! Area picker with seed, topology and orientation: the arguments of the server's
-//! `transfer` / `instance_new` commands (Instances tab, Commands tab).
+//! `go` and `instance new` commands (World page, Commands page).
 
 use imgui::{ListClipper, Ui};
 
@@ -95,7 +95,8 @@ impl LayoutForm {
         let recent = crate::areas::recent();
         if !recent.is_empty() {
             ui.text_disabled("recent:");
-            for r in &recent {
+            // Six fit the row; more would make the whole section scroll sideways.
+            for r in recent.iter().take(6) {
                 ui.same_line();
                 if ui.small_button(r) {
                     self.select(r);
@@ -165,6 +166,7 @@ impl LayoutForm {
         ui.set_next_item_width(9.0 * em);
         ui.input_text("##seed", &mut self.seed)
             .hint("random")
+            .flags(imgui::InputTextFlags::CHARS_DECIMAL)
             .build();
         ui.same_line();
         if ui.button("Random seed") {
