@@ -1,5 +1,5 @@
-//! Scanner tab: watch a memory region change live. Bytes that just changed are red, recently
-//! changed ones fade through orange, bytes that differ from the baseline are yellow.
+//! Scanner tab: watch a memory region change live. Bytes that just changed are red; bytes that
+//! changed in the last 3 s or differ from the baseline are yellow.
 //! "Rows that changed" hides the rest. Other tabs send a region here (component inspector).
 
 use std::{sync::Mutex, time::Instant};
@@ -53,7 +53,7 @@ impl ScannerView {
         widgets::header(
             ui,
             "Watch a memory region change live.",
-            "Red = just changed, orange = changed recently, yellow = differs from the baseline. \
+            "Red = just changed, yellow = changed in the last 3 s or differs from the baseline. \
              Address syntax is the Watches page's. Other pages send a region here (component scan).",
         );
         widgets::input_bar(ui, "scan_expr", &mut self.expr, "address expression", 320.0);

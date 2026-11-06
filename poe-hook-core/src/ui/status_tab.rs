@@ -105,8 +105,7 @@ pub fn draw(ui: &Ui) {
     ) {
         if conns.is_empty() {
             widgets::empty(ui, "No connection yet.");
-        }
-        if let Some(_t) = ui.begin_table_header_with_flags(
+        } else if let Some(_t) = ui.begin_table_header_with_flags(
             "conns2",
             ["time", "kind", "address", "socket", "trusted"].map(imgui::TableColumnSetup::new),
             crate::ui::table_opts(),

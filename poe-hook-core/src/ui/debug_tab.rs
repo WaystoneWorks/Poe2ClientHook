@@ -339,7 +339,12 @@ impl DebugView {
             self.nonce += 1;
             self.refocus = true;
         }
-        if active && ui.is_key_pressed(imgui::Key::Tab) && !offered.is_empty() {
+        // Tab always moves the focus on: stay in the box, whether it completes anything or not.
+        let tab = active && ui.is_key_pressed(imgui::Key::Tab);
+        if tab {
+            self.refocus = true;
+        }
+        if tab && !offered.is_empty() {
             let ids: Vec<&str> = offered.iter().map(|o| o.0.as_str()).collect();
             let shared = common_prefix(&ids);
             let bare = word.trim_start_matches('"').to_lowercase();

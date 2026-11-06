@@ -138,9 +138,7 @@ impl ProtocolView {
                         *note = crate::notes::opcode_note(key.0, key.1, key.2);
                         *note_for = Some(key);
                     }
-                    ui.text_disabled(
-                        "Your note on this opcode (saved when you leave the box):",
-                    );
+                    ui.text_disabled("Your note on this opcode (saved when you leave the box):");
                     ui.input_text_multiline(
                         "##proto_note",
                         note,

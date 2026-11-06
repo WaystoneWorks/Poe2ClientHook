@@ -160,6 +160,7 @@ impl ServerView {
             .filter(|&i| pred[i] > crate::devlink::DESYNC_CELLS as f64)
             .collect();
         rows.sort_by(|&a, &b| pred[b].total_cmp(&pred[a]));
+        let over = rows.len();
         rows.truncate(30);
         let cell =
             |p: Option<(f32, f32)>| p.map_or("-".to_string(), |p| format!("{:.1},{:.1}", p.0, p.1));
@@ -174,13 +175,16 @@ impl ServerView {
                 pred[i]
             )
         };
-        if ui.button("Copy TSV") {
-            let mut text = String::from("ms\tclient cell\tserver cell\tdelta\n");
-            for &i in &rows {
-                text.push_str(&tsv(i));
-                text.push('\n');
+        {
+            let _d = ui.begin_disabled_with_cond(rows.is_empty());
+            if ui.button("Copy TSV") {
+                let mut text = String::from("ms\tclient cell\tserver cell\tdelta\n");
+                for &i in &rows {
+                    text.push_str(&tsv(i));
+                    text.push('\n');
+                }
+                crate::ui::set_clipboard(&text);
             }
-            crate::ui::set_clipboard(&text);
         }
         if rows.is_empty() {
             widgets::empty(ui, "No frame is over the limit.");
@@ -190,7 +194,7 @@ impl ServerView {
             ui,
             &format!(
                 "{} over the limit (worst 30 shown)",
-                widgets::plural(rows.len(), "frame")
+                widgets::plural(over, "frame")
             ),
         );
         if let Some(_t) = ui.begin_table_header_with_flags(

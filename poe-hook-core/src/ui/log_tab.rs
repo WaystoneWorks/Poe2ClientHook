@@ -115,6 +115,10 @@ impl LogView {
         if same {
             return;
         }
+        // The list is capped: once its start moves, the shown indices point at other lines.
+        if lines.first().map(String::as_str) != self.client.first().map(|r| r.line.as_str()) {
+            self.shown_for.4 = usize::MAX;
+        }
         self.client = lines
             .into_iter()
             .map(|l| Rec {
@@ -229,7 +233,17 @@ impl LogView {
             &format!(
                 "{} of {} lines",
                 widgets::thousands(self.shown.len()),
-                widgets::thousands(self.records.len() + self.client.len())
+                widgets::thousands(
+                    if self.source != Source::Client {
+                        self.records.len()
+                    } else {
+                        0
+                    } + if self.source != Source::Hook {
+                        self.client.len()
+                    } else {
+                        0
+                    }
+                )
             ),
         );
         if self.shown.is_empty() {

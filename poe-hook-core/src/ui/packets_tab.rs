@@ -144,8 +144,10 @@ impl PacketsView {
         let narrowed = !(self.show_in && self.show_out && self.channels.iter().all(|c| *c));
         if ui.button(if narrowed {
             "Show: some v"
-        } else {
+        } else if self.hide_noise {
             "Show: default v"
+        } else {
+            "Show: all v"
         }) {
             ui.open_popup("##pk_show");
         }

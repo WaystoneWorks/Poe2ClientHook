@@ -11,8 +11,8 @@ pub struct StatsView {
     filter: String,
     changed_only: bool,
     set: usize,
-    /// (set, key) → (value, when it last changed).
-    seen: HashMap<(u32, u32), (i32, Instant)>,
+    /// (set, key) → (value, when it last changed; `None` = not since it was first seen).
+    seen: HashMap<(u32, u32), (i32, Option<Instant>)>,
 }
 
 impl StatsView {
@@ -68,11 +68,11 @@ impl StatsView {
                 let name = crate::gamedata::stat_name(key).unwrap_or("?");
                 let changed = match self.seen.get(&(*set, key)) {
                     Some((v, t)) if *v == value => *t,
-                    Some(_) => now,
-                    None => now - std::time::Duration::from_secs(3600),
+                    Some(_) => Some(now),
+                    None => None,
                 };
                 self.seen.insert((*set, key), (value, changed));
-                let recent = now.duration_since(changed).as_secs_f32() < 3.0;
+                let recent = changed.is_some_and(|t| now.duration_since(t).as_secs_f32() < 3.0);
                 if want_set.is_some_and(|w| w != *set) {
                     continue;
                 }
@@ -80,7 +80,7 @@ impl StatsView {
                 if (!self.changed_only || recent)
                     && (f.is_empty() || name.contains(&f) || key.to_string() == f)
                 {
-                    rows.push((*set, key, name, value, changed));
+                    rows.push((*set, key, name, value, recent));
                 }
             }
         }
@@ -117,8 +117,7 @@ impl StatsView {
             let mut clipper = ListClipper::new(rows.len()).begin(ui);
             while clipper.step() {
                 for i in clipper.display_start()..clipper.display_end() {
-                    let (set, key, name, value, changed) = rows[i];
-                    let recent = now.duration_since(changed).as_secs_f32() < 3.0;
+                    let (set, key, name, value, recent) = rows[i];
                     ui.table_next_column();
                     ui.text(set.to_string());
                     ui.table_next_column();

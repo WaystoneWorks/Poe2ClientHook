@@ -72,7 +72,9 @@ impl SettingsView {
         {
             let _d = ui.begin_disabled_with_cond(auto);
             ui.set_next_item_width(12.0 * ui.current_font_size());
+            let format = imgui::NumericFormat::new("%.2f").expect("valid format");
             ui.slider_config("##scale", 0.5f32, 4.0f32)
+                .display_format(format)
                 .build(&mut self.scale);
             if ui.is_item_deactivated_after_edit() {
                 let v = (self.scale * 4.0).round() / 4.0;

@@ -61,7 +61,7 @@ impl LayoutForm {
         } else {
             (self.orientation - 1).to_string()
         };
-        format!("{} {seed} {topology} {orientation}", self.area)
+        format!("{} {seed} {topology} {orientation}", self.area.trim())
     }
 
     pub fn has_area(&self) -> bool {
@@ -174,7 +174,7 @@ impl LayoutForm {
         if ui.button("Server picks") {
             self.seed.clear();
         }
-        let area = crate::areas::find(&self.area);
+        let area = crate::areas::find(self.area.trim());
         let topologies: Vec<(String, u8)> = area.map(|a| a.topologies.clone()).unwrap_or_default();
         let mut names = vec!["natural (client's choice)".to_string()];
         names.extend(

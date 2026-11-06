@@ -84,6 +84,7 @@ pub struct App {
     palette_query: String,
     /// The palette row Up/Down picked (Enter takes it).
     palette_sel: usize,
+    palette_refocus: bool,
     /// `POE_HOOK_OVERLAY_TOUR` (game tests): shows every page in turn and snapshots each.
     tour: Option<Tour>,
 }
@@ -118,6 +119,7 @@ impl App {
             page_search: String::new(),
             palette_query: String::new(),
             palette_sel: 0,
+            palette_refocus: false,
             tour: std::env::var_os("POE_HOOK_OVERLAY_TOUR").map(|_| Tour {
                 index: usize::MAX,
                 since: Instant::now(),
@@ -408,15 +410,30 @@ impl App {
             self.palette_sel = 0;
             ui.open_popup("##palette");
         }
+        // Before `begin_popup`: a popup always auto-resizes, so setting the size from inside is
+        // lost and the list would measure itself from the mouse position. `begin_popup` drops
+        // these when the popup is closed.
+        let em = ui.current_font_size();
+        let [w, _] = ui.io().display_size();
+        let (pw, ph) = (46.0 * em, 32.0 * em);
+        unsafe {
+            imgui::sys::igSetNextWindowPos(
+                imgui::sys::ImVec2 {
+                    x: (w - pw) * 0.5,
+                    y: 9.0 * em,
+                },
+                imgui::Condition::Always as i32,
+                imgui::sys::ImVec2 { x: 0.0, y: 0.0 },
+            );
+            imgui::sys::igSetNextWindowSize(
+                imgui::sys::ImVec2 { x: pw, y: ph },
+                imgui::Condition::Always as i32,
+            );
+        }
         let Some(_p) = ui.begin_popup("##palette") else {
             return;
         };
-        let em = ui.current_font_size();
-        if ui.is_window_appearing() {
-            let [w, _] = ui.io().display_size();
-            let (pw, ph) = (46.0 * em, 32.0 * em);
-            ui.set_window_pos([(w - pw) * 0.5, 9.0 * em]);
-            ui.set_window_size([pw, ph]);
+        if ui.is_window_appearing() || std::mem::take(&mut self.palette_refocus) {
             ui.set_keyboard_focus_here();
         }
         ui.set_next_item_width(crate::ui::widgets::px(ui, -1.0));
@@ -462,8 +479,10 @@ impl App {
                 }
             }
         });
-        if enter && !items.is_empty() {
-            chosen = Some(self.palette_sel);
+        if enter {
+            // Enter with no match leaves the box: go back to it.
+            self.palette_refocus = items.is_empty();
+            chosen = (!items.is_empty()).then_some(self.palette_sel);
         }
         if ui.is_key_pressed(imgui::Key::Escape) {
             ui.close_current_popup();
@@ -536,7 +555,9 @@ impl App {
                 } else {
                     name.clone()
                 };
-                let needs_args = !line.contains(' ') && c.args.iter().any(|a| !a.optional);
+                let bare = line.to_lowercase();
+                let needs_args = (bare == name || c.aliases.iter().any(|a| *a == bare))
+                    && c.args.iter().any(|a| !a.optional);
                 let what = if needs_args { "Form" } else { "Run " };
                 items.push((
                     format!("{what}   {}  - {}", c.usage(), c.summary),

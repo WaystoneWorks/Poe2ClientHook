@@ -221,6 +221,7 @@ fn components(ui: &Ui, ptr: usize) {
             ui.table_next_column();
             if ui.small_button(format!("scan##c{i}")) {
                 crate::ui::scanner_request(format!("{c:#x}"), 0x600);
+                crate::ui::notice(format!("Sent {c:#x} to the Scanner page"));
             }
         }
     }
