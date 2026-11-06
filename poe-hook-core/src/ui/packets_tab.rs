@@ -141,12 +141,11 @@ impl PacketsView {
         widgets::filter(ui, "pk_filter", &mut self.filter, "filter name/0x..", 200.0);
         ui.same_line();
         // Direction and channel filters in a popup, so the toolbar fits a narrow window.
-        let narrowed =
-            !(self.show_in && self.show_out && self.channels.iter().all(|c| *c)) || self.hide_noise;
+        let narrowed = !(self.show_in && self.show_out && self.channels.iter().all(|c| *c));
         if ui.button(if narrowed {
             "Show: some v"
         } else {
-            "Show: all v"
+            "Show: default v"
         }) {
             ui.open_popup("##pk_show");
         }
@@ -193,19 +192,20 @@ impl PacketsView {
         widgets::counter(
             ui,
             &format!(
-                "{} of {}{}",
+                "{} of {}",
                 widgets::thousands(self.shown.len()),
                 widgets::thousands(self.msgs.len()),
-                if crate::config().packets.redact {
-                    ", secrets redacted"
-                } else {
-                    ""
-                }
             ),
         );
+        if crate::config().packets.redact && ui.is_item_hovered() {
+            ui.tooltip_text("Secrets are redacted in this list and in the session files.");
+        }
         if self.msgs.is_empty() {
             widgets::empty(ui, "No packets yet: connect to a server.");
             return;
+        }
+        if self.shown.is_empty() {
+            widgets::empty(ui, "No message matches the filters.");
         }
         let selected = std::cell::Cell::new(self.selected);
         let mut follow = std::mem::replace(&mut self.follow, super::follow::Follow::new());
@@ -313,7 +313,7 @@ impl PacketsView {
                     ));
                 }
                 ui.text_disabled(format!(
-                    "Note on every {} {} {:#06x} {name}:",
+                    "Note on every {} {} {:#06x} {name} (saved when you leave the box):",
                     m.channel.name(),
                     m.dir.name(),
                     m.opcode
@@ -324,18 +324,21 @@ impl PacketsView {
                     [-1.0, crate::ui::widgets::px(ui, 48.0)],
                 )
                 .build();
-                if ui.button("Save opcode note") {
+                if ui.is_item_deactivated_after_edit() {
                     crate::notes::set_opcode_note(m.channel, m.dir, m.opcode, opcode_note);
                     crate::ui::notice(format!("Note saved for {:#06x} {name}", m.opcode));
                 }
-                ui.text_disabled(format!("Note on this message only (#{}):", m.seq));
+                ui.text_disabled(format!(
+                    "Note on this message only (#{}, saved when you leave the box):",
+                    m.seq
+                ));
                 ui.input_text_multiline(
                     "##message_note",
                     message_note,
                     [-1.0, crate::ui::widgets::px(ui, 48.0)],
                 )
                 .build();
-                if ui.button("Save message note") {
+                if ui.is_item_deactivated_after_edit() {
                     crate::notes::set_message_note(m, message_note);
                     crate::ui::notice(format!("Note saved for message #{}", m.seq));
                 }

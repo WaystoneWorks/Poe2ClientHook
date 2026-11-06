@@ -39,7 +39,7 @@ pub struct LogView {
     follow: Follow,
     /// (is client, index) of the rows that pass the filter, in display order.
     shown: Vec<(bool, usize)>,
-    shown_for: (String, usize, usize, usize, u8, usize),
+    shown_for: (String, usize, usize, usize, usize),
 }
 
 fn client_level(l: &str) -> u32 {
@@ -50,6 +50,24 @@ fn client_level(l: &str) -> u32 {
     } else {
         3
     }
+}
+
+/// Merges two filtered index lists by time of day (each list is in time order).
+fn merge(records: &[Rec], client: &[Rec], hook: &[usize], lines: &[usize]) -> Vec<(bool, usize)> {
+    let (mut a, mut b) = (0, 0);
+    let mut out = Vec::with_capacity(hook.len() + lines.len());
+    while a < hook.len() || b < lines.len() {
+        let take_hook =
+            b >= lines.len() || (a < hook.len() && records[hook[a]].key <= client[lines[b]].key);
+        if take_hook {
+            out.push((false, hook[a]));
+            a += 1;
+        } else {
+            out.push((true, lines[b]));
+            b += 1;
+        }
+    }
+    out
 }
 
 impl LogView {
@@ -63,7 +81,7 @@ impl LogView {
             level: 0,
             follow: Follow::new(),
             shown: Vec::new(),
-            shown_for: (String::new(), 0, 0, 0, 0, 0),
+            shown_for: (String::new(), 0, 0, 0, 0),
         }
     }
 
@@ -86,7 +104,7 @@ impl LogView {
         if self.records.len() > KEEP {
             let drop = self.records.len() - KEEP;
             self.records.drain(..drop);
-            self.shown_for.5 = usize::MAX;
+            self.shown_for.4 = usize::MAX;
         }
     }
 
@@ -111,6 +129,8 @@ impl LogView {
         r.level <= MAX_LEVEL[self.level] && (f.is_empty() || r.line.to_lowercase().contains(f))
     }
 
+    /// Keeps `shown` up to date. A new line only filters that line and goes on the end; a changed
+    /// filter, a drained list or a line older than the last shown one rebuilds the whole list.
     fn refresh(&mut self) {
         let want_hook = self.source != Source::Client;
         let want_client = self.source != Source::Hook;
@@ -119,34 +139,39 @@ impl LogView {
             self.level,
             self.source as usize,
             if want_hook { self.records.len() } else { 0 },
-            0u8,
             if want_client { self.client.len() } else { 0 },
         );
         if self.shown_for == key {
             return;
         }
-        self.shown_for = key;
+        let old = std::mem::replace(&mut self.shown_for, key.clone());
         let f = self.filter.to_lowercase();
-        let hook: Vec<usize> = (0..self.records.len())
-            .filter(|&i| want_hook && self.passes(&self.records[i], &f))
-            .collect();
-        let client: Vec<usize> = (0..self.client.len())
-            .filter(|&i| want_client && self.passes(&self.client[i], &f))
-            .collect();
-        // Merge by time of day (both lists are in time order).
-        let (mut a, mut b) = (0, 0);
-        self.shown.clear();
-        while a < hook.len() || b < client.len() {
-            let take_hook = b >= client.len()
-                || (a < hook.len() && self.records[hook[a]].key <= self.client[client[b]].key);
-            if take_hook {
-                self.shown.push((false, hook[a]));
-                a += 1;
-            } else {
-                self.shown.push((true, client[b]));
-                b += 1;
+        let pass = |list: &[Rec], from: usize, to: usize| -> Vec<usize> {
+            (from..to).filter(|&i| self.passes(&list[i], &f)).collect()
+        };
+        if (&old.0, old.1, old.2) == (&key.0, key.1, key.2) && old.3 <= key.3 && old.4 <= key.4 {
+            let new = merge(
+                &self.records,
+                &self.client,
+                &pass(&self.records, old.3, key.3),
+                &pass(&self.client, old.4, key.4),
+            );
+            let line = |&(c, i): &(bool, usize)| if c { &self.client[i] } else { &self.records[i] };
+            let in_order = match (self.shown.last(), new.first()) {
+                (Some(last), Some(first)) => line(last).key <= line(first).key,
+                _ => true,
+            };
+            if in_order {
+                self.shown.extend(new);
+                return;
             }
         }
+        self.shown = merge(
+            &self.records,
+            &self.client,
+            &pass(&self.records, 0, key.3),
+            &pass(&self.client, 0, key.4),
+        );
     }
 
     pub fn draw(&mut self, ui: &Ui) {

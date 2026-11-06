@@ -6,9 +6,19 @@ use imgui::Ui;
 use super::widgets;
 
 use crate::{
-    packets::Dir,
+    packets::{Channel, Dir},
     protocol::{self, Key, OpInfo},
 };
+
+/// One opcode's row text; the filter matches this too.
+fn op_line(c: Channel, d: Dir, op: u16, name: Option<&str>) -> String {
+    format!(
+        "{:8} {:3} {op:#06x} {}",
+        c.name(),
+        d.name(),
+        name.unwrap_or("?")
+    )
+}
 
 pub struct ProtocolView {
     filter: String,
@@ -66,35 +76,46 @@ impl ProtocolView {
                 crate::host::session_dir().display()
             ));
         }
-        widgets::counter(ui, &widgets::plural(self.ops.len(), "opcode"));
+        let f = self.filter.to_lowercase();
+        let unnamed_only = self.unnamed_only;
+        let matches = |c: Channel, d: Dir, op: u16| {
+            let name = crate::packets::name(c, d, op);
+            (!unnamed_only || name.is_none())
+                && (f.is_empty() || op_line(c, d, op, name).to_lowercase().contains(&f))
+        };
+        let matching = self
+            .ops
+            .iter()
+            .filter(|((c, d, op), _)| matches(*c, *d, *op))
+            .count();
+        widgets::counter(
+            ui,
+            &format!(
+                "{} of {}",
+                widgets::thousands(matching),
+                widgets::plural(self.ops.len(), "opcode")
+            ),
+        );
         if self.ops.is_empty() {
             widgets::empty(ui, "No opcodes traced yet: connect to a server.");
             return;
         }
-        let f = self.filter.to_lowercase();
         let selected = std::cell::Cell::new(self.selected);
         let ops = &self.ops;
-        let unnamed_only = self.unnamed_only;
         let (note, note_for) = (&mut self.note, &mut self.note_for);
         widgets::split(
             ui,
             "protocol",
             360.0,
             || {
+                if matching == 0 {
+                    widgets::empty(ui, "No opcode matches the filter.");
+                }
                 for ((c, d, op), info) in ops {
-                    let name = crate::packets::name(*c, *d, *op);
-                    if unnamed_only && name.is_some() {
+                    if !matches(*c, *d, *op) {
                         continue;
                     }
-                    let line = format!(
-                        "{:8} {:3} {op:#06x} {}",
-                        c.name(),
-                        d.name(),
-                        name.unwrap_or("?")
-                    );
-                    if !f.is_empty() && !line.to_lowercase().contains(&f) {
-                        continue;
-                    }
+                    let line = op_line(*c, *d, *op, crate::packets::name(*c, *d, *op));
                     let key = (*c, *d, *op);
                     let mark = if crate::notes::has_opcode_note(*c, *d, *op) {
                         " *"
@@ -117,14 +138,16 @@ impl ProtocolView {
                         *note = crate::notes::opcode_note(key.0, key.1, key.2);
                         *note_for = Some(key);
                     }
-                    ui.text_disabled("Your note on this opcode (what you think it does):");
+                    ui.text_disabled(
+                        "Your note on this opcode (saved when you leave the box):",
+                    );
                     ui.input_text_multiline(
                         "##proto_note",
                         note,
                         [-1.0, crate::ui::widgets::px(ui, 54.0)],
                     )
                     .build();
-                    if ui.button("Save note##proto") {
+                    if ui.is_item_deactivated_after_edit() {
                         crate::notes::set_opcode_note(key.0, key.1, key.2, note);
                         crate::ui::notice(format!("Note saved for {:#06x}", key.2));
                     }

@@ -62,6 +62,7 @@ impl StatsView {
         let f = self.filter.to_lowercase();
         let now = Instant::now();
         let mut rows = Vec::new();
+        let mut in_set = 0;
         for (set, pairs) in &sets {
             for &(key, value) in pairs {
                 let name = crate::gamedata::stat_name(key).unwrap_or("?");
@@ -72,17 +73,34 @@ impl StatsView {
                 };
                 self.seen.insert((*set, key), (value, changed));
                 let recent = now.duration_since(changed).as_secs_f32() < 3.0;
-                if want_set.is_none_or(|w| w == *set)
-                    && (!self.changed_only || recent)
+                if want_set.is_some_and(|w| w != *set) {
+                    continue;
+                }
+                in_set += 1;
+                if (!self.changed_only || recent)
                     && (f.is_empty() || name.contains(&f) || key.to_string() == f)
                 {
                     rows.push((*set, key, name, value, changed));
                 }
             }
         }
-        widgets::counter(ui, &widgets::plural(rows.len(), "row"));
+        widgets::counter(
+            ui,
+            &format!(
+                "{} of {}",
+                widgets::thousands(rows.len()),
+                widgets::plural(in_set, "stat")
+            ),
+        );
         if rows.is_empty() {
-            widgets::empty(ui, "No stat matches the filter.");
+            widgets::empty(
+                ui,
+                if self.changed_only && f.is_empty() {
+                    "Nothing changed in the last 3 s."
+                } else {
+                    "No stat matches the filter."
+                },
+            );
             return;
         }
         if let Some(_t) = crate::ui::list_table(
@@ -137,6 +155,9 @@ impl ActionsView {
         let mut paused = self.paused.is_some();
         if ui.checkbox("Freeze", &mut paused) {
             self.paused = paused.then(crate::actions::events);
+        }
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Hold this list still (actions are still recorded).");
         }
         ui.same_line();
         if ui.button("Clear") {

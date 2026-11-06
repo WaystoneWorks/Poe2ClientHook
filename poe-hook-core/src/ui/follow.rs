@@ -1,4 +1,4 @@
-//! "Follow the newest line" for the live logs (Log and Game log).
+//! "Follow the newest line" for the live lists (Log, Packets, Console).
 //!
 //! The view follows while it is at the bottom: scrolling up pauses it, scrolling (or jumping)
 //! back to the bottom follows again, and a small "Jump to latest" button shows while paused.

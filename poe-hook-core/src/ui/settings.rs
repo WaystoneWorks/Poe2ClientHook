@@ -18,7 +18,7 @@ pub struct Settings {
     pub last_page: String,
     /// Names of the sidebar groups the user folded.
     pub sidebar_folded: Vec<String>,
-    /// Replaces `overlay.scale` of `poe-hook.toml` when set (applies at the next start).
+    /// Replaces `overlay.scale` of `poe-hook.toml` when set (applies at once; 0 = automatic).
     pub scale_override: Option<f32>,
     /// Left-pane widths of the list/detail pages (draggable splitters), by page id.
     pub split_widths: std::collections::BTreeMap<String, f32>,

@@ -91,6 +91,9 @@ impl ScannerView {
             .step_by(16)
             .filter(|&row| !self.changed_only || r.row_differs(row))
             .collect();
+        if rows.is_empty() && self.changed_only {
+            widgets::empty(ui, "No row has changed yet.");
+        }
         let now = Instant::now();
         ui.child_window("scan_rows")
             .flags(imgui::WindowFlags::HORIZONTAL_SCROLLBAR)

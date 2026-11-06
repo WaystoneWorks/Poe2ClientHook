@@ -77,6 +77,7 @@ impl LayoutForm {
         let em = ui.current_font_size();
         ui.set_next_item_width(15.0 * em);
         ui.input_text("##search", &mut self.search)
+            .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .hint("search areas: id or name")
             .build();
         ui.same_line();

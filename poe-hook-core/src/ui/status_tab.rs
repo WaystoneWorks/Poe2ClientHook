@@ -67,11 +67,10 @@ pub fn draw(ui: &Ui) {
         ui.text(format!("{name} ({})", i.area));
     }
     ui.text(format!(
-        "{:.0} fps   core {} (load #{}{})   session {}",
+        "{:.0} fps   core {} (load #{})   session {}",
         ui.io().framerate(),
         env!("CARGO_PKG_VERSION"),
         crate::host::reload_count(),
-        "",
         crate::host::session_dir()
             .file_name()
             .map_or(String::new(), |n| n.to_string_lossy().into_owned())

@@ -551,6 +551,7 @@ impl DebugView {
         let enter = ui
             .input_text("##announce", &mut self.announce)
             .hint("a message to everyone online")
+            .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .enter_returns_true(true)
             .build();
         ui.same_line();
