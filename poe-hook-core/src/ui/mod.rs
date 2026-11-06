@@ -524,10 +524,10 @@ impl App {
                 let matches = q.is_empty()
                     || typed_name
                     || typed_alias
+                    // `instance n`: subcommand names hold a space, so this is still their name.
+                    || name.starts_with(&q)
                     || (!has_args
-                        && (name.starts_with(&q)
-                            || name.contains(&q)
-                            || c.aliases.iter().any(|a| a.starts_with(&q))));
+                        && (name.contains(&q) || c.aliases.iter().any(|a| a.starts_with(&q))));
                 if !matches {
                     continue;
                 }
@@ -768,7 +768,8 @@ pub fn list_table<'ui, Name: AsRef<str>, const N: usize>(
             imgui::TableFlags::RESIZABLE
                 | imgui::TableFlags::ROW_BG
                 | imgui::TableFlags::BORDERS_INNER_V
-                | imgui::TableFlags::SCROLL_Y,
+                | imgui::TableFlags::SCROLL_Y
+                | imgui::TableFlags::NO_SAVED_SETTINGS,
         ),
     )?;
     ui.table_setup_scroll_freeze(0, 1);
@@ -785,8 +786,13 @@ pub fn list_table<'ui, Name: AsRef<str>, const N: usize>(
 }
 
 pub fn table_opts() -> imgui::TableOptions {
-    imgui::TableOptions::from(imgui::TableFlags::RESIZABLE | imgui::TableFlags::ROW_BG)
-        .sizing_policy(imgui::TableSizingPolicy::FixedFit)
+    // No saved settings: stale widths in imgui.ini would cut columns whose content changed.
+    imgui::TableOptions::from(
+        imgui::TableFlags::RESIZABLE
+            | imgui::TableFlags::ROW_BG
+            | imgui::TableFlags::NO_SAVED_SETTINGS,
+    )
+    .sizing_policy(imgui::TableSizingPolicy::FixedFit)
 }
 
 /// A Windows virtual-key code as its key's name (`0x2d` is "Insert").

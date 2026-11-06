@@ -186,7 +186,7 @@ impl PacketsView {
         }
         ui.same_line();
         ui.checkbox(
-            format!("show hidden ({})", crate::hidden::count()),
+            format!("Show hidden ({})", crate::hidden::count()),
             &mut self.show_hidden,
         );
         self.refresh();

@@ -20,7 +20,9 @@ impl InstancesView {
     pub fn draw(&mut self, ui: &Ui) {
         let me = crate::devlink::me();
         let Some((age, list, idle)) = crate::devlink::instances() else {
-            ui.text_disabled("No instance list from the server yet (needs position sync and [instance] debug_link).");
+            ui.text_disabled(
+                "No instance list from the server yet (needs position sync and [dev] debug_link).",
+            );
             return;
         };
         if me.as_ref().is_some_and(|m| !m.admin) {

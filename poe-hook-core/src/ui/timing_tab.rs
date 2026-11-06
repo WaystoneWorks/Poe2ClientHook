@@ -28,8 +28,9 @@ impl TimingView {
             "Frame time, messages per 100 ms and the lockstep backlog.",
             "The same series go into snapshots (timings.csv).",
         );
+        widgets::label(ui, "Seconds");
         ui.set_next_item_width(crate::ui::widgets::px(ui, 200.0));
-        ui.slider("seconds", 2, 120, &mut self.seconds);
+        ui.slider("##seconds", 2, 120, &mut self.seconds);
         ui.same_line();
         if ui.button("Reset") {
             self.reset_at = Some(poe_hook_shared::unix_ms());
@@ -44,14 +45,8 @@ impl TimingView {
         let (fx, fy): (Vec<f64>, Vec<f64>) =
             frame.iter().map(|s| (t(s.unix_ms), s.value as f64)).unzip();
         let worst = fy.iter().cloned().fold(0.0, f64::max);
-        let avg = if fy.is_empty() {
-            0.0
-        } else {
-            fy.iter().sum::<f64>() / fy.len() as f64
-        };
         let backlog_s = crate::timing::samples(Series::Backlog, since);
         summary(ui, &fy, &backlog_s);
-        let _ = avg;
         let plot = ui.implot(plots);
         let width = ui.content_region_avail()[0];
         let x_min = -(self.seconds as f64);
@@ -65,10 +60,12 @@ impl TimingView {
         }
         // Messages per 100 ms bucket.
         let buckets = (self.seconds * 10) as usize;
+        // Buckets start at the plot's left edge (after Reset, `since` is later than that).
+        let left = now.saturating_sub(self.seconds as u64 * 1000);
         let count = |series: Series| {
             let mut v = vec![0.0f64; buckets];
             for s in crate::timing::samples(series, since) {
-                let i = ((s.unix_ms - since) / 100) as usize;
+                let i = (s.unix_ms.saturating_sub(left) / 100) as usize;
                 if i < buckets {
                     v[i] += 1.0;
                 }

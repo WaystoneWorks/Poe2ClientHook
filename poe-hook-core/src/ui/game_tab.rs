@@ -41,7 +41,7 @@ impl StatsView {
             260.0,
         );
         ui.same_line();
-        ui.checkbox("changed only", &mut self.changed_only);
+        ui.checkbox("Changed only", &mut self.changed_only);
         ui.same_line();
         let mut items = vec!["all sets".to_string()];
         items.extend(sets.iter().map(|(s, _)| {

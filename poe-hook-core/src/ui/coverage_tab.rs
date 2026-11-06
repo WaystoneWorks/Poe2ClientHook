@@ -39,9 +39,9 @@ impl CoverageView {
             220.0,
         );
         ui.same_line();
-        ui.checkbox("official only", &mut self.official_only);
+        ui.checkbox("Official only", &mut self.official_only);
         ui.same_line();
-        ui.checkbox("no name yet", &mut self.unnamed_only);
+        ui.checkbox("No name yet", &mut self.unnamed_only);
         let f = self.filter.to_lowercase();
         let all = crate::packets::coverage();
         let total = all.len();
@@ -58,6 +58,7 @@ impl CoverageView {
             })
             .collect();
         ui.same_line();
+        let none = ui.begin_disabled_with_cond(rows.is_empty());
         if widgets::confirm_button(
             ui,
             "Hide listed",
@@ -71,6 +72,7 @@ impl CoverageView {
                 crate::hidden::set_hidden(crate::hidden::key(*c, *d, *op), true);
             }
         }
+        drop(none);
         ui.same_line();
         if widgets::confirm_button(
             ui,

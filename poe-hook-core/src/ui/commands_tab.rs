@@ -57,6 +57,9 @@ impl CommandsView {
             args: vec![String::new(); c.args.len()],
             flags: vec![String::new(); c.flags.len()],
         });
+        // The registry can change under a kept form (a rebuilt server, a mod's command).
+        values.args.resize(c.args.len(), String::new());
+        values.flags.resize(c.flags.len(), String::new());
         let has_layout = c.args.iter().any(|a| a.kind == "area");
         let mut enter = false;
         let mut first = true;

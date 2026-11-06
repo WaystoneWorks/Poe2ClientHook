@@ -73,7 +73,7 @@ impl EntitiesView {
         );
         widgets::filter(ui, "ent_filter", &mut self.filter, "filter path/id", 260.0);
         ui.same_line();
-        ui.checkbox("alive", &mut self.alive_only);
+        ui.checkbox("Alive", &mut self.alive_only);
         let f = self.filter.to_lowercase();
         let all = crate::entities::list();
         let total = all.len();

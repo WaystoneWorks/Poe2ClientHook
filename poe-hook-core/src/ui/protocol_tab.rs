@@ -57,7 +57,7 @@ impl ProtocolView {
             220.0,
         );
         ui.same_line();
-        ui.checkbox("no name yet##proto", &mut self.unnamed_only);
+        ui.checkbox("No name yet##proto", &mut self.unnamed_only);
         ui.same_line();
         if ui.button("Export now") {
             protocol::export();

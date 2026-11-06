@@ -32,9 +32,17 @@ pub fn header(ui: &Ui, description: &str, help: &str) {
         ui.same_line();
         ui.text_disabled("(?)");
         if ui.is_item_hovered() {
-            ui.tooltip_text(help);
+            help_tooltip(ui, help);
         }
     }
+}
+
+/// A tooltip that wraps long help text.
+pub fn help_tooltip(ui: &Ui, text: &str) {
+    ui.tooltip(|| {
+        let _wrap = ui.push_text_wrap_pos(px(ui, 480.0));
+        ui.text(text);
+    });
 }
 
 /// The toolbar's filter box: first on the row, `Ctrl+F` focuses it. Returns true when it changed.
@@ -98,7 +106,8 @@ pub fn label(ui: &Ui, text: &str) {
 /// A button that asks first: `question` in a small popup with `yes` and Cancel (Enter / Escape).
 /// Returns true on the frame the user confirmed.
 pub fn confirm_button(ui: &Ui, label: &str, question: &str, yes: &str) -> bool {
-    let popup = format!("{question}##confirm_{label}");
+    // The id must not hold the question: it can contain a live count.
+    let popup = format!("##confirm_{label}");
     if ui.button(label) {
         ui.open_popup(&popup);
     }
@@ -185,6 +194,7 @@ pub fn split(ui: &Ui, id: &str, default_left: f32, left: impl FnOnce(), right: i
     ui.child_window(format!("{id}_right"))
         .size([0.0, avail[1]])
         .border(true)
+        .flags(imgui::WindowFlags::HORIZONTAL_SCROLLBAR)
         .build(ui, right);
 }
 

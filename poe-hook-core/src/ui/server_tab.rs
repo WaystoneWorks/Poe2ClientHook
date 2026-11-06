@@ -20,13 +20,13 @@ impl ServerView {
         widgets::header(
             ui,
             "The instance server's simulation state against the client's position.",
-            "Needs position sync and [instance] debug_link. The prediction is for the frame \
+            "Needs position sync and [dev] debug_link. The prediction is for the frame \
              the server's next message applies in, so about one frame of walking is expected.",
         );
         let Some((age, values)) = crate::devlink::state() else {
             widgets::empty(
                 ui,
-                "No state from the server yet (needs position sync and [instance] debug_link).",
+                "No state from the server yet (needs position sync and [dev] debug_link).",
             );
             return;
         };
@@ -103,7 +103,8 @@ impl ServerView {
         ui.same_line();
         ui.text_disabled("(?)");
         if ui.is_item_hovered() {
-            ui.tooltip_text(
+            widgets::help_tooltip(
+                ui,
                 "The prediction is for the frame the server's next message applies in (one \
                  frame ahead), so about one frame of walking (~1.2 cells) is expected while \
                  moving.",

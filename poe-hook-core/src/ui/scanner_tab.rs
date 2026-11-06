@@ -77,7 +77,7 @@ impl ScannerView {
             r.set_baseline();
         }
         ui.same_line();
-        ui.checkbox("rows that changed", &mut self.changed_only);
+        ui.checkbox("Rows that changed", &mut self.changed_only);
         ui.same_line();
         widgets::label(ui, "view");
         ui.set_next_item_width(crate::ui::widgets::px(ui, 120.0));

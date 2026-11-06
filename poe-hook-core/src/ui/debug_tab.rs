@@ -137,7 +137,7 @@ impl DebugView {
         if cmds.is_empty() {
             widgets::empty(
                 ui,
-                "No command list from the server yet (needs position sync and [instance] debug_link).",
+                "No command list from the server yet (needs position sync and [dev] debug_link).",
             );
             if self.last_request.is_none_or(|t| t.elapsed().as_secs() >= 3)
                 && devlink::state().is_some()
@@ -202,6 +202,9 @@ impl DebugView {
                 "debug_help",
                 240.0,
                 || {
+                    if shown.is_empty() {
+                        widgets::empty(ui, "No command matches.");
+                    }
                     for g in &groups {
                         ui.text_disabled(g);
                         for c in shown.iter().filter(|c| c.category == *g) {
@@ -224,6 +227,9 @@ impl DebugView {
                     .find(|c| sel.as_deref() == Some(c.name().as_str()))
                 {
                     Some(c) => help_pane(ui, c, &prefix, forms),
+                    None if sel.is_some() && !q.is_empty() => {
+                        widgets::empty(ui, "The selected command is filtered out.")
+                    }
                     None => widgets::empty(ui, "Pick a command on the left."),
                 },
             );
@@ -244,6 +250,15 @@ impl DebugView {
             return;
         };
         let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
+        if ui.small_button("Copy results") {
+            let text: Vec<String> = devlink::results()
+                .iter()
+                .map(|(ms, cmd, result)| {
+                    format!("{} {prefix}{cmd}\t{result}", crate::util::clock(*ms))
+                })
+                .collect();
+            super::set_clipboard(&text.join("\n"));
+        }
         let h = (ui.content_region_avail()[1] - 2.0 * ui.frame_height_with_spacing())
             .max(widgets::px(ui, 100.0));
         let follow = &mut self.console_follow;
@@ -258,6 +273,7 @@ impl DebugView {
                 }
                 for (ms, cmd, result) in results.iter() {
                     ui.text_disabled(format!("{} > {prefix}{cmd}", crate::util::clock(*ms)));
+                    let _wrap = ui.push_text_wrap_pos(0.0);
                     ui.text_colored(result_color(ui, result), format!("  {result}"));
                 }
                 follow.end(ui, results.len());
@@ -496,28 +512,31 @@ impl DebugView {
         let h = ui.content_region_avail()[1].max(widgets::px(ui, 160.0));
         let (cmds, me) = devlink::registry();
         let prefix = me.map_or("!".to_string(), |m| m.prefix);
-        ui.child_window("world_box").size([0.0, h]).build(ui, || {
-            self.instances.draw(ui);
-            ui.separator();
-            self.forms.draw_page(
-                ui,
-                "Debug>World",
-                &cmds,
-                &[
-                    "tp",
-                    "stuck",
-                    "time scale",
-                    "instance new",
-                    "instance transfer",
-                    "instance join",
-                    "instance close",
-                    "instance reset",
-                    "waypoint unlock",
-                    "checkpoint unlock",
-                ],
-                &prefix,
-            );
-        });
+        ui.child_window("world_box")
+            .size([0.0, h])
+            .flags(imgui::WindowFlags::HORIZONTAL_SCROLLBAR)
+            .build(ui, || {
+                self.instances.draw(ui);
+                ui.separator();
+                self.forms.draw_page(
+                    ui,
+                    "Debug>World",
+                    &cmds,
+                    &[
+                        "tp",
+                        "stuck",
+                        "time scale",
+                        "instance new",
+                        "instance transfer",
+                        "instance join",
+                        "instance close",
+                        "instance reset",
+                        "waypoint unlock",
+                        "checkpoint unlock",
+                    ],
+                    &prefix,
+                );
+            });
     }
 
     fn players(&mut self, ui: &Ui) {
@@ -555,78 +574,81 @@ impl DebugView {
         let online = devlink::online();
         let mute_for = self.mute_for.trim().to_string();
         let forms = &mut self.forms;
-        ui.child_window("players_box").size([0.0, h]).build(ui, || {
-            if online.is_empty() {
-                widgets::empty(ui, "No list from the server yet (it comes every second).");
-            } else if let Some(_t) = ui.begin_table_header_with_flags(
-                "online_v1",
-                [
-                    "character",
-                    "account",
-                    "level",
-                    "league",
-                    "area",
-                    "instance",
-                    "",
-                ]
-                .map(imgui::TableColumnSetup::new),
-                super::table_opts(),
-            ) {
-                for o in &online {
-                    let _id = ui.push_id(o.character.as_str());
-                    for text in [
-                        &o.character,
-                        &o.account,
-                        &o.level,
-                        &o.league,
-                        &o.area,
-                        &o.instance,
-                    ] {
-                        ui.table_next_column();
-                        ui.text(text);
-                    }
-                    ui.table_next_column();
-                    let who = quote(&o.character);
-                    if ui.small_button("Kick") {
-                        ui.open_popup("##kick");
-                    }
-                    if widgets::confirm_popup(
-                        ui,
-                        "##kick",
-                        &format!("Kick {}? They can log in again.", o.character),
-                        "Kick",
-                    ) {
-                        devlink::command(&format!("player kick {who}"));
-                    }
-                    ui.same_line();
-                    if o.muted {
-                        if ui.small_button("Unmute") {
-                            devlink::command(&format!("player unmute {who}"));
+        ui.child_window("players_box")
+            .size([0.0, h])
+            .flags(imgui::WindowFlags::HORIZONTAL_SCROLLBAR)
+            .build(ui, || {
+                if online.is_empty() {
+                    widgets::empty(ui, "No list from the server yet (it comes every second).");
+                } else if let Some(_t) = ui.begin_table_header_with_flags(
+                    "online_v1",
+                    [
+                        "character",
+                        "account",
+                        "level",
+                        "league",
+                        "area",
+                        "instance",
+                        "",
+                    ]
+                    .map(imgui::TableColumnSetup::new),
+                    super::table_opts(),
+                ) {
+                    for o in &online {
+                        let _id = ui.push_id(o.character.as_str());
+                        for text in [
+                            &o.character,
+                            &o.account,
+                            &o.level,
+                            &o.league,
+                            &o.area,
+                            &o.instance,
+                        ] {
+                            ui.table_next_column();
+                            ui.text(text);
                         }
-                    } else if ui.small_button("Mute") {
-                        devlink::command(
-                            &format!("player mute {who} {mute_for}").trim().to_string(),
-                        );
-                    }
-                    ui.same_line();
-                    if ui.small_button("TP to") {
-                        devlink::command(&format!("tp {who}"));
-                    }
-                    ui.same_line();
-                    if ui.small_button("Summon") {
-                        devlink::command(&format!("summon {who}"));
+                        ui.table_next_column();
+                        let who = quote(&o.character);
+                        if ui.small_button("Kick") {
+                            ui.open_popup("##kick");
+                        }
+                        if widgets::confirm_popup(
+                            ui,
+                            "##kick",
+                            &format!("Kick {}? They can log in again.", o.character),
+                            "Kick",
+                        ) {
+                            devlink::command(&format!("player kick {who}"));
+                        }
+                        ui.same_line();
+                        if o.muted {
+                            if ui.small_button("Unmute") {
+                                devlink::command(&format!("player unmute {who}"));
+                            }
+                        } else if ui.small_button("Mute") {
+                            devlink::command(
+                                &format!("player mute {who} {mute_for}").trim().to_string(),
+                            );
+                        }
+                        ui.same_line();
+                        if ui.small_button("TP to") {
+                            devlink::command(&format!("tp {who}"));
+                        }
+                        ui.same_line();
+                        if ui.small_button("Summon") {
+                            devlink::command(&format!("summon {who}"));
+                        }
                     }
                 }
-            }
-            ui.separator();
-            forms.draw_page(
-                ui,
-                "Debug>Players",
-                &cmds,
-                &["player kick", "player unmute", "summon", "announce"],
-                &prefix,
-            );
-        });
+                ui.separator();
+                forms.draw_page(
+                    ui,
+                    "Debug>Players",
+                    &cmds,
+                    &["player kick", "player unmute", "summon", "announce"],
+                    &prefix,
+                );
+            });
     }
 
     fn character(&mut self, ui: &Ui) {
@@ -674,6 +696,7 @@ impl DebugView {
         let forms = &mut self.forms;
         ui.child_window("generated_box")
             .size([0.0, h])
+            .flags(imgui::WindowFlags::HORIZONTAL_SCROLLBAR)
             .build(ui, || {
                 forms.draw_page(ui, page, &cmds, &[], &prefix);
             });
@@ -724,6 +747,7 @@ fn results_strip(ui: &Ui, h: f32) {
                 widgets::empty(ui, "No command run yet.");
             }
             for (ms, cmd, result) in all.iter().rev().take(20) {
+                let _wrap = ui.push_text_wrap_pos(0.0);
                 ui.text_colored(
                     result_color(ui, result),
                     format!("{} {cmd} -> {result}", crate::util::clock(*ms)),
