@@ -469,7 +469,7 @@ dependencies = [
 
 [[package]]
 name = "poe-hook"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "ash",
  "ilhook",
@@ -482,7 +482,7 @@ dependencies = [
 
 [[package]]
 name = "poe-hook-core"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "ash",
  "dear-imgui-ash",
@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "poe-hook-deploy"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "poe-hook-mods",
@@ -512,11 +512,11 @@ dependencies = [
 
 [[package]]
 name = "poe-hook-mod-api"
-version = "0.5.3"
+version = "0.6.0"
 
 [[package]]
 name = "poe-hook-mods"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "poe-hook-mod-api",
  "semver",
@@ -536,7 +536,7 @@ dependencies = [
 
 [[package]]
 name = "poe-hook-shared"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "hmac",
  "log",
@@ -550,7 +550,7 @@ dependencies = [
 
 [[package]]
 name = "poe-hook-sig"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "iced-x86",
  "serde",
