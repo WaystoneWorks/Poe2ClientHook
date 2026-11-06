@@ -1,5 +1,5 @@
 //! Area picker with seed, topology and orientation: the arguments of the server's
-//! `go` and `instance new` commands (World page, Commands page).
+//! `go` and `instance new` commands (Debug tabs and Help forms).
 
 use imgui::{ListClipper, Ui};
 
@@ -166,8 +166,9 @@ impl LayoutForm {
         ui.set_next_item_width(9.0 * em);
         ui.input_text("##seed", &mut self.seed)
             .hint("random")
-            .flags(imgui::InputTextFlags::CHARS_DECIMAL)
             .build();
+        // Digits only (the decimal filter also lets `.+-*/` through, which would mean "random").
+        self.seed.retain(|c| c.is_ascii_digit());
         ui.same_line();
         if ui.button("Random seed") {
             self.seed = random_seed().to_string();

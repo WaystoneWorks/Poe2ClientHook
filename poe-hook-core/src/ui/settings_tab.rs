@@ -28,8 +28,9 @@ impl SettingsView {
         widgets::header(
             ui,
             "The overlay's own settings and the deployed config.",
-            "Saved in logs/poe-hook/overlay.toml, which a deploy never overwrites. poe-hook.toml \
-             is written by deploys: edit it, then Reload core.",
+            "Saved in logs/poe-hook/overlay.toml, which a deploy never overwrites; Movement log and \
+             Position sync last this session only. poe-hook.toml is written by deploys: edit it, \
+             then Reload core.",
         );
         ui.separator_with_text("General");
         let mut popups = settings::get().show_slow_hook_popups;

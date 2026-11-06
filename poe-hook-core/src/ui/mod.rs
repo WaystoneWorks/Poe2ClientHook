@@ -777,7 +777,6 @@ fn load_page() -> Page {
         .unwrap_or(Page::Status)
 }
 
-/// Table options for the overlay's tables: columns fit their contents, resizable, striped.
 /// A table that fills the rest of its pane and scrolls under a frozen header row (the long
 /// lists). The `stretch` column takes the spare width, so long names are not cut.
 pub fn list_table<'ui, Name: AsRef<str>, const N: usize>(

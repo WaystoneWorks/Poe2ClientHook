@@ -119,7 +119,10 @@ pub fn confirm_popup(ui: &Ui, popup: &str, question: &str, yes: &str) -> bool {
     let mut done = false;
     if let Some(_p) = ui.begin_popup(popup) {
         ui.text(question);
-        if ui.button(yes) || ui.is_key_pressed(imgui::Key::Enter) {
+        if ui.button(yes)
+            || ui.is_key_pressed(imgui::Key::Enter)
+            || ui.is_key_pressed(imgui::Key::KeypadEnter)
+        {
             done = true;
             ui.close_current_popup();
         }

@@ -155,7 +155,10 @@ fn chunks<const N: usize>(bytes: &[u8], row: usize) -> impl Iterator<Item = [u8;
 
 fn describe(bytes: &[u8], at: usize, changes: u32) -> String {
     let take = |n: usize| bytes.get(at..at + n);
-    let mut s = format!("+{at:#x}, changed {changes} times\n");
+    let mut s = format!(
+        "+{at:#x}, changed {}\n",
+        widgets::plural(changes as usize, "time")
+    );
     if let Some(b) = take(2) {
         s += &format!("u16 {}\n", u16::from_le_bytes([b[0], b[1]]));
     }

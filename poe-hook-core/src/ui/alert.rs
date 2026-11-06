@@ -131,6 +131,7 @@ pub fn draw(ui: &Ui) {
             if ui.button("OK")
                 || (keys
                     && (ui.is_key_pressed(imgui::Key::Enter)
+                        || ui.is_key_pressed(imgui::Key::KeypadEnter)
                         || ui.is_key_pressed(imgui::Key::Escape)))
             {
                 done = true;
