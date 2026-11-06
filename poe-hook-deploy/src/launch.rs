@@ -16,7 +16,7 @@ use crate::{CLIENT_EXE, HOOK_CONFIG, STEAM_APPID, hook_config::top_level_string}
 /// first opens the patcher window and connects to GGG's patch servers
 /// (`us.patch.pathofexile2.com`, ...). The patcher normally starts the real client with
 /// `--success-event <inherited event handle>`; a client started with that option (and without
-/// `--disable-client-switching`) skips the patcher (`FUN_1401162d0` in docs/re/standalone-login.md).
+/// `--disable-client-switching`) skips the patcher (`FUN_140118c10` in docs/re/standalone-login.md).
 /// The event is only signalled and closed at the end of start-up (`SetEvent`/`CloseHandle` on
 /// handle `0`, which just fail), so `0` is a safe dummy.
 pub const STANDALONE_CLIENT_ARGS: [&str; 2] = ["--success-event", "0"];

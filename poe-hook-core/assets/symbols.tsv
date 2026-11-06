@@ -15,7 +15,7 @@
 140140c00	~sentry
 140150cb0	get Render component by name
 1401620a0	`scalar_deleting_destructor'
-14016ba40	AimReport_Tick: per frame, AimTarget mode 2/3 via 0x14016b820 (33 ms) only while
+14016ba40	AimReport_Tick: per frame, AimTarget mode 2/3 via 0x14016fb10 (33 ms) only while
 14016e780	C→S 0x2e6 sender (u8 player, u8)
 1401b6940	chat join timeout message ("Timeout while joining {0} chat")
 140223710	world_areas_table
@@ -38,11 +38,11 @@
 140c9ef70	PartyInvitePopup_Accept
 140e7ca80	league banners at character creation (entries with +0xe0 bit 7, not variants; va
 140ec7700	
-140ec82e0	create screen: connects to the login connection's signals (+0xb08 → 0x140ed2ab0,
+140ec82e0	create screen: connects to the login connection's signals (+0xb08 → 0x140edb550,
 140ece3e0	create screen Continue/Create button (needs a selected league: +0x320, +0x318)
-140ece810	sends CreateCharacter (0x1420e9ce0); do not hook its entry, the trace hook crash
-140ecee50	"character_creation_done": finds the new character by name (0x140ec8b20), sends 
-140ecf5d0	create screen per-frame update: scene done with +0x390 and +0x392 → 0x140ecee50
+140ece810	sends CreateCharacter (0x1420f8c20); do not hook its entry, the trace hook crash
+140ecee50	"character_creation_done": finds the new character by name (0x140ed15c0), sends 
+140ecf5d0	create screen per-frame update: scene done with +0x390 and +0x392 → 0x140ed78f0
 140ed2ab0	CreateCharacterState_OnCharacterCreated
 140ed4e50	create screen key handler (Space skips the creation scene)
 140ed8149	
@@ -185,7 +185,7 @@
 1420e7f80	ClientLoginSession_SendSteamTicket_0005
 1420e82b0	ClientLoginSession_ProcessPacket (named in Ghidra)
 1420e8313	login packet dispatcher switch (ClientLoginSession?), opcodes 0x02–0x47; opcode 
-1420e8325	login dispatch switch (opcode − 2; byte table 0x1420e9ad4, targets 0x1420e9a64);
+1420e8325	login dispatch switch (opcode − 2; byte table 0x1420f8a10, targets 0x1420e9a64);
 1420ebe30	`scalar_deleting_destructor'
 1420edc20	InitialState CharacterState flags → local player (+0x3eca..+0x3ede)
 1420eea95	
@@ -207,7 +207,7 @@
 14211fa00	game-session send (packet->vtable[1](packet, stream)); senders build the packet 
 14211fc50	sends 0x355 ExitReport (once per session)
 142120cf0	instance session receive loop
-142121364	0x1c frame report sender; 0x141f48870 its serializer
+142121364	0x1c frame report sender; 0x141f56da0 its serializer
 14212ac10	instance packet-cipher builder (out, InstanceDetails + 0x38, &is_client), only c
 14212ece0	
 14212fd90	world start (InitialState vfunc +0x1f0): applies all queued packets
@@ -215,7 +215,7 @@
 142130440	
 142130840	world frame drain (world, f32 dt): applies queued simulation packets, updates en
 142134260	simulation packet queue (0x2f4 frame marker, 0x2f5 → world vfunc +0x178)
-142137270	frame-mode entity update loop (component vfunc +0x50, then 0x141e7d970)
+142137270	frame-mode entity update loop (component vfunc +0x50, then 0x141e8b960)
 1421497c0	Actor component simulation handler: 0x64 WASD, 0x65, 0x1c8 start action, 0x1c9..
 14214a2be	
 14214a46a	Actor 0x1cc (u16 action id, u8) → Actor vfunc +0x130 (end action?)
@@ -266,13 +266,13 @@
 1421704a0	`scalar_deleting_destructor'
 142181160	StatsComponent_Read
 1421820a0	Stats component message handler
-142184420	S→C 0x1fe SetPause reader; applied via world vfunc +0x200 0x14168ac70
+142184420	S→C 0x1fe SetPause reader; applied via world vfunc +0x200 0x141693250
 1421847d0	`scalar_deleting_destructor'
 142185350	`scalar_deleting_destructor'
 1421861d0	`scalar_deleting_destructor'
 142186980	UseSkillAck_1ae_Read
 142186a60	
-14218a9d0	Actor skill container reader; 0x14218b130 skill list; 0x142188d50 one skill
+14218a9d0	Actor skill container reader; 0x14219afb0 skill list; 0x142198bd0 one skill
 142193270	
 142197010	ClientPlatform_Detect
 142197e80	stream read (stream, dst, len)
@@ -286,7 +286,7 @@
 14219f500	builds the two-direction Salsa20 cipher from the key material
 1421a4290	`scalar_deleting_destructor'
 1421bbec0	Sha256_Bytes32
-1421c52f0	HNC bit queue: key material XOR table 0x142f10980 + swaps, Salsa20 pair
+1421c52f0	HNC bit queue: key material XOR table 0x142f23aa0 + swaps, Salsa20 pair
 1421c55a0	HNC incoming byte parser ("HNC Protocol Violated")
 1421c5b90	message reader (registry, stream)
 1421d7070	resource_wait_loaded

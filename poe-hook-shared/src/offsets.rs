@@ -104,6 +104,7 @@ offsets! {
     session_stream => "session.stream",
     // Crypto session
     crypto_key_buffer => "crypto.key_buffer",
+    session_key_material => "session.key_material",
 }
 
 #[cfg(test)]

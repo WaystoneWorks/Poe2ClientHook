@@ -2,9 +2,9 @@
 //! initial-state reader), with its object type (the key the object-type lookup resolved just
 //! before, and that key's metadata path). Values are read live, with guarded reads only.
 //!
-//! Layout (0.5.5e Hotfix 1 values; the offsets come from the signature table): entity +0x10/+0x18
+//! Layout (0.5.5f values; the offsets come from the signature table): entity +0x10/+0x18
 //! component vector, +0x88 id. A component's vtable slot +0x98 is its initial-state reader;
-//! Positioned's is `positioned_reader` (`0x141dd89a0`; grid +0x444/+0x448, world
+//! Positioned's is `positioned_reader` (`0x141de5b50`; grid +0x444/+0x448, world
 //! +0x490/+0x494, facing +0x44c).
 
 use std::{
@@ -150,7 +150,7 @@ pub fn live(e: &Entity) -> Live {
 
 /// Component names of an entity, by index: the entity type's lookup (`entity+8` → `+0x28`)
 /// holds a sorted array of `{char* name, i32 index}` (16 bytes) from `+0x28` to `+0x30`, the
-/// table the game's get-component-by-name uses (e.g. `0x140150cb0` for "Render").
+/// table the game's get-component-by-name uses (e.g. `0x1401558b0` for "Render").
 pub fn component_names(ptr: usize) -> Vec<(usize, String)> {
     if !crate::sigs::feature_ok("inspect") {
         return Vec::new();

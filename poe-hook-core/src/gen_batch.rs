@@ -7,11 +7,11 @@
 //!
 //! One job:
 //! 1. a fresh world object (`ClientWorld` constructor, so every virtual works and the terrain
-//!    object at world +0x8d0 is built), its area row (+0x98) set to the `WorldAreas` row,
+//!    object at world +0x8f8 is built), its area row (+0x98) set to the `WorldAreas` row,
 //!    league mode 1, the forced topology / orientation as stats 0xb92 / 0xb93 in the world's stat
 //!    map (+0x128), seed at +0x4b4;
 //! 2. what `HeadlessWorld_LoadArea` does: base generator constructor, `TerrainGen_Run`;
-//! 3. read the tile hash (world +0x114), doodad hash (+0x118) and the map size; the layout,
+//! 3. read the tile hash (world +0x11c), doodad hash (+0x118) and the map size; the layout,
 //!    doodads and grids for jobs of the export list;
 //! 4. the generator's and the world's destructors.
 //!
@@ -569,7 +569,7 @@ fn export(
         );
         write("layout.tsv", text.as_bytes());
         // The final corner lattice (terrain +0x40 points per row, +0x48 rows, +0x50 three bytes
-        // per point: ground index, height, flags; flag 8 = unwalkable, read by `0x141d118a0`):
+        // per point: ground index, height, flags; flag 8 = unwalkable, read by `0x141d1e2d0`):
         // `lattice.bin` = u32 points per row, u32 rows, then the raw points.
         if let (Some(pw), Some(ph), Some(pts)) = (
             read::<usize>(terrain + 0x40),
@@ -630,8 +630,8 @@ fn export(
 
 /// `regions.tsv`: the generator's regions (generator `+0x30` → list, `+0xd` main count, `+0x10`
 /// vector of 0x98-byte regions: tile rectangle at `+0x40..+0x4c`, master at `+0x50` → `+0x28`
-/// data with the flags `+0x164..+0x166` that decide whether `0x141ff7b90` runs the unwalkable
-/// marking `0x141fe1150` on the region).
+/// data with the flags `+0x164..+0x166` that decide whether `0x1420061c0` runs the unwalkable
+/// marking `0x141fef780` on the region).
 fn regions(generator: usize) -> String {
     let mut out = String::from("# index\tx0\ty0\tw\th\tmain count\tmaster +0x164 +0x165 +0x166\n");
     let Some(list) = read::<usize>(generator + 0x30).filter(|&l| l != 0) else {

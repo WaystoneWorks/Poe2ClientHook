@@ -1,8 +1,8 @@
 //! Dumps the client's object-type table the first time it is used.
 //!
-//! `0x141693840(registry, out, key)` binary-searches a sorted array of 0x30-byte entries
+//! `0x14169bf40(registry, out, key)` binary-searches a sorted array of 0x30-byte entries
 //! `{u32 key, .., wchar* path at +8}` to resolve the object type key carried by the
-//! server's add-object message (0x2f7). The dump (`object_types.txt` in `<dump_dir>/client-tables/`, else next to the exe, one
+//! server's add-object message (0x2fa). The dump (`object_types.txt` in `<dump_dir>/client-tables/`, else next to the exe, one
 //! `key<TAB>path` per line) gives the key for each metadata path.
 //!
 //! It also traces entity deserialization: the components of each entity read by
@@ -23,19 +23,19 @@ use ilhook::x64::{HookType, Registers};
 
 use poe_hook_shared::module::Module;
 
-// Every function address below is found by signature (`signatures/0.5.5e.hotfix1.toml`, names in
+// Every function address below is found by signature (`signatures/0.5.5f.toml`, names in
 // quotes); the Ghidra addresses in the comments are for people only.
 //
-// - `object_type_lookup` (`0x141693840`): the object-type lookup;
-// - `read_initial_state` (`0x141e712a0`): entity initial-state reader `(entity, blob)`, logs
+// - `object_type_lookup` (`0x14169bf40`): the object-type lookup;
+// - `read_initial_state` (`0x141e7f190`): entity initial-state reader `(entity, blob)`, logs
 //   the entity's components;
-// - `noop_reader` (`0x14010a080`): shared `ret 0` stub used as the reader of components
+// - `noop_reader` (`0x14010c9b0`): shared `ret 0` stub used as the reader of components
 //   without initial state;
-// - `load_area_client` / `load_area_headless` (`0x14167b3f0`, `0x14212f680`): area loads that
+// - `load_area_client` / `load_area_headless` (`0x141683940`, `0x14213e730`): area loads that
 //   generate the terrain and log "Tile hash"/"Doodad hash" (`this` in rcx). When one returns,
 //   the layout is exported for the server (`terrain_layout_<tile hash>.tsv`);
-// - `terrain_vtable` (`0x143385cf0`): vtable of the area terrain object;
-// - `positioned_reader` (`0x141dd89a0`): Positioned component reader: after it runs, the
+// - `terrain_vtable` (`0x14339a108`): vtable of the area terrain object;
+// - `positioned_reader` (`0x141de5b50`): Positioned component reader: after it runs, the
 //   terrain size is logged (the reader clamps the grid position to it).
 /// Size of an entry of the object-type table (`{u32 key, .., wchar* path at +8}`).
 const ENTRY_SIZE: usize = 0x30;
@@ -49,12 +49,12 @@ static DONE: AtomicBool = AtomicBool::new(false);
 /// (`ENTITY_UPDATE`) ran for it.
 static PLAYER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 static PLAYER_UPDATES: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-// More signatures: `entity_update` (`0x141e71210`, per-frame update of an awake entity
-// `(entity, dt)`), `frame_drain` (`0x142130840`, world frame drain `(world, f32 dt)`: applies
-// queued simulation packets, updates entities), `entity_tick` (`0x141e7d970`, per-entity tail
-// update in frame mode `(entity + entity.tick_base, dt)`), `set_orientation` (`0x141ddc820`,
+// More signatures: `entity_update` (`0x141e7f100`, per-frame update of an awake entity
+// `(entity, dt)`), `frame_drain` (`0x14213f8f0`, world frame drain `(world, f32 dt)`: applies
+// queued simulation packets, updates entities), `entity_tick` (`0x141e8b960`, per-entity tail
+// update in frame mode `(entity + entity.tick_base, dt)`), `set_orientation` (`0x141de99d0`,
 // Positioned::SetOrientation `(this, angle)`: writes the facing unless locked), `game_update`
-// (`0x14167ebc0`, game update vfunc `(this, ?, f32 xmm2, f32 dt xmm3)`: adds dt to the
+// (`0x141687120`, game update vfunc `(this, ?, f32 xmm2, f32 dt xmm3)`: adds dt to the
 // accumulator field, which the world update takes (and zeroes) as the frame-mode dt).
 static DRAINS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
@@ -203,13 +203,13 @@ unsafe extern "win64" fn on_frame_drain(regs: *mut Registers, _: usize) {
         static PAUSE: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(0xffff);
         let flags = read::<u16>(world + crate::sigs::off().world_pause).unwrap_or(0);
         if PAUSE.swap(flags, Ordering::Relaxed) != flags {
-            log::info!("game world pause flags +0x868/+0x869 = {:#06x}", flags);
+            log::info!("game world pause flags +0x890/+0x891 = {:#06x}", flags);
         }
         static GAME: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
         let n = GAME.fetch_add(1, Ordering::Relaxed) + 1;
         if matches!(n, 1 | 2 | 3 | 30 | 300 | 3000) {
             log::info!(
-                "game frame drain #{n}: world {world:#x} dt={} xmm2={} ret={:#x} +0x868={:?} +0x869={:?} frames={:?}",
+                "game frame drain #{n}: world {world:#x} dt={} xmm2={} ret={:#x} +0x890={:?} +0x891={:?} frames={:?}",
                 f32::from_bits(unsafe { (*regs).xmm1 } as u32),
                 f32::from_bits(unsafe { (*regs).xmm2 } as u32),
                 read::<usize>(unsafe { (*regs).rsp } as usize)
@@ -231,7 +231,7 @@ unsafe extern "win64" fn on_frame_drain(regs: *mut Registers, _: usize) {
         let world = unsafe { (*regs).rcx } as usize;
         let dt = f32::from_bits(unsafe { (*regs).xmm1 } as u32);
         log::info!(
-            "frame drain #{n}: world {world:#x} dt={dt} +0x661={:?} frames(+0x6a8)={:?} player updates={}",
+            "frame drain #{n}: world {world:#x} dt={dt} +0x669={:?} frames(+0x6d0)={:?} player updates={}",
             read::<u8>(world + crate::sigs::off().world_frame_mode),
             read::<u64>(world + crate::sigs::off().world_frame_queue),
             PLAYER_UPDATES.load(Ordering::Relaxed)
@@ -582,7 +582,7 @@ fn key_name(vk: usize) -> String {
 }
 
 /// Movement research: the state of the player's path line (Positioned +0x208, set up by
-/// `0x141ec86a0`, stepped by `0x141ec8cb0`) at the start of its update, one `LINE` line per
+/// `0x141ed66d0`, stepped by `0x141ed6ce0`) at the start of its update, one `LINE` line per
 /// frame while a line runs. Offsets from the grid cell (+0x444), which the signatures find.
 /// Raw fields: major and minor are swapped when `swap` is set.
 fn log_player_line(pos: usize, n: usize) {
@@ -671,7 +671,7 @@ fn track_player(entity: usize) {
                     let a = read::<usize>(actor + o).filter(|&a| a > 0x10000)?;
                     let ty = read::<u16>(a + 0x120)?;
                     let fl = read::<u16>(a + 0x144).unwrap_or(0);
-                    // Roll-start facing (0x14197e160): byte +0x142 bit 4 and the skill id
+                    // Roll-start facing (0x1419894c0): byte +0x142 bit 4 and the skill id
                     // act+0xf8 -> +0x40 compared with Actor +0x2b4.
                     let b142 = read::<u8>(a + 0x142).unwrap_or(0);
                     let sid = read::<usize>(a + 0xf8)
@@ -694,12 +694,12 @@ fn track_player(entity: usize) {
                 read::<u8>(actor + crate::sigs::off().actor_sprint_flags).unwrap_or(0),
                 read::<u8>(actor + 0x915).unwrap_or(0),
                 read::<u8>(actor + 0x916).unwrap_or(0),
-                // Last ended action's skill id and its timer (writer 0x141e45250); 2b8new is
+                // Last ended action's skill id and its timer (writer 0x141e53140); 2b8new is
                 // 1 while the timer is under 0.1 s, so each write shows as a 0 -> 1 edge.
                 read::<u32>(actor + 0x2b4).unwrap_or(0),
                 u8::from(read::<f32>(actor + 0x2b8).unwrap_or(1.0) < 0.1)
             );
-            // Facing: Positioned +0x44c (radians, written by SetOrientation 0x141ddc820 unless
+            // Facing: Positioned +0x44c (radians, written by SetOrientation 0x141de99d0 unless
             // the orientation is locked, +0x1e5 bit 1); logged when it changes by > 0.05.
             let angle = read::<f32>(pos + crate::sigs::off().positioned_facing).unwrap_or(0.0);
             if (angle - f32::from_bits(last_facing.1)).abs() > 0.05 || last_facing.0 == i32::MIN {
@@ -809,26 +809,26 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                         slot(0x60),
                         slot(0x1f0)
                     );
-                    // Frame drain 0x142130840: +0x661 frame mode, +0x868 paused (entities
-                    // update with dt 0), +0x86a tick markers accepted; +0x11c set by 0x2f5.
+                    // Frame drain 0x14213f8f0: +0x669 frame mode, +0x890 paused (entities
+                    // update with dt 0), +0x892 tick markers accepted; +0x124 set by 0x2f8.
                     let w = |o: usize| read::<u8>(world + o).unwrap_or(0xff);
                     log::info!(
-                        "  world +0x661={} +0x868={} +0x869={} +0x86a={} +0x11c={} +0x84a={}",
-                        w(0x661),
-                        w(0x868),
-                        w(0x869),
-                        w(0x86a),
-                        w(0x11c),
-                        w(0x84a)
+                        "  world +0x669={} +0x890={} +0x891={} +0x892={} +0x124={} +0x872={}",
+                        w(0x669),
+                        w(0x890),
+                        w(0x891),
+                        w(0x892),
+                        w(0x124),
+                        w(0x872)
                     );
                 }
                 // The probes below call game functions on the entity from this thread, which
                 // crashes when the entity was freed meanwhile (an area change within the 5 s:
-                // access violation in 0x140150cb0 after a `transfer`), so they run only with
+                // access violation in 0x1401558b0 after a `transfer`), so they run only with
                 // POE_HOOK_PLAYER_PROBE set.
                 let game_calls = std::env::var_os("POE_HOOK_PLAYER_PROBE").is_some();
-                // Render component (getter 0x140150cb0, by name): +0x39a non-zero = rendering
-                // disabled (GEAL EnableRendering clears it, then calls 0x1416a9990).
+                // Render component (getter 0x1401558b0, by name): +0x39a non-zero = rendering
+                // disabled (GEAL EnableRendering clears it, then calls 0x1416b2160).
                 if let Some(pa) = probe().filter(|_| game_calls) {
                     let get_render: extern "win64" fn(usize) -> usize =
                         unsafe { std::mem::transmute(pa.get_render) };
@@ -845,7 +845,7 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                         log::info!("  forced render visibility refresh");
                     }
                 }
-                // Positioned height as the client samples it (0x141de5510 returns f32 in xmm0).
+                // Positioned height as the client samples it (0x141df2770 returns f32 in xmm0).
                 if let (Some(pa), Some(pos)) = (
                     probe().filter(|_| game_calls),
                     read::<usize>(begin_components(entity)),
@@ -854,7 +854,7 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                         unsafe { std::mem::transmute(pa.height) };
                     log::info!("  positioned height {}", height(pos));
                     // Terrain height samples across the map (world vfunc +0x1a8 -> terrain,
-                    // 0x141d0d5a0(terrain, &[x, y]) -> f32).
+                    // 0x141d19fd0(terrain, &[x, y]) -> f32).
                     if let Some(world) = read::<usize>(entity + crate::sigs::off().entity_world) {
                         let vt = read::<usize>(world).unwrap_or(0);
                         if let Some(f) = read::<usize>(vt + crate::sigs::off().world_vt_terrain) {

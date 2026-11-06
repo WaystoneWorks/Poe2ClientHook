@@ -87,7 +87,7 @@ pub fn player_text() -> String {
 /// The player's stats: (key, value) of each stat set; set 0 is the entity's own stats.
 /// Stats component (by name) +0x1c8 → set 0 container, other sets in the 16-byte entry list
 /// +0x1e8..+0x1f0 (container +0xd8 = set id). A container holds a sorted array of
-/// `(i32 key, i32 value)` at +0xf8..+0x100 (setter `0x1426acb60`, handler `0x1421820a0`).
+/// `(i32 key, i32 value)` at +0xf8..+0x100 (setter `0x1426bec20`, handler `0x142191f20`).
 pub fn player_stats() -> Vec<(u32, Vec<(u32, i32)>)> {
     let entity = crate::dump_types::player();
     if entity == 0 {

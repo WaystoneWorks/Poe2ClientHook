@@ -4,14 +4,14 @@
 //! docs/guides/setup.md "Live state file". Only reads game memory (guarded reads), so it may run
 //! on official servers too.
 //!
-//! Sources (Hotfix 1 addresses, docs/re/addresses.md "UI elements" and "Life component"):
+//! Sources (0.5.5f addresses, docs/re/addresses.md "UI elements" and "Life component"):
 //! - player: `inspect::player()` (Positioned and Actor, the same reads as the overlay), the
 //!   simulation frame counter of the entity tick hook;
-//! - area: game world `+0x98` → WorldAreas row (`+0` id string pointer, `+0x2a` hash16, `+0x1b4`
+//! - area: game world `+0xa0` → WorldAreas row (`+0` id string pointer, `+0x2a` hash16, `+0x1b4`
 //!   kind), name from `poe-hook-data/areas.tsv`;
-//! - life pools: the player's `Life` component (reader `0x141d8c260`): life `+0x1a8`, mana
+//! - life pools: the player's `Life` component (reader `0x141d99350`): life `+0x1a8`, mana
 //!   `+0x200`, energy shield `+0x240`; pool `+0x38` current, `+0x34` maximum, `+0x30` reserved (assumed);
-//! - panels: every UI element whose visibility changed through SetVisible `0x1427af130`
+//! - panels: every UI element whose visibility changed through SetVisible `0x1427c12b0`
 //!   (hooked here) and that is visible now with all its parents (flags `+0x168` bit 11, parent
 //!   `+0xb8`, name `std::wstring` at `+0x98`), as `parent/child` name paths;
 //! - packets: the last messages of the packet capture (`packets::since`).
@@ -37,12 +37,12 @@ static ELEMENTS: Mutex<Option<HashMap<usize, usize>>> = Mutex::new(None);
 const MAX_ELEMENTS: usize = 16384;
 const KEEP_PACKETS: usize = 40;
 
-/// UI element layout (SetVisible `0x1427af130`, escape menu constructor `0x1402c4980`).
+/// UI element layout (SetVisible `0x1427c12b0`, escape menu constructor `0x1402cbff0`).
 const UI_FLAGS: usize = 0x168;
 const UI_VISIBLE: u32 = 0x800;
 const UI_PARENT: usize = 0xb8;
 const UI_NAME: usize = 0x98;
-/// Life component pools (reader `0x141d8c260`, pool readers `0x141d8bec0` / `0x141d88e70`).
+/// Life component pools (reader `0x141d99350`, pool readers `0x141d98fb0` / `0x141d95f60`).
 const LIFE_POOLS: [(&str, usize); 3] = [("life", 0x1a8), ("mana", 0x200), ("es", 0x240)];
 /// `+0x38` is the value the server sends first (the current value: official servers send it
 /// with `+0x30` = 0 for a living player); `+0x34` is the maximum the client works out from the

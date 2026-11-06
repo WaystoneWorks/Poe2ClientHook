@@ -37,8 +37,8 @@ struct Session {
 
 static SESSION: Mutex<Option<Session>> = Mutex::new(None);
 
-/// Hooks the instance packet-cipher builder `(out, key material, &is_client)` (signature
-/// `instance_ciphers`).
+/// Hooks the EnableEncryption case of the session handler, where it builds the instance packet
+/// ciphers (signature `instance_ciphers`; rbx = the stored InstanceDetails).
 pub fn init(_main: &Module) -> Result<(), String> {
     crate::hooks::install(
         crate::sigs::addr("instance_ciphers")?,
@@ -55,7 +55,7 @@ unsafe extern "win64" fn on_instance_ciphers(regs: *mut Registers, _: usize) {
     if crate::host::read_only() || !crate::ui::custom_server() {
         return;
     }
-    let addr = r.rdx as usize;
+    let addr = r.rbx as usize + crate::sigs::off().session_key_material;
     if !poe_hook_shared::mem::readable(addr, 64) {
         return;
     }

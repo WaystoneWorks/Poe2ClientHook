@@ -95,7 +95,7 @@ pub fn parse_terrain_mismatch(text: &str) -> Option<TerrainMismatch> {
 mod tests {
     use super::*;
 
-    const TEXT: &str = "alert\tterrain_mismatch\narea\tG1_2 (Clearfell)\nseed\t123456789\nlayout\ttopology 3, orientation 1\ntile\tclient 0x1a2b3c4d  server 0x5e6f7081\ndoodad\tclient 0x11111111  server 0x11111111\nreason\ttile hash differs\ndest\tprevious instance 7 (G1_1 Riverbank)\nreport\tterrain-mismatch build=0.5.5e.hotfix1 area=G1_2\nend\n";
+    const TEXT: &str = "alert\tterrain_mismatch\narea\tG1_2 (Clearfell)\nseed\t123456789\nlayout\ttopology 3, orientation 1\ntile\tclient 0x1a2b3c4d  server 0x5e6f7081\ndoodad\tclient 0x11111111  server 0x11111111\nreason\ttile hash differs\ndest\tprevious instance 7 (G1_1 Riverbank)\nreport\tterrain-mismatch build=0.5.5f area=G1_2\nend\n";
 
     #[test]
     fn parses_the_servers_block() {

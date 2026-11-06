@@ -86,7 +86,7 @@ pub struct HookApi {
     pub mod_dir: Str,
     /// The game directory (next to `PathOfExileSteam.exe`).
     pub exe_dir: Str,
-    /// Client version of the signature table that matched, e.g. `0.5.5e.hotfix1` (empty: the table
+    /// Client version of the signature table that matched, e.g. `0.5.5f` (empty: the table
     /// could not be used).
     pub game_version: Str,
     /// `Build Revision:` of that client, e.g. `326410`.
@@ -195,8 +195,8 @@ mod tests {
 
     #[test]
     fn str_round_trips_and_empty_is_safe() {
-        let s = Str::new("0.5.5e.hotfix1");
-        assert_eq!(unsafe { s.as_str() }, "0.5.5e.hotfix1");
+        let s = Str::new("0.5.5f");
+        assert_eq!(unsafe { s.as_str() }, "0.5.5f");
         let e = Str {
             ptr: std::ptr::null(),
             len: 0,

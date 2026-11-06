@@ -38,7 +38,7 @@ homepage = "https://example.invalid/my-mod"
 [game]
 # Exact client versions the mod is known to work with. The launcher refuses to enable the mod
 # on others unless the user overrides; the loader only logs a warning (when the build is known).
-versions = ["0.5.5e.hotfix1"]
+versions = ["0.5.5f"]
 # The mod ABI the mod was built against (see "The mod ABI"). A mod with an entry DLL must state it; the
 # loader loads it only when it equals its own `HOOK_API_VERSION`.
 hook_api = 1
@@ -172,7 +172,7 @@ The loader runs once per process, on its start-up thread after the debug core is
 Log lines (in `poe-hook.log`, target `poe_hook::mods`; a mod's own lines carry the target `mod:<id>`):
 
 ```
-mods: signature table 0.5.5e.hotfix1 resolved in 190 ms (verified build)
+mods: signature table 0.5.5f resolved in 190 ms (verified build)
 mods: loaded sample-mod 0.1.0 (3 ms)
 mods: skipped some-mod: built for mod ABI 2, this loader offers 1 (update poe-hook)
 mods: skipped srv-mod: server-only mod (side = "server"): it has no client half, install it into the server's mods folder
@@ -200,7 +200,7 @@ Defined in the dependency-free crate `poe-hook-mod-api` (`poe-hook-mod-api/src/l
 | `abi_version: u32`, `size: u32` | the loader's `HOOK_API_VERSION` and `size_of::<HookApi>()` |
 | `ctx: *const c_void` | pass as the first argument of `log` |
 | `mod_id`, `mod_dir`, `exe_dir`: `Str` | the mod's id, its folder, the game folder |
-| `game_version`, `build_revision`: `Str` | `0.5.5e.hotfix1` and `326410` of the signature table that matched (empty: no usable table) |
+| `game_version`, `build_revision`: `Str` | `0.5.5f` and `326410` of the signature table that matched (empty: no usable table) |
 | `build_verified: u32` | 1: the exe is exactly the build the table was made for; 0: unknown build, addresses are candidates only |
 | `log(ctx, level, message: Str)` | one record in `poe-hook.log` and the overlay's Log tab, target `mod:<id>`; `level` 1..5 = error..trace |
 | `read_only() -> bool` | the read-only latch |
@@ -217,7 +217,7 @@ This is the **client** ABI (`HOOK_API_VERSION`, `game.hook_api`/`client.hook_api
 `examples/sample-mod/` (package `poe-hook-sample-mod`, `sample_mod.dll`) logs `hello`, the game build and the state of a signature through this ABI. `cargo xtask build-dll` builds it with the DLLs; `cargo xtask deploy-mod` (or `deploy-client --sample-mod`) installs and enables it in `GameFiles/poe-hook-mods/sample-mod/`; the next client start logs:
 
 ```
-[mod:sample-mod] hello from sample-mod 0.1.0: game build 0.5.5e.hotfix1 (revision 326410, table verified), read_only=false
+[mod:sample-mod] hello from sample-mod 0.1.0: game build 0.5.5f (revision 326410, table verified), read_only=false
 ```
 
 ## Tests
