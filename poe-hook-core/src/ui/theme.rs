@@ -16,7 +16,8 @@ pub fn muted(ui: &Ui) -> [f32; 4] {
     ui.style_color(StyleColor::TextDisabled)
 }
 
-/// Resets the context's style to ImGui's stock dark one. Call it before `scale_all_sizes`, so
+/// Resets the context's style to ImGui's stock dark one, made more opaque and with brighter
+/// secondary text so it reads over a bright game scene. Call it before `scale_all_sizes`, so
 /// the sizes scale with the overlay.
 pub fn apply(style: &mut imgui::Style) {
     imgui::Theme {
@@ -24,6 +25,14 @@ pub fn apply(style: &mut imgui::Style) {
         ..imgui::Theme::default()
     }
     .apply_to_style(style);
+    let mut bg = style.color(StyleColor::WindowBg);
+    bg[3] = 0.97;
+    style.set_color(StyleColor::WindowBg, bg);
+    style.set_color(StyleColor::ChildBg, [0.0, 0.0, 0.0, 0.25]);
+    let mut popup = style.color(StyleColor::PopupBg);
+    popup[3] = 0.98;
+    style.set_color(StyleColor::PopupBg, popup);
+    style.set_color(StyleColor::TextDisabled, [0.62, 0.62, 0.62, 1.0]);
 }
 
 #[cfg(test)]

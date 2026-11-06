@@ -89,8 +89,9 @@ pub fn draw(ui: &Ui) {
     }
     ui.same_line();
     ui.text_disabled(format!(
-        "keys: {:#04x} shows/hides, {:#04x} snapshot",
-        cfg.toggle_key, cfg.snapshot_key
+        "{} shows/hides, {} saves a snapshot",
+        super::key_name(cfg.toggle_key),
+        super::key_name(cfg.snapshot_key)
     ));
     if read_only {
         ui.text_colored(

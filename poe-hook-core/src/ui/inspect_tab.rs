@@ -18,7 +18,7 @@ pub fn draw_player(ui: &Ui) {
     };
     ui.child_window("overview")
         .border(true)
-        .size([520.0, 0.0])
+        .size([0.0, 0.0])
         .build(ui, || {
             ui.text(format!("Entity {:#x}   id {}", p.entity, p.id));
             ui.separator();
@@ -98,7 +98,7 @@ impl EntitiesView {
         split(
             ui,
             "entities",
-            560.0,
+            ui.content_region_avail()[0] * 0.55,
             || {
                 if let Some(_t) = ui.begin_table_header_with_flags(
                     "entity_list2",
@@ -130,9 +130,12 @@ impl EntitiesView {
                                 e.path.clone()
                             };
                             if l.alive {
-                                ui.text(name);
+                                ui.text(&name);
                             } else {
                                 ui.text_disabled(format!("{name} (gone)"));
+                            }
+                            if ui.is_item_hovered() {
+                                ui.tooltip_text(&name);
                             }
                             ui.table_next_column();
                             ui.text(l.grid.map_or("-".into(), |g| format!("{}, {}", g.0, g.1)));
@@ -233,7 +236,7 @@ impl WatchesView {
             "Syntax: numbers (0x.. hex; 0x14.. = Ghidra address), + and -, [expr] reads a \
              pointer; names: player, pos, actor, exe. Example: pos+0x44c (f32 facing).",
         );
-        widgets::filter(ui, "watch_expr", &mut self.new_expr, "expression", 360.0);
+        widgets::input_bar(ui, "watch_expr", &mut self.new_expr, "expression", 360.0);
         ui.same_line();
         ui.set_next_item_width(90.0);
         let names: Vec<&str> = KINDS.iter().map(|k| k.name()).collect();
@@ -246,16 +249,16 @@ impl WatchesView {
             });
             crate::watches::save(&self.list);
         }
-        widgets::counter(ui, &format!("{} watches", self.list.len()));
+        widgets::counter(ui, &widgets::plural(self.list.len(), "watch"));
         if self.list.is_empty() {
             widgets::empty(ui, "No watches yet: add an expression above.");
             return;
         }
         let mut remove = None;
-        if let Some(_t) = ui.begin_table_header_with_flags(
+        if let Some(_t) = crate::ui::list_table(
+            ui,
             "watches",
             ["", "type", "expression", "value"].map(imgui::TableColumnSetup::new),
-            crate::ui::table_opts(),
         ) {
             for (i, w) in self.list.iter().enumerate() {
                 ui.table_next_column();

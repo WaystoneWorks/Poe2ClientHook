@@ -80,8 +80,9 @@ impl StatsView {
                 }
             }
         }
-        widgets::counter(ui, &format!("rows {}", widgets::thousands(rows.len())));
-        if let Some(_t) = ui.begin_table_header_with_flags(
+        widgets::counter(ui, &widgets::plural(rows.len(), "row"));
+        if let Some(_t) = crate::ui::list_table(
+            ui,
             "stats",
             [
                 imgui::TableColumnSetup::new("set"),
@@ -89,7 +90,6 @@ impl StatsView {
                 imgui::TableColumnSetup::new("stat"),
                 imgui::TableColumnSetup::new("value"),
             ],
-            crate::ui::table_opts(),
         ) {
             let mut clipper = ListClipper::new(rows.len()).begin(ui);
             while clipper.step() {
@@ -139,16 +139,16 @@ impl ActionsView {
             self.paused = None;
         }
         let events = self.paused.clone().unwrap_or_else(crate::actions::events);
-        widgets::counter(ui, &format!("{} events", widgets::thousands(events.len())));
+        widgets::counter(ui, &widgets::plural(events.len(), "event"));
         if events.is_empty() {
             widgets::empty(ui, "No actions yet: move or use a skill.");
             return;
         }
-        if let Some(_t) = ui.begin_table_header_with_flags(
+        if let Some(_t) = crate::ui::list_table(
+            ui,
             "actions",
             ["time", "frame", "slot", "", "action", "type id", "id"]
                 .map(imgui::TableColumnSetup::new),
-            super::table_opts(),
         ) {
             let mut clipper = ListClipper::new(events.len()).begin(ui);
             while clipper.step() {

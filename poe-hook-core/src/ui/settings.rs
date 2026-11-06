@@ -90,9 +90,23 @@ static SETTINGS: Mutex<Option<Settings>> = Mutex::new(None);
 
 /// A copy of the current settings (loaded from disk on first use).
 pub fn get() -> Settings {
+    with(Settings::clone)
+}
+
+/// Reads the settings without copying them (per-frame callers).
+fn with<T>(f: impl FnOnce(&Settings) -> T) -> T {
     let mut g = SETTINGS.lock().unwrap();
-    g.get_or_insert_with(|| load(&path(), &dir().join("overlay_page.txt")))
-        .clone()
+    f(g.get_or_insert_with(|| load(&path(), &dir().join("overlay_page.txt"))))
+}
+
+/// A splitter's saved left width.
+pub fn split_width(id: &str) -> Option<f32> {
+    with(|s| s.split_widths.get(id).copied())
+}
+
+/// Whether a sidebar group is folded.
+pub fn folded(group: &str) -> bool {
+    with(|s| s.sidebar_folded.iter().any(|n| n == group))
 }
 
 /// Whether a slow hook may show a popup.

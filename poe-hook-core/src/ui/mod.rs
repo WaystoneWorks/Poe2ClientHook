@@ -82,6 +82,8 @@ pub struct App {
     last_tab: Vec<(&'static str, Page)>,
     page_search: String,
     palette_query: String,
+    /// The palette row Up/Down picked (Enter takes it).
+    palette_sel: usize,
     /// `POE_HOOK_OVERLAY_TOUR` (game tests): shows every page in turn and snapshots each.
     tour: Option<Tour>,
 }
@@ -115,6 +117,7 @@ impl App {
             last_tab: Vec::new(),
             page_search: String::new(),
             palette_query: String::new(),
+            palette_sel: 0,
             tour: std::env::var_os("POE_HOOK_OVERLAY_TOUR").map(|_| Tour {
                 index: usize::MAX,
                 since: Instant::now(),
@@ -136,15 +139,16 @@ impl App {
             return;
         }
         self.tour_step();
-        let toggle = crate::config().overlay.toggle_key;
+        // First use: about 60% of a 1440p screen at any scale (later sizes come from imgui.ini).
+        let em = ui.current_font_size();
         ui.window("poe-hook##main2")
-            .size([1500.0, 780.0], Condition::FirstUseEver)
+            .size([95.0 * em, 50.0 * em], Condition::FirstUseEver)
             .position([40.0, 80.0], Condition::FirstUseEver)
             .build(|| {
                 self.palette(ui);
                 let avail = ui.content_region_avail();
                 ui.child_window("nav")
-                    .size([180.0, avail[1]])
+                    .size([14.0 * ui.current_font_size(), avail[1]])
                     .border(true)
                     .build(ui, || {
                         self.nav(ui);
@@ -154,7 +158,6 @@ impl App {
                     self.draw_page(ui, plots);
                 });
             });
-        let _ = toggle;
     }
 
     /// One step of the overlay tour: every 3 s the next page, with a snapshot 1.5 s after it
@@ -191,24 +194,42 @@ impl App {
     /// server's group hidden while read-only). With text in the search box: the matching pages.
     fn nav(&mut self, ui: &Ui) {
         ui.set_next_item_width(-1.0);
-        ui.input_text("##page_search", &mut self.page_search)
+        let enter = ui
+            .input_text("##page_search", &mut self.page_search)
             .hint("search pages")
+            .enter_returns_true(true)
             .build();
+        if ui.is_item_active() && ui.is_key_pressed(imgui::Key::Escape) {
+            self.page_search.clear();
+        }
         ui.text_disabled("Ctrl+P: palette");
-        let f = self.page_search.to_lowercase();
+        let f = self.page_search.trim().to_lowercase();
         if !f.is_empty() {
-            let found: Vec<(Page, &str)> = pages()
-                .filter(|(_, p, n)| {
-                    visible(*p)
-                        && (n.to_lowercase().contains(&f)
-                            || format!("{p:?}").to_lowercase().contains(&f))
+            let found: Vec<(Page, String)> = pages()
+                .filter(|(e, p, n)| {
+                    visible(*p) && (n.to_lowercase().contains(&f) || e.to_lowercase().contains(&f))
                 })
-                .map(|(_, p, n)| (p, n))
+                .map(|(e, p, n)| {
+                    (
+                        p,
+                        if e == n {
+                            n.to_string()
+                        } else {
+                            format!("{e} / {n}")
+                        },
+                    )
+                })
                 .collect();
             ui.spacing();
+            if found.is_empty() {
+                widgets::empty(ui, "No page matches.");
+            }
+            if enter && let Some((page, _)) = found.first() {
+                self.go(*page);
+            }
             for (page, name) in found {
                 if ui
-                    .selectable_config(name)
+                    .selectable_config(format!("{name}##ps{page:?}"))
                     .selected(self.page == page)
                     .build()
                 {
@@ -227,7 +248,7 @@ impl App {
                 .iter()
                 .any(|e| e.pages.iter().any(|(p, _)| *p == self.page));
             // The user's folds come from overlay.toml; the group of the page shown starts open.
-            let folded = settings::get().sidebar_folded.iter().any(|n| n == g.name);
+            let folded = settings::folded(g.name);
             ui.set_next_item_open_with_cond(here || !folded, Condition::Once);
             let open = ui.collapsing_header(g.name, imgui::TreeNodeFlags::empty());
             if ui.is_item_toggled_open() {
@@ -338,49 +359,115 @@ impl App {
         }
     }
 
-    /// Ctrl+P: jump to a page, or run a server command line (`transfer G1_6 ...`).
+    /// Ctrl+P: jump to a page, or run a server command line (`transfer G1_6 ...`). Up/Down
+    /// pick a row, Enter takes it, Escape closes.
     fn palette(&mut self, ui: &Ui) {
         if ui.io().key_ctrl() && ui.is_key_pressed(imgui::Key::P) {
             self.palette_query.clear();
+            self.palette_sel = 0;
             ui.open_popup("##palette");
         }
         let Some(_p) = ui.begin_popup("##palette") else {
             return;
         };
+        let em = ui.current_font_size();
         if ui.is_window_appearing() {
             let [w, _] = ui.io().display_size();
-            ui.set_window_pos([w * 0.5 - 300.0, 120.0]);
-            ui.set_window_size([600.0, 420.0]);
+            let (pw, ph) = (46.0 * em, 32.0 * em);
+            ui.set_window_pos([(w - pw) * 0.5, 9.0 * em]);
+            ui.set_window_size([pw, ph]);
             ui.set_keyboard_focus_here();
         }
         ui.set_next_item_width(-1.0);
+        let before = self.palette_query.clone();
         let enter = ui
             .input_text("##palette_query", &mut self.palette_query)
             .hint("page name, or a server command line")
             .enter_returns_true(true)
             .build();
+        if self.palette_query != before {
+            self.palette_sel = 0;
+        }
+        ui.text_disabled("Up/Down: pick   Enter: open or run   Escape: close");
+        ui.separator();
+        let items = self.palette_items();
+        if ui.is_key_pressed(imgui::Key::DownArrow) && !items.is_empty() {
+            self.palette_sel = (self.palette_sel + 1).min(items.len() - 1);
+        }
+        if ui.is_key_pressed(imgui::Key::UpArrow) {
+            self.palette_sel = self.palette_sel.saturating_sub(1);
+        }
+        self.palette_sel = self.palette_sel.min(items.len().saturating_sub(1));
+        let mut chosen: Option<usize> = None;
+        ui.child_window("##palette_rows").build(ui, || {
+            if items.is_empty() {
+                widgets::empty(ui, "Nothing matches: try a page name or a command.");
+            }
+            for (i, (label, _)) in items.iter().enumerate() {
+                let on = i == self.palette_sel;
+                if ui
+                    .selectable_config(format!("{label}##pal{i}"))
+                    .selected(on)
+                    .build()
+                {
+                    chosen = Some(i);
+                }
+                if on
+                    && (ui.is_key_pressed(imgui::Key::DownArrow)
+                        || ui.is_key_pressed(imgui::Key::UpArrow))
+                {
+                    ui.set_scroll_here_y(0.5);
+                }
+            }
+        });
+        if enter && !items.is_empty() {
+            chosen = Some(self.palette_sel);
+        }
+        if ui.is_key_pressed(imgui::Key::Escape) {
+            ui.close_current_popup();
+            return;
+        }
+        let Some(i) = chosen else {
+            return;
+        };
+        match items.into_iter().nth(i).map(|(_, item)| item) {
+            Some(PaletteItem::Page(p)) => self.go(p),
+            // A bare command that needs arguments: open its form instead of running it.
+            Some(PaletteItem::Command(line, true)) => {
+                self.debug.select_help(&line);
+                self.go(Page::DebugHelp);
+            }
+            Some(PaletteItem::Command(line, false)) => {
+                crate::devlink::command(&line);
+            }
+            None => {}
+        }
+        ui.close_current_popup();
+    }
+
+    /// The palette's rows for the current query: matching pages, then matching commands.
+    fn palette_items(&self) -> Vec<(String, PaletteItem)> {
         let q = self.palette_query.trim().to_lowercase();
         let first_word = q.split_whitespace().next().unwrap_or("").to_string();
-        let mut chosen: Option<PaletteItem> = None;
-        let mut first: Option<PaletteItem> = None;
-        for (entry, page, name) in pages() {
-            if !visible(page) {
-                continue;
-            }
-            if !q.is_empty()
-                && !name.to_lowercase().contains(&q)
-                && !entry.to_lowercase().contains(&q)
-            {
-                continue;
-            }
-            first.get_or_insert(PaletteItem::Page(page));
-            let label = if entry == name {
-                format!("Page: {name}")
-            } else {
-                format!("Page: {entry} / {name}")
-            };
-            if ui.selectable(label) {
-                chosen = Some(PaletteItem::Page(page));
+        let has_args = q.contains(' ');
+        let mut items = Vec::new();
+        if !has_args {
+            for (entry, page, name) in pages() {
+                if !visible(page) {
+                    continue;
+                }
+                if !q.is_empty()
+                    && !name.to_lowercase().contains(&q)
+                    && !entry.to_lowercase().contains(&q)
+                {
+                    continue;
+                }
+                let label = if entry == name {
+                    format!("Page   {name}")
+                } else {
+                    format!("Page   {entry} / {name}")
+                };
+                items.push((label, PaletteItem::Page(page)));
             }
         }
         if custom_server() {
@@ -388,47 +475,34 @@ impl App {
             let admin = me.is_some_and(|m| m.admin);
             for c in cmds.iter().filter(|c| admin || !c.admin) {
                 let name = c.name();
-                let alias = c.aliases.iter().any(|a| a.starts_with(&first_word));
-                if !q.is_empty() && !name.starts_with(&first_word) && !name.contains(&q) && !alias {
+                // The typed line is run as is only when its first word(s) name this command
+                // exactly (name or alias); otherwise the row runs the bare command.
+                let typed_name = q == name || q.starts_with(&format!("{name} "));
+                let typed_alias = c.aliases.iter().any(|a| *a == first_word);
+                let matches = q.is_empty()
+                    || typed_name
+                    || typed_alias
+                    || (!has_args
+                        && (name.starts_with(&q)
+                            || name.contains(&q)
+                            || c.aliases.iter().any(|a| a.starts_with(&q))));
+                if !matches {
                     continue;
                 }
-                let line = if q.starts_with(&name) || alias {
+                let line = if typed_name || typed_alias {
                     self.palette_query.trim().to_string()
                 } else {
                     name.clone()
                 };
-                first.get_or_insert(PaletteItem::Command(
-                    line.clone(),
-                    c.args.iter().any(|a| !a.optional),
+                let needs_args = !line.contains(' ') && c.args.iter().any(|a| !a.optional);
+                let what = if needs_args { "Form" } else { "Run " };
+                items.push((
+                    format!("{what}   {}  - {}", c.usage(), c.summary),
+                    PaletteItem::Command(line, needs_args),
                 ));
-                if ui.selectable(format!("Run: {}  - {}##cmd{name}", c.usage(), c.summary)) {
-                    chosen = Some(PaletteItem::Command(line, false));
-                }
             }
         }
-        if enter {
-            chosen = first;
-        }
-        if ui.is_key_pressed(imgui::Key::Escape) {
-            ui.close_current_popup();
-            return;
-        }
-        match chosen {
-            Some(PaletteItem::Page(p)) => {
-                self.go(p);
-                ui.close_current_popup();
-            }
-            // A bare command that needs arguments: open its form instead of running it.
-            Some(PaletteItem::Command(line, needs_args)) if needs_args && !line.contains(' ') => {
-                self.go(Page::DebugHelp);
-                ui.close_current_popup();
-            }
-            Some(PaletteItem::Command(line, _)) => {
-                crate::devlink::command(&line);
-                ui.close_current_popup();
-            }
-            None => {}
-        }
+        items
     }
 }
 
@@ -637,9 +711,55 @@ fn load_page() -> Page {
 }
 
 /// Table options for the overlay's tables: columns fit their contents, resizable, striped.
+/// A table that fills the rest of the page and scrolls under a frozen header row (the long
+/// lists: Stats, Actions, Hooks, Notes, Watches).
+pub fn list_table<'ui, Name: AsRef<str>, const N: usize>(
+    ui: &'ui Ui,
+    id: &str,
+    columns: [imgui::TableColumnSetup<Name>; N],
+) -> Option<imgui::TableToken<'ui>> {
+    let t = ui.begin_table_with_flags(
+        id,
+        N,
+        table_opts().flags(
+            imgui::TableFlags::RESIZABLE | imgui::TableFlags::ROW_BG | imgui::TableFlags::SCROLL_Y,
+        ),
+    )?;
+    ui.table_setup_scroll_freeze(0, 1);
+    for c in &columns {
+        ui.table_setup_column(&c.name, c.flags, c.width);
+    }
+    ui.table_headers_row();
+    Some(t)
+}
+
 pub fn table_opts() -> imgui::TableOptions {
     imgui::TableOptions::from(imgui::TableFlags::RESIZABLE | imgui::TableFlags::ROW_BG)
         .sizing_policy(imgui::TableSizingPolicy::FixedFit)
+}
+
+/// A Windows virtual-key code as its key's name (`0x2d` is "Insert").
+pub fn key_name(vk: u16) -> String {
+    match vk {
+        0x08 => "Backspace".into(),
+        0x09 => "Tab".into(),
+        0x13 => "Pause".into(),
+        0x14 => "Caps Lock".into(),
+        0x20 => "Space".into(),
+        0x21 => "Page Up".into(),
+        0x22 => "Page Down".into(),
+        0x23 => "End".into(),
+        0x24 => "Home".into(),
+        0x2c => "Print Screen".into(),
+        0x2d => "Insert".into(),
+        0x2e => "Delete".into(),
+        0x30..=0x39 | 0x41..=0x5a => char::from(vk as u8).to_string(),
+        0x60..=0x69 => format!("Numpad {}", vk - 0x60),
+        0x70..=0x87 => format!("F{}", vk - 0x6f),
+        0x91 => "Scroll Lock".into(),
+        0xc0 => "`".into(),
+        _ => format!("key {vk:#04x}"),
+    }
 }
 
 /// Shows a memory region in the Scanner tab.
@@ -714,6 +834,15 @@ fn notices(ui: &Ui) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn virtual_keys_have_names() {
+        assert_eq!(key_name(0x2d), "Insert");
+        assert_eq!(key_name(0x24), "Home");
+        assert_eq!(key_name(0x70), "F1");
+        assert_eq!(key_name(0x41), "A");
+        assert_eq!(key_name(0xff), "key 0xff");
+    }
 
     #[test]
     fn every_page_is_in_the_sidebar_once() {

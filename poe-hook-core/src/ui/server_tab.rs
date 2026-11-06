@@ -94,15 +94,21 @@ impl ServerView {
             .filter(|d| **d > crate::devlink::DESYNC_CELLS as f64)
             .count();
         let worst = pred.iter().cloned().fold(0.0, f64::max);
-        ui.text_disabled(
-            "The prediction is for the frame the server's next message applies in (one frame \
-             ahead), so about one frame of walking (~1.2 cells) is expected while moving.",
-        );
-        ui.text(format!(
-            "{} samples; prediction off by more than {} cells in {over}; worst {worst:.2} cells",
-            samples.len(),
-            crate::devlink::DESYNC_CELLS
+        ui.text_wrapped(format!(
+            "{}; prediction off by more than {} cells in {}; worst {worst:.2} cells",
+            widgets::plural(samples.len(), "sample"),
+            crate::devlink::DESYNC_CELLS,
+            widgets::plural(over, "frame"),
         ));
+        ui.same_line();
+        ui.text_disabled("(?)");
+        if ui.is_item_hovered() {
+            ui.tooltip_text(
+                "The prediction is for the frame the server's next message applies in (one \
+                 frame ahead), so about one frame of walking (~1.2 cells) is expected while \
+                 moving.",
+            );
+        }
         self.delta_table(ui, &samples, &pred, now);
         let plot = ui.implot(plots);
         let width = ui.content_region_avail()[0];
@@ -172,14 +178,17 @@ impl ServerView {
             }
             crate::ui::set_clipboard(&text);
         }
-        widgets::counter(
-            ui,
-            &format!("{} frames over the limit (worst 30 shown)", rows.len()),
-        );
         if rows.is_empty() {
             widgets::empty(ui, "No frame is over the limit.");
             return;
         }
+        widgets::counter(
+            ui,
+            &format!(
+                "{} over the limit (worst 30 shown)",
+                widgets::plural(rows.len(), "frame")
+            ),
+        );
         if let Some(_t) = ui.begin_table_header_with_flags(
             "desync_rows",
             ["t (ms)", "client cell", "server cell", "delta", "reason"]

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use imgui::Ui;
 use poe_hook_shared::cmdspec::form_line;
 
-use super::layout_form::LayoutForm;
+use super::{layout_form::LayoutForm, widgets};
 use crate::devlink::{Cmd, CmdArg};
 
 fn layout_kind(k: &str) -> bool {
@@ -58,6 +58,7 @@ impl CommandsView {
             flags: vec![String::new(); c.flags.len()],
         });
         let has_layout = c.args.iter().any(|a| a.kind == "area");
+        let mut enter = false;
         let mut first = true;
         let mut place = |ui: &Ui| {
             if !first {
@@ -70,7 +71,7 @@ impl CommandsView {
                 continue;
             }
             place(ui);
-            arg_widget(ui, a, &mut values.args[i]);
+            enter |= arg_widget(ui, a, &mut values.args[i]);
         }
         for (i, f) in c.flags.iter().enumerate() {
             place(ui);
@@ -81,7 +82,7 @@ impl CommandsView {
                         kind: kind.clone(),
                         optional: true,
                     };
-                    arg_widget(ui, &a, &mut values.flags[i]);
+                    enter |= arg_widget(ui, &a, &mut values.flags[i]);
                 }
                 None => {
                     let mut on = values.flags[i] == "on";
@@ -100,7 +101,30 @@ impl CommandsView {
         } else {
             place(ui);
         }
-        if ui.button(format!("Run##{name}")) {
+        // Every required argument filled in (the layout form's area counts for its kinds).
+        let missing: Vec<&str> = c
+            .args
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| !a.optional)
+            .filter(|(i, a)| {
+                if has_layout && layout_kind(&a.kind) {
+                    a.kind == "area" && !self.forms.get(&name).is_some_and(|f| f.has_area())
+                } else {
+                    self.values[&name].args[*i].trim().is_empty()
+                }
+            })
+            .map(|(_, a)| a.name.as_str())
+            .collect();
+        let ready = missing.is_empty();
+        let run = {
+            let _d = ui.begin_disabled_with_cond(!ready);
+            ui.button(format!("Run##{name}"))
+        };
+        if !ready && ui.is_item_hovered_with_flags(imgui::ItemHoveredFlags::ALLOW_WHEN_DISABLED) {
+            ui.tooltip_text(format!("Fill in: {}", missing.join(", ")));
+        }
+        if (run || enter) && ready {
             let line = build_line(c, &self.values[&name], self.forms.get(&name));
             crate::devlink::command(&line);
             if let Some(f) = self.forms.get(&name) {
@@ -111,78 +135,82 @@ impl CommandsView {
     }
 }
 
-fn arg_widget(ui: &Ui, a: &CmdArg, value: &mut String) {
-    let label = format!(
-        "{}{}##{}",
-        a.name,
-        if a.optional { "?" } else { "" },
-        a.name
-    );
+/// One argument's widget. Text fields show the argument's name as their hint (a trailing `?`
+/// marks an optional one); choices and pickers have a muted label in front. Returns true when
+/// Enter was pressed in a text field.
+fn arg_widget(ui: &Ui, a: &CmdArg, value: &mut String) -> bool {
+    let em = ui.current_font_size();
+    let name = format!("{}{}", a.name, if a.optional { "?" } else { "" });
+    let id = format!("##{}", a.name);
+    let text = |ui: &Ui, value: &mut String, width: f32| {
+        ui.set_next_item_width(width * em);
+        let enter = ui
+            .input_text(&id, value)
+            .hint(&name)
+            .enter_returns_true(true)
+            .build();
+        if ui.is_item_hovered() {
+            ui.tooltip_text(format!("{name} ({})", a.kind));
+        }
+        enter
+    };
+    let picker = |ui: &Ui, value: &mut String, items: Vec<String>, take_first_word: bool| {
+        if items.is_empty() {
+            return;
+        }
+        ui.same_line();
+        let mut pick = 0usize;
+        let mut list = vec!["pick...".to_string()];
+        list.extend(items);
+        ui.set_next_item_width(9.0 * em);
+        if ui.combo_simple_string(format!("##pick{}", a.name), &mut pick, &list) && pick > 0 {
+            *value = if take_first_word {
+                list[pick].split(' ').next().unwrap_or("").to_string()
+            } else {
+                list[pick].clone()
+            };
+        }
+    };
     match a.kind.as_str() {
         "bool" => {
             let mut on = value == "on";
-            if ui.checkbox(&label, &mut on) {
+            if ui.checkbox(format!("{name}{id}"), &mut on) {
                 *value = if on { "on".into() } else { "off".into() };
             }
             if value.is_empty() {
                 *value = "off".into();
             }
+            false
         }
         k if k.starts_with("choice=") => {
             let choices: Vec<&str> = k["choice=".len()..].split('|').collect();
             let mut i = choices.iter().position(|c| c == value).unwrap_or(0);
-            ui.set_next_item_width(120.0);
-            if ui.combo_simple_string(&label, &mut i, &choices) || value.is_empty() {
+            widgets::label(ui, &name);
+            ui.set_next_item_width(8.0 * em);
+            if ui.combo_simple_string(&id, &mut i, &choices) || value.is_empty() {
                 *value = choices[i].to_string();
             }
+            false
         }
         "instance" => {
+            let enter = text(ui, value, 6.0);
             let ids: Vec<String> = crate::devlink::instances()
                 .map(|(_, l, _)| l.iter().map(|i| format!("{} {}", i.id, i.area)).collect())
                 .unwrap_or_default();
-            ui.set_next_item_width(90.0);
-            ui.input_text(&label, value).build();
-            if !ids.is_empty() {
-                ui.same_line();
-                let mut pick = 0usize;
-                let mut items = vec!["pick".to_string()];
-                items.extend(ids);
-                ui.set_next_item_width(140.0);
-                if ui.combo_simple_string(format!("##pick{}", a.name), &mut pick, &items)
-                    && pick > 0
-                {
-                    *value = items[pick].split(' ').next().unwrap_or("").to_string();
-                }
-            }
+            picker(ui, value, ids, true);
+            enter
         }
         "player" => {
+            let enter = text(ui, value, 8.0);
             let names: Vec<String> = crate::devlink::online()
                 .into_iter()
                 .map(|o| o.character)
                 .collect();
-            ui.set_next_item_width(120.0);
-            ui.input_text(&label, value).build();
-            if !names.is_empty() {
-                ui.same_line();
-                let mut pick = 0usize;
-                let mut items = vec!["pick".to_string()];
-                items.extend(names);
-                ui.set_next_item_width(120.0);
-                if ui.combo_simple_string(format!("##pick{}", a.name), &mut pick, &items)
-                    && pick > 0
-                {
-                    *value = items[pick].clone();
-                }
-            }
+            picker(ui, value, names, false);
+            enter
         }
-        "rest" => {
-            ui.set_next_item_width(320.0);
-            ui.input_text(&label, value).build();
-        }
-        _ => {
-            ui.set_next_item_width(110.0);
-            ui.input_text(&label, value).build();
-        }
+        "rest" => text(ui, value, 24.0),
+        _ => text(ui, value, 8.0),
     }
 }
 

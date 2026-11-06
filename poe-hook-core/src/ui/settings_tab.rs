@@ -18,6 +18,7 @@ impl SettingsView {
             scale: settings::get()
                 .scale_override
                 .unwrap_or(crate::config().overlay.scale),
+            // 0 (automatic) shows as the scale in use once a frame has been drawn.
         }
     }
 
@@ -50,21 +51,31 @@ impl SettingsView {
                 crate::position_sync::ENABLED.store(sync, Ordering::Relaxed);
             }
         }
-        ui.set_next_item_width(200.0);
-        ui.slider_config("Scale", 0.5f32, 3.0f32)
+        let in_use = crate::overlay::wanted_scale(crate::overlay::extent().1);
+        if self.scale <= 0.0 {
+            self.scale = in_use;
+        }
+        widgets::label(ui, "Scale");
+        ui.set_next_item_width(12.0 * ui.current_font_size());
+        ui.slider_config("##scale", 0.5f32, 3.0f32)
             .build(&mut self.scale);
         if ui.is_item_deactivated_after_edit() {
-            let v = self.scale;
+            let v = (self.scale * 4.0).round() / 4.0;
+            self.scale = v;
             settings::update(|s| s.scale_override = Some(v));
         }
         ui.same_line();
-        if ui.button("Reset##scale") {
-            self.scale = cfg.overlay.scale;
+        let auto = settings::get().scale_override.is_none() && cfg.overlay.scale <= 0.0;
+        if ui.button("Automatic##scale") {
             settings::update(|s| s.scale_override = None);
+            self.scale = crate::overlay::wanted_scale(crate::overlay::extent().1);
         }
         ui.same_line();
-        ui.text_disabled("overrides overlay.scale of poe-hook.toml; applies at the next start");
-        ui.text_disabled("Saved in logs/poe-hook/overlay.toml.");
+        ui.text_disabled(if auto {
+            "automatic: display height / 1080"
+        } else {
+            "set here (overlay.toml) or by overlay.scale of poe-hook.toml"
+        });
         ui.spacing();
         if ui.collapsing_header(
             "Deployed config (edit poe-hook.toml, then Reload core)",

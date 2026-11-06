@@ -66,7 +66,7 @@ impl ProtocolView {
                 crate::host::session_dir().display()
             ));
         }
-        widgets::counter(ui, &format!("{} opcodes", self.ops.len()));
+        widgets::counter(ui, &widgets::plural(self.ops.len(), "opcode"));
         if self.ops.is_empty() {
             widgets::empty(ui, "No opcodes traced yet: connect to a server.");
             return;
@@ -87,8 +87,8 @@ impl ProtocolView {
                         continue;
                     }
                     let line = format!(
-                        "{:4} {} {op:#06x} {}",
-                        &c.name()[..4.min(c.name().len())],
+                        "{:8} {} {op:#06x} {}",
+                        c.name(),
                         match d {
                             Dir::In => "S>C",
                             Dir::Out => "C>S",

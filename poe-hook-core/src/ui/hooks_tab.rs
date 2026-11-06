@@ -50,7 +50,7 @@ impl HooksView {
             crate::hooks::reset_stats();
             self.last.clear();
         }
-        widgets::counter(ui, &format!("{} callbacks", stats.len()));
+        widgets::counter(ui, &widgets::plural(stats.len(), "callback"));
         if stats.is_empty() {
             widgets::empty(ui, "No hooks installed.");
             return;
@@ -60,17 +60,17 @@ impl HooksView {
             let load = |i: usize| self.rates.get(i).map_or(0.0, |r| r.1);
             load(b).total_cmp(&load(a))
         });
-        if let Some(_t) = ui.begin_table_header_with_flags(
+        if let Some(_t) = crate::ui::list_table(
+            ui,
             "hook_stats",
             [
                 imgui::TableColumnSetup::new("callback"),
                 imgui::TableColumnSetup::new("calls"),
                 imgui::TableColumnSetup::new("calls/s"),
-                imgui::TableColumnSetup::new("avg us"),
+                imgui::TableColumnSetup::new("avg (us)"),
                 imgui::TableColumnSetup::new("max ms"),
                 imgui::TableColumnSetup::new("ms/s"),
             ],
-            crate::ui::table_opts(),
         ) {
             for i in order {
                 let (name, calls, total, max) = &stats[i];

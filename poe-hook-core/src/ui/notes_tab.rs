@@ -40,12 +40,13 @@ fn draw(ui: &Ui, filter: &mut String) {
                     .is_some_and(|x| x.to_lowercase().contains(&f))
         })
         .collect();
-    widgets::counter(ui, &format!("{} notes", notes.len()));
+    widgets::counter(ui, &widgets::plural(notes.len(), "note"));
     if notes.is_empty() {
         widgets::empty(ui, "No notes yet: write one on the Messages tab.");
         return;
     }
-    if let Some(_t) = ui.begin_table_header_with_flags(
+    if let Some(_t) = crate::ui::list_table(
+        ui,
         "notes",
         [
             imgui::TableColumnSetup::new("on"),
@@ -56,7 +57,6 @@ fn draw(ui: &Ui, filter: &mut String) {
             imgui::TableColumnSetup::new("when"),
             imgui::TableColumnSetup::new("note"),
         ],
-        crate::ui::table_opts(),
     ) {
         for n in &notes {
             ui.table_next_column();

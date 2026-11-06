@@ -56,7 +56,7 @@ impl ScannerView {
             "Red = just changed, orange = changed recently, yellow = differs from the baseline. \
              Address syntax is the Watches page's. Other pages send a region here (component scan).",
         );
-        widgets::filter(ui, "scan_expr", &mut self.expr, "address expression", 320.0);
+        widgets::input_bar(ui, "scan_expr", &mut self.expr, "address expression", 320.0);
         ui.same_line();
         ui.set_next_item_width(120.0);
         ui.input_int("size", &mut self.len);

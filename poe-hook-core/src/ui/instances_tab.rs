@@ -4,7 +4,7 @@
 
 use imgui::Ui;
 
-use super::layout_form::LayoutForm;
+use super::{layout_form::LayoutForm, widgets};
 
 pub struct InstancesView {
     form: LayoutForm,
@@ -30,8 +30,8 @@ impl InstancesView {
             );
         }
         ui.text(format!(
-            "{} instances (list {} s old){}",
-            list.len(),
+            "{}, updated {} s ago{}",
+            widgets::plural(list.len(), "instance"),
             age.as_secs(),
             if idle > 0 {
                 format!("; empty ones close after {idle} min")
@@ -86,11 +86,31 @@ impl InstancesView {
                 }
                 ui.table_next_column();
                 let _id = ui.push_id(inst.id as usize);
-                if !inst.current && ui.small_button("Join") {
+                if inst.current {
+                    if ui.small_button("Reset") {
+                        ui.open_popup("##reset_inst");
+                    }
+                    if widgets::confirm_popup(
+                        ui,
+                        "##reset_inst",
+                        "Reset this instance? Everyone in it is moved to a fresh copy.",
+                        "Reset",
+                    ) {
+                        crate::devlink::command("instance reset");
+                    }
+                } else if ui.small_button("Join") {
                     crate::devlink::command(&format!("instance join {}", inst.id));
                 }
                 ui.same_line();
                 if ui.small_button("Close") {
+                    ui.open_popup("##close_inst");
+                }
+                if widgets::confirm_popup(
+                    ui,
+                    "##close_inst",
+                    &format!("Close instance {}? Players in it are moved out.", inst.id),
+                    "Close",
+                ) {
                     crate::devlink::command(&format!("instance close {}", inst.id));
                 }
             }

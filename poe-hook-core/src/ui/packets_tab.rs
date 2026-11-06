@@ -140,15 +140,28 @@ impl PacketsView {
         );
         widgets::filter(ui, "pk_filter", &mut self.filter, "filter name/0x..", 200.0);
         ui.same_line();
-        ui.checkbox("in", &mut self.show_in);
-        ui.same_line();
-        ui.checkbox("out", &mut self.show_out);
-        for (i, name) in ["login", "instance", "other"].iter().enumerate() {
-            ui.same_line();
-            ui.checkbox(name, &mut self.channels[i]);
+        // Direction and channel filters in a popup, so the toolbar fits a narrow window.
+        let narrowed =
+            !(self.show_in && self.show_out && self.channels.iter().all(|c| *c)) || self.hide_noise;
+        if ui.button(if narrowed {
+            "Show: some v"
+        } else {
+            "Show: all v"
+        }) {
+            ui.open_popup("##pk_show");
         }
-        ui.same_line();
-        ui.checkbox("hide noise", &mut self.hide_noise);
+        if let Some(_p) = ui.begin_popup("##pk_show") {
+            ui.text_disabled("direction");
+            ui.checkbox("in (server to client)", &mut self.show_in);
+            ui.checkbox("out (client to server)", &mut self.show_out);
+            ui.separator();
+            ui.text_disabled("connection");
+            for (i, name) in ["login", "instance", "other"].iter().enumerate() {
+                ui.checkbox(name, &mut self.channels[i]);
+            }
+            ui.separator();
+            ui.checkbox("hide noise (per-frame messages)", &mut self.hide_noise);
+        }
         ui.same_line();
         ui.checkbox("pause", &mut self.paused);
         ui.same_line();
@@ -166,7 +179,7 @@ impl PacketsView {
                 widgets::thousands(self.shown.len()),
                 widgets::thousands(self.msgs.len()),
                 if crate::config().packets.redact {
-                    " (secrets redacted)"
+                    ", secrets redacted"
                 } else {
                     ""
                 }

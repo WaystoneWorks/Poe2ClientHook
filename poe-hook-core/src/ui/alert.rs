@@ -64,6 +64,9 @@ fn dismiss() {
 }
 
 /// Draws the first queued alert.
+/// How many alerts were dismissed: part of the window id, so each alert opens fresh.
+static SHOWN: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 pub fn draw(ui: &Ui) {
     let Some(alert) = current() else { return };
     let [w, h] = ui.io().display_size();
@@ -79,7 +82,8 @@ pub fn draw(ui: &Ui) {
             imgui::sys::ImVec2 { x: 0.5, y: 0.5 },
         );
     }
-    ui.window(format!("{}##alert", alert.title))
+    let seq = SHOWN.load(std::sync::atomic::Ordering::Relaxed);
+    ui.window(format!("{}##alert{seq}", alert.title))
         .flags(
             WindowFlags::ALWAYS_AUTO_RESIZE
                 | WindowFlags::NO_COLLAPSE
@@ -87,13 +91,25 @@ pub fn draw(ui: &Ui) {
                 | WindowFlags::NO_MOVE,
         )
         .build(|| {
-            for row in &alert.rows {
-                ui.text_colored(theme::WARN, format!("{:<8}", row.label));
-                ui.same_line();
-                ui.text(&row.value);
-                if let Some((text, colour)) = &row.status {
-                    ui.same_line();
-                    ui.text_colored(*colour, text);
+            if ui.is_window_appearing() {
+                ui.set_window_focus(None);
+            }
+            if let Some(_t) = ui.begin_table_with_flags(
+                "rows",
+                3,
+                imgui::TableOptions::from(imgui::TableFlags::NO_SAVED_SETTINGS)
+                    .sizing_policy(imgui::TableSizingPolicy::FixedFit),
+            ) {
+                for row in &alert.rows {
+                    ui.table_next_row();
+                    ui.table_next_column();
+                    ui.text_colored(theme::WARN, &row.label);
+                    ui.table_next_column();
+                    ui.text(&row.value);
+                    ui.table_next_column();
+                    if let Some((text, colour)) = &row.status {
+                        ui.text_colored(*colour, text);
+                    }
                 }
             }
             ui.separator();
@@ -110,11 +126,17 @@ pub fn draw(ui: &Ui) {
                 }
             }
             ui.same_line();
-            if ui.button("OK") {
+            if ui.button("OK")
+                || ui.is_key_pressed(imgui::Key::Enter)
+                || ui.is_key_pressed(imgui::Key::Escape)
+            {
                 done = true;
             }
+            ui.same_line();
+            ui.text_disabled("Enter or Escape: OK");
         });
     if done {
+        SHOWN.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         dismiss();
     }
 }

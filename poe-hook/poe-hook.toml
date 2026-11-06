@@ -74,7 +74,8 @@ toggle_key = 0x2d
 snapshot_key = 0x24
 snapshot_seconds = 30
 visible_at_start = false
-scale = 1.0
+# Text and widget size; 0 = automatic (display height / 1080, so 1.25 at 1440p).
+scale = 0.0
 
 [packets]
 # Plaintext capture of the login and instance connections (inside the client).

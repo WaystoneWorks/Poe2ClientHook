@@ -171,7 +171,7 @@ pub struct OverlayConfig {
     /// How much history a snapshot keeps.
     pub snapshot_seconds: u32,
     pub visible_at_start: bool,
-    /// Global UI scale (font size multiplier).
+    /// Global UI scale (font size multiplier); 0 = automatic from the display height.
     pub scale: f32,
 }
 
@@ -183,7 +183,7 @@ impl Default for OverlayConfig {
             snapshot_key: 0x24,
             snapshot_seconds: 30,
             visible_at_start: false,
-            scale: 1.0,
+            scale: 0.0,
         }
     }
 }

@@ -3,6 +3,8 @@
 
 use imgui::{ListClipper, Ui};
 
+use super::widgets;
+
 const KINDS: [&str; 5] = ["all", "town", "area", "map", "hideout"];
 
 pub struct LayoutForm {
@@ -72,16 +74,23 @@ impl LayoutForm {
         if areas.is_empty() {
             ui.text_disabled("No area list: run `cargo xtask dll-data` (or deploy-client), then reload the core.");
         }
-        ui.set_next_item_width(200.0);
-        ui.input_text("search", &mut self.search)
-            .hint("id or name")
+        let em = ui.current_font_size();
+        ui.set_next_item_width(15.0 * em);
+        ui.input_text("##search", &mut self.search)
+            .hint("search areas: id or name")
             .build();
         ui.same_line();
-        ui.set_next_item_width(90.0);
-        ui.combo_simple_string("kind", &mut self.kind, &KINDS);
+        widgets::label(ui, "kind");
+        ui.set_next_item_width(7.0 * em);
+        ui.combo_simple_string("##kind", &mut self.kind, &KINDS);
         ui.same_line();
-        ui.set_next_item_width(90.0);
-        ui.input_int("act (0 = all)", &mut self.act);
+        widgets::label(ui, "act");
+        ui.set_next_item_width(6.0 * em);
+        ui.input_int("##act", &mut self.act);
+        if ui.is_item_hovered() {
+            ui.tooltip_text("0 = every act; 6 = the interludes.");
+        }
+        self.act = self.act.clamp(0, 6);
         let recent = crate::areas::recent();
         if !recent.is_empty() {
             ui.text_disabled("recent:");
@@ -103,41 +112,59 @@ impl LayoutForm {
                     || a.name.to_lowercase().contains(&f)
             })
             .collect();
-        ui.child_window("areas")
-            .size([0.0, 170.0])
-            .border(true)
-            .build(ui, || {
-                let mut clipper = ListClipper::new(shown.len()).begin(ui);
-                while clipper.step() {
-                    for i in clipper.display_start()..clipper.display_end() {
-                        let a = shown[i as usize];
-                        let label = format!(
-                            "{:22} {:36} act {:2} lvl {:3} {:7} {} topologies##{}",
-                            a.id,
-                            a.name,
-                            a.act,
-                            a.level,
-                            a.kind,
-                            a.topologies.len(),
-                            a.id
-                        );
-                        if ui
-                            .selectable_config(label)
-                            .selected(a.id.eq_ignore_ascii_case(&self.area))
-                            .build()
-                        {
-                            let id = a.id.clone();
-                            self.select(&id);
-                        }
+        let flags = imgui::TableOptions::from(
+            imgui::TableFlags::BORDERS_INNER_V
+                | imgui::TableFlags::ROW_BG
+                | imgui::TableFlags::SCROLL_Y
+                | imgui::TableFlags::NO_SAVED_SETTINGS,
+        )
+        .sizing_policy(imgui::TableSizingPolicy::FixedFit);
+        if let Some(_t) = ui.begin_table_with_sizing("areas", 6, flags, [0.0, 13.0 * em], 0.0) {
+            ui.table_setup_scroll_freeze(0, 1);
+            for name in ["id", "name", "act", "level", "kind", "topologies"] {
+                ui.table_setup_column(name, imgui::TableColumnFlags::empty(), None);
+            }
+            ui.table_headers_row();
+            let mut clipper = ListClipper::new(shown.len()).begin(ui);
+            while clipper.step() {
+                for i in clipper.display_start()..clipper.display_end() {
+                    let a = shown[i as usize];
+                    ui.table_next_row();
+                    ui.table_next_column();
+                    if ui
+                        .selectable_config(format!("{}##{}", a.id, a.id))
+                        .selected(a.id.eq_ignore_ascii_case(&self.area))
+                        .span_all_columns(true)
+                        .build()
+                    {
+                        let id = a.id.clone();
+                        self.select(&id);
                     }
+                    ui.table_next_column();
+                    ui.text(&a.name);
+                    ui.table_next_column();
+                    ui.text(a.act.to_string());
+                    ui.table_next_column();
+                    ui.text(a.level.to_string());
+                    ui.table_next_column();
+                    ui.text(&a.kind);
+                    ui.table_next_column();
+                    ui.text(a.topologies.len().to_string());
                 }
-            });
+            }
+        }
         ui.text_disabled(format!("{} of {} areas", shown.len(), areas.len()));
-        ui.set_next_item_width(200.0);
-        ui.input_text("area", &mut self.area).build();
+        widgets::label(ui, "area");
+        ui.set_next_item_width(12.0 * em);
+        ui.input_text("##area", &mut self.area)
+            .hint("pick above or type an id")
+            .build();
         ui.same_line();
-        ui.set_next_item_width(130.0);
-        ui.input_text("seed", &mut self.seed).hint("random").build();
+        widgets::label(ui, "seed");
+        ui.set_next_item_width(9.0 * em);
+        ui.input_text("##seed", &mut self.seed)
+            .hint("random")
+            .build();
         ui.same_line();
         if ui.button("Random seed") {
             self.seed = random_seed().to_string();
@@ -158,8 +185,9 @@ impl LayoutForm {
         if self.topology >= names.len() {
             self.topology = 0;
         }
-        ui.set_next_item_width(260.0);
-        ui.combo_simple_string("topology", &mut self.topology, &names);
+        widgets::label(ui, "topology");
+        ui.set_next_item_width(18.0 * em);
+        ui.combo_simple_string("##topology", &mut self.topology, &names);
         ui.same_line();
         let mask = if self.topology == 0 {
             0xff
@@ -171,8 +199,9 @@ impl LayoutForm {
             let allowed = mask == 0 || mask == 0xff || mask >> o & 1 != 0;
             format!("{o}{}", if allowed { "" } else { " (not allowed)" })
         }));
-        ui.set_next_item_width(160.0);
-        ui.combo_simple_string("orientation", &mut self.orientation, &orients);
+        widgets::label(ui, "orientation");
+        ui.set_next_item_width(11.0 * em);
+        ui.combo_simple_string("##orientation", &mut self.orientation, &orients);
     }
 
     fn select(&mut self, id: &str) {

@@ -62,6 +62,12 @@ impl DebugView {
         }
     }
 
+    /// Shows `name` on the Help tab with its form (the palette's "Form" rows).
+    pub fn select_help(&mut self, name: &str) {
+        self.help_filter.clear();
+        self.help_sel = Some(name.to_string());
+    }
+
     pub fn draw(&mut self, ui: &Ui, page: Page) {
         match page {
             Page::DebugHelp => self.help(ui),
@@ -69,31 +75,43 @@ impl DebugView {
             Page::DebugWorld => self.world(ui),
             Page::DebugPlayers => self.players(ui),
             Page::DebugCharacter => self.character(ui),
-            Page::DebugStats => self.area_tab(
-                ui,
-                "Debug>Stats",
-                "Stat editor",
-                "P10 (items, stats pipeline)",
-            ),
-            Page::DebugItems => {
-                self.area_tab(ui, "Debug>Items", "Item creator", "P12 (item creator)")
+            Page::DebugStats => {
+                self.area_tab(ui, "Debug>Stats", "Stat editor", "P10, stats pipeline")
             }
-            Page::DebugMonsters => self.area_tab(
-                ui,
-                "Debug>Monsters",
-                "Monster spawner and inspector",
-                "P17 (monsters)",
-            ),
+            Page::DebugItems => self.area_tab(ui, "Debug>Items", "Item creator", "P12"),
+            Page::DebugMonsters => {
+                self.area_tab(ui, "Debug>Monsters", "Monster spawner and inspector", "P17")
+            }
             Page::DebugLife => self.area_tab(
                 ui,
                 "Debug>Life",
                 "Life, mana and energy shield",
-                "P13 (life, damage, death)",
+                "P13, life, damage and death",
             ),
             _ => {}
         }
-        ui.separator();
-        results_strip(ui);
+        // The Console shows the results itself; a placeholder tab with no form needs none.
+        let placeholder = matches!(
+            page,
+            Page::DebugStats | Page::DebugItems | Page::DebugMonsters | Page::DebugLife
+        ) && !self.has_forms(match page {
+            Page::DebugStats => "Debug>Stats",
+            Page::DebugItems => "Debug>Items",
+            Page::DebugMonsters => "Debug>Monsters",
+            _ => "Debug>Life",
+        });
+        if page != Page::DebugConsole && !placeholder {
+            ui.separator();
+            results_strip(ui);
+        }
+    }
+
+    /// Whether the registry assigns any command to this tab.
+    fn has_forms(&self, page: &str) -> bool {
+        devlink::registry()
+            .0
+            .iter()
+            .any(|c| c.overlay.as_deref() == Some(page))
     }
 
     /// The registry, asking the server again now and then while it is empty.
@@ -150,7 +168,7 @@ impl DebugView {
                     || c.aliases.iter().any(|a| a.to_lowercase().contains(&q))
             })
             .collect();
-        widgets::counter(ui, &format!("{} commands", shown.len()));
+        widgets::counter(ui, &widgets::plural(shown.len(), "command"));
         let mut groups: Vec<&str> = Vec::new();
         for c in &shown {
             if !groups.contains(&c.category.as_str()) {
@@ -219,12 +237,7 @@ impl DebugView {
                 }
                 for (ms, cmd, result) in results.iter() {
                     ui.text_disabled(format!("{} > {prefix}{cmd}", crate::util::clock(*ms)));
-                    let color = if result.starts_with("ok") {
-                        super::theme::OK
-                    } else {
-                        super::theme::BAD
-                    };
-                    ui.text_colored(color, format!("  {result}"));
+                    ui.text_colored(result_color(ui, result), format!("  {result}"));
                 }
                 if ui.scroll_y() >= ui.scroll_max_y() - 40.0 {
                     ui.set_scroll_here_y(1.0);
@@ -253,7 +266,9 @@ impl DebugView {
             ui.set_keyboard_focus_here();
         }
         let _id = ui.push_id(self.nonce as usize);
-        ui.set_next_item_width(-70.0);
+        ui.set_next_item_width(
+            -ui.calc_text_size("Run")[0] - 3.0 * ui.clone_style().item_spacing()[0],
+        );
         let enter = ui
             .input_text("##console", &mut self.console)
             .hint("command, e.g. help")
@@ -262,6 +277,12 @@ impl DebugView {
         let active = ui.is_item_active() || enter;
         ui.same_line();
         let run = ui.button("Run");
+        if active && ui.is_key_pressed(imgui::Key::Escape) && !self.console.is_empty() {
+            self.console.clear();
+            self.hist_pos = None;
+            self.nonce += 1;
+            self.refocus = true;
+        }
         if active && ui.is_key_pressed(imgui::Key::UpArrow) && !self.history.is_empty() {
             let p = self
                 .hist_pos
@@ -323,8 +344,12 @@ impl DebugView {
             }
         }
         // The suggestion strip: a click takes the word.
-        ui.text_disabled("suggestions:");
         let mut take = None;
+        if offered.is_empty() {
+            ui.text_disabled("Tab completes; Up/Down recall; Escape clears.");
+        } else {
+            ui.text_disabled("Tab:");
+        }
         for (i, (id, display)) in offered.iter().take(8).enumerate() {
             ui.same_line();
             let label = if display.is_empty() {
@@ -350,40 +375,50 @@ impl DebugView {
             "Chat equivalents: !go <area> [seed] [topology] [orientation], !instance new, \
              !join <id>, !instance close <id>, !tp <x> <y>, !stuck, !time scale <factor>.",
         );
-        ui.text("Teleport");
-        ui.same_line();
-        ui.set_next_item_width(100.0);
-        ui.input_int("x##tp", &mut self.tx);
-        ui.same_line();
-        ui.set_next_item_width(100.0);
-        ui.input_int("y##tp", &mut self.ty);
+        let em = ui.current_font_size();
+        widgets::label(ui, "Teleport to cell");
+        ui.set_next_item_width(9.0 * em);
+        let mut cell = [self.tx, self.ty];
+        if ui.input_int2("##tp", &mut cell).build() {
+            [self.tx, self.ty] = cell;
+        }
         ui.same_line();
         if ui.button("Teleport") {
             devlink::command(&format!("tp {} {}", self.tx, self.ty));
         }
         ui.same_line();
-        if ui.button("Here")
+        if ui.button("Use my cell")
             && let Some(p) = crate::inspect::player()
         {
             self.tx = p.grid.0;
             self.ty = p.grid.1;
         }
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Fill in the cell you stand on.");
+        }
         ui.same_line();
         if ui.button("Stuck") {
             devlink::command("stuck");
         }
-        ui.text("Time scale");
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Move to the nearest walkable cell (!stuck).");
+        }
+        widgets::label(ui, "Time scale");
+        ui.set_next_item_width(5.0 * em);
+        let apply = ui
+            .input_text("##scale", &mut self.scale)
+            .enter_returns_true(true)
+            .build();
         ui.same_line();
-        ui.set_next_item_width(80.0);
-        ui.input_text("##scale", &mut self.scale).build();
-        ui.same_line();
-        if ui.button("Apply##scale") {
+        if ui.button("Apply##scale") || apply {
             devlink::command(&format!("time scale {}", self.scale.trim()));
         }
         ui.same_line();
-        if ui.button("Reset instance") {
-            devlink::command("instance reset");
-        }
+        ui.text_disabled(format!(
+            "now {}   seed {}",
+            devlink::live("time_scale").unwrap_or_else(|| "-".into()),
+            devlink::live("seed").unwrap_or_else(|| "-".into())
+        ));
         ui.same_line();
         if ui.button("Export area") {
             let ok = crate::dump_types::export_layout_now();
@@ -399,37 +434,46 @@ impl DebugView {
                 None => "No area loaded".to_string(),
             });
         }
-        ui.same_line();
-        ui.text_disabled(format!(
-            "now {}   seed {}",
-            devlink::live("time_scale").unwrap_or_else(|| "-".into()),
-            devlink::live("seed").unwrap_or_else(|| "-".into())
-        ));
-        ui.text("Travel");
-        ui.same_line();
-        if ui.button("Unlock all acts") {
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Write this area's layout and grids under the dump folder.");
+        }
+        widgets::label(ui, "Unlock");
+        if ui.button("All acts") {
             devlink::command("waypoint unlock all");
         }
         ui.same_line();
-        ui.set_next_item_width(90.0);
-        ui.input_int("act (6 = interludes)##unlock", &mut self.unlock_act);
+        widgets::label(ui, "act");
+        ui.set_next_item_width(6.0 * em);
+        ui.input_int("##unlock_act", &mut self.unlock_act);
+        if ui.is_item_hovered() {
+            ui.tooltip_text("1-5, or 6 for the interludes.");
+        }
+        self.unlock_act = self.unlock_act.clamp(1, 6);
         ui.same_line();
         if ui.button("Unlock act") {
             devlink::command(&format!("waypoint unlock act {}", self.unlock_act));
         }
         ui.same_line();
-        ui.set_next_item_width(110.0);
-        ui.input_text("area##unlock", &mut self.unlock_area).build();
+        ui.set_next_item_width(9.0 * em);
+        ui.input_text("##unlock_area", &mut self.unlock_area)
+            .hint("area id, e.g. G1_4")
+            .build();
         ui.same_line();
-        if ui.button("Unlock waypoint") && !self.unlock_area.trim().is_empty() {
-            devlink::command(&format!(
-                "waypoint unlock waypoint {}",
-                self.unlock_area.trim()
-            ));
+        {
+            let _d = ui.begin_disabled_with_cond(self.unlock_area.trim().is_empty());
+            if ui.button("Unlock waypoint") {
+                devlink::command(&format!(
+                    "waypoint unlock waypoint {}",
+                    self.unlock_area.trim()
+                ));
+            }
         }
         ui.same_line();
-        if ui.button("Unlock checkpoints here") {
+        if ui.button("Checkpoints here") {
             devlink::command("checkpoint unlock all");
+        }
+        if ui.is_item_hovered() {
+            ui.tooltip_text("Unlock every checkpoint in this instance.");
         }
         ui.separator();
         let h = (ui.content_region_avail()[1] - 120.0).max(160.0);
@@ -578,10 +622,15 @@ impl DebugView {
 
     /// A tab whose controls come with a later step: says which, and has the forms that exist.
     fn area_tab(&mut self, ui: &Ui, page: &str, what: &str, step: &str) {
-        widgets::header(ui, what, "");
-        ui.text_disabled(format!("Comes with {step}."));
-        ui.separator();
-        self.generated(ui, page);
+        widgets::header(
+            ui,
+            &format!("{what}: not built yet (comes with {step})."),
+            "",
+        );
+        if self.has_forms(page) {
+            ui.separator();
+            self.generated(ui, page);
+        }
     }
 
     fn generated(&mut self, ui: &Ui, page: &str) {
@@ -633,15 +682,21 @@ fn results_strip(ui: &Ui) {
             widgets::empty(ui, "No command run yet.");
         }
         for (ms, cmd, result) in all.iter().rev().take(20) {
-            let color = if result.starts_with("ok") {
-                super::theme::OK
-            } else {
-                super::theme::BAD
-            };
             ui.text_colored(
-                color,
+                result_color(ui, result),
                 format!("{} {cmd} -> {result}", crate::util::clock(*ms)),
             );
         }
     });
+}
+
+/// `ok: ...` green, `error: ...` red, anything else plain (the server's ack status).
+fn result_color(ui: &Ui, result: &str) -> [f32; 4] {
+    if result.starts_with("ok") {
+        super::theme::OK
+    } else if result.starts_with("error") {
+        super::theme::BAD
+    } else {
+        ui.style_color(imgui::StyleColor::Text)
+    }
 }

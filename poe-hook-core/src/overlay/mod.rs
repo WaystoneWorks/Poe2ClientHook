@@ -37,6 +37,14 @@ static STOPPING: AtomicBool = AtomicBool::new(false);
 static FAILED: AtomicBool = AtomicBool::new(false);
 /// Swapchain size, for mapping window coordinates to imgui's.
 static EXTENT: (AtomicU32, AtomicU32) = (AtomicU32::new(0), AtomicU32::new(0));
+
+/// The swapchain size last drawn to (0 before the first frame).
+pub fn extent() -> (u32, u32) {
+    (
+        EXTENT.0.load(Ordering::Relaxed),
+        EXTENT.1.load(Ordering::Relaxed),
+    )
+}
 static INPUT: Mutex<Vec<input::Event>> = Mutex::new(Vec::new());
 /// Jobs for the overlay thread (started with the first frame).
 static WORKER: Mutex<Option<Sender<Job>>> = Mutex::new(None);
@@ -60,6 +68,8 @@ struct Overlay {
     ctx: imgui::Context,
     app: App,
     last: Instant,
+    /// The scale the style and font were last set to (0 before the first frame).
+    scale: f32,
 }
 
 impl Drop for Overlay {
@@ -86,13 +96,27 @@ pub fn set_visible(v: bool) {
     VISIBLE.store(v, Ordering::SeqCst);
 }
 
-/// The context: ImGui's stock dark style and built-in font at the overlay scale
-/// (`overlay.toml` `scale_override`, else `overlay.scale` of `poe-hook.toml`).
-fn create_context() -> imgui::Context {
-    let scale = crate::ui::settings::get()
+/// The overlay scale: `overlay.toml` `scale_override`, else `overlay.scale` of
+/// `poe-hook.toml`; 0 (the default) is automatic, the display height over 1080 in quarter steps.
+pub fn wanted_scale(display_h: u32) -> f32 {
+    let s = crate::ui::settings::get()
         .scale_override
-        .unwrap_or(crate::config().overlay.scale)
-        .clamp(0.5, 4.0);
+        .unwrap_or(crate::config().overlay.scale);
+    if s > 0.0 {
+        s.clamp(0.5, 4.0)
+    } else {
+        auto_scale(display_h)
+    }
+}
+
+/// The automatic scale for a display height: 1 up to 1080 lines, then in quarter steps.
+pub fn auto_scale(display_h: u32) -> f32 {
+    ((display_h as f32 / 1080.0) * 4.0).round().clamp(4.0, 16.0) / 4.0
+}
+
+/// The context: ImGui's stock dark style and the built-in font; the scale is set per frame
+/// ([`wanted_scale`]), so a change applies at once.
+fn create_context() -> imgui::Context {
     let mut ctx = imgui::Context::create();
     ctx.set_ini_filename(Some(
         poe_hook_shared::exe_dir()
@@ -100,12 +124,10 @@ fn create_context() -> imgui::Context {
             .join("poe-hook")
             .join("imgui.ini"),
     ));
-    let size = (13.0 * scale).round();
     let _ = ctx
         .font_atlas()
-        .add_font(&[imgui::FontSource::default_font_with_size(size)]);
+        .add_font(&[imgui::FontSource::default_font_with_size(13.0)]);
     crate::ui::theme::apply(ctx.style_mut());
-    ctx.style_mut().scale_all_sizes(scale);
     ctx
 }
 
@@ -219,6 +241,7 @@ fn frame(
                     ctx,
                     app: App::new(),
                     last: Instant::now(),
+                    scale: 0.0,
                 })
             }
             Err(e) => {
@@ -237,6 +260,14 @@ fn frame(
     let [w, h] = o.gpu.extent().unwrap_or([state.width, state.height]);
     EXTENT.0.store(w, Ordering::Relaxed);
     EXTENT.1.store(h, Ordering::Relaxed);
+    let scale = wanted_scale(h);
+    if scale != o.scale {
+        let style = o.ctx.style_mut();
+        crate::ui::theme::apply(style);
+        style.scale_all_sizes(scale);
+        style.set_font_scale_main(scale);
+        o.scale = scale;
+    }
     let now = Instant::now();
     {
         let io = o.ctx.io_mut();
