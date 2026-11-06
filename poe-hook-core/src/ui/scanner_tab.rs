@@ -57,17 +57,19 @@ impl ScannerView {
              Address syntax is the Watches page's. Other pages send a region here (component scan).",
         );
         widgets::input_bar(ui, "scan_expr", &mut self.expr, "address expression", 320.0);
+        let enter = ui.is_item_deactivated() && ui.is_key_pressed(imgui::Key::Enter);
         ui.same_line();
-        ui.set_next_item_width(120.0);
-        ui.input_int("size", &mut self.len);
+        widgets::label(ui, "size");
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 120.0));
+        ui.input_int("##size", &mut self.len);
         ui.same_line();
-        if ui.button("Watch") {
+        if ui.button("Show") || enter {
             self.region = Some(Region::new(self.expr.clone(), self.len.max(16) as usize));
         }
         let Some(r) = self.region.as_mut() else {
             widgets::empty(
                 ui,
-                "Enter an address (e.g. pos, actor, [player+0x10]+0x8) and press Watch.",
+                "Enter an address (e.g. pos, actor, [player+0x10]+0x8) and press Show.",
             );
             return;
         };
@@ -77,7 +79,7 @@ impl ScannerView {
         ui.same_line();
         ui.checkbox("rows that changed", &mut self.changed_only);
         ui.same_line();
-        ui.set_next_item_width(120.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 120.0));
         ui.combo_simple_string("view", &mut self.view, &["hex", "u32", "f32", "pointers"]);
         if let Some(e) = &r.error {
             ui.text_colored(super::theme::BAD, e);

@@ -164,6 +164,12 @@ pub fn deploy(opts: &DeployOptions) -> Result<DeployReport> {
         std::fs::write(&cfg, DEFAULT_HOOK_CONFIG)
             .with_context(|| format!("writing {}", cfg.display()))?;
     }
+    if let Some(text) = std::fs::read_to_string(&cfg)
+        .ok()
+        .and_then(|t| hook_config::migrate_overlay_scale(&t))
+    {
+        std::fs::write(&cfg, text).with_context(|| format!("writing {}", cfg.display()))?;
+    }
     set_hook_key(&cfg, None, "mode", &format!("\"{}\"", opts.mode.as_str()))?;
     // Official mode: no patch, nothing trusted beyond loopback (the DLL enforces this too).
     let (login_mode, trusted) = match opts.mode {

@@ -99,9 +99,7 @@ pub fn set_visible(v: bool) {
 /// The overlay scale: `overlay.toml` `scale_override`, else `overlay.scale` of
 /// `poe-hook.toml`; 0 (the default) is automatic, the display height over 1080 in quarter steps.
 pub fn wanted_scale(display_h: u32) -> f32 {
-    let s = crate::ui::settings::get()
-        .scale_override
-        .unwrap_or(crate::config().overlay.scale);
+    let s = crate::ui::settings::scale_override().unwrap_or(crate::config().overlay.scale);
     if s > 0.0 {
         s.clamp(0.5, 4.0)
     } else {

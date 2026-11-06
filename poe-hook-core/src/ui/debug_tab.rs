@@ -69,6 +69,31 @@ impl DebugView {
     }
 
     pub fn draw(&mut self, ui: &Ui, page: Page) {
+        // The Console shows the results itself; a placeholder tab with no form needs none.
+        let placeholder = match page {
+            Page::DebugStats => Some("Debug>Stats"),
+            Page::DebugItems => Some("Debug>Items"),
+            Page::DebugMonsters => Some("Debug>Monsters"),
+            Page::DebugLife => Some("Debug>Life"),
+            _ => None,
+        };
+        let strip = page != Page::DebugConsole && placeholder.is_none_or(|p| self.has_forms(p));
+        // The page above, a fixed strip of the last results below.
+        let strip_h = results_height(ui);
+        let body_h = if strip {
+            -(strip_h + ui.frame_height_with_spacing())
+        } else {
+            0.0
+        };
+        ui.child_window("debug_body")
+            .size([0.0, body_h])
+            .build(ui, || self.body(ui, page));
+        if strip {
+            results_strip(ui, strip_h);
+        }
+    }
+
+    fn body(&mut self, ui: &Ui, page: Page) {
         match page {
             Page::DebugHelp => self.help(ui),
             Page::DebugConsole => self.console(ui),
@@ -90,28 +115,11 @@ impl DebugView {
             ),
             _ => {}
         }
-        // The Console shows the results itself; a placeholder tab with no form needs none.
-        let placeholder = matches!(
-            page,
-            Page::DebugStats | Page::DebugItems | Page::DebugMonsters | Page::DebugLife
-        ) && !self.has_forms(match page {
-            Page::DebugStats => "Debug>Stats",
-            Page::DebugItems => "Debug>Items",
-            Page::DebugMonsters => "Debug>Monsters",
-            _ => "Debug>Life",
-        });
-        if page != Page::DebugConsole && !placeholder {
-            ui.separator();
-            results_strip(ui);
-        }
     }
 
     /// Whether the registry assigns any command to this tab.
     fn has_forms(&self, page: &str) -> bool {
-        devlink::registry()
-            .0
-            .iter()
-            .any(|c| c.overlay.as_deref() == Some(page))
+        devlink::has_overlay_commands(page)
     }
 
     /// The registry, asking the server again now and then while it is empty.
@@ -178,38 +186,35 @@ impl DebugView {
         let sel = self.help_sel.clone();
         let mut picked = None;
         let forms = &mut self.forms;
-        let avail_h = ui.content_region_avail()[1] - 170.0;
-        ui.child_window("help_box")
-            .size([0.0, avail_h.max(160.0)])
-            .build(ui, || {
-                widgets::split(
-                    ui,
-                    "debug_help",
-                    240.0,
-                    || {
-                        for g in &groups {
-                            ui.text_disabled(g);
-                            for c in shown.iter().filter(|c| c.category == *g) {
-                                let name = c.name();
-                                if ui
-                                    .selectable_config(format!("  {name}##h{name}"))
-                                    .selected(sel.as_deref() == Some(name.as_str()))
-                                    .build()
-                                {
-                                    picked = Some(name);
-                                }
+        ui.child_window("help_box").size([0.0, 0.0]).build(ui, || {
+            widgets::split(
+                ui,
+                "debug_help",
+                240.0,
+                || {
+                    for g in &groups {
+                        ui.text_disabled(g);
+                        for c in shown.iter().filter(|c| c.category == *g) {
+                            let name = c.name();
+                            if ui
+                                .selectable_config(format!("  {name}##h{name}"))
+                                .selected(sel.as_deref() == Some(name.as_str()))
+                                .build()
+                            {
+                                picked = Some(name);
                             }
                         }
-                    },
-                    || match shown
-                        .iter()
-                        .find(|c| sel.as_deref() == Some(c.name().as_str()))
-                    {
-                        Some(c) => help_pane(ui, c, &prefix, forms),
-                        None => widgets::empty(ui, "Pick a command on the left."),
-                    },
-                );
-            });
+                    }
+                },
+                || match shown
+                    .iter()
+                    .find(|c| sel.as_deref() == Some(c.name().as_str()))
+                {
+                    Some(c) => help_pane(ui, c, &prefix, forms),
+                    None => widgets::empty(ui, "Pick a command on the left."),
+                },
+            );
+        });
         if picked.is_some() {
             self.help_sel = picked;
         }
@@ -226,7 +231,8 @@ impl DebugView {
             return;
         };
         let prefix = me.as_ref().map_or("!".to_string(), |m| m.prefix.clone());
-        let h = (ui.content_region_avail()[1] - 120.0).max(100.0);
+        let h = (ui.content_region_avail()[1] - 2.0 * ui.frame_height_with_spacing())
+            .max(widgets::px(ui, 100.0));
         ui.child_window("console_out")
             .size([0.0, h])
             .border(true)
@@ -272,16 +278,14 @@ impl DebugView {
         let enter = ui
             .input_text("##console", &mut self.console)
             .hint("command, e.g. help")
+            .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .enter_returns_true(true)
             .build();
         let active = ui.is_item_active() || enter;
         ui.same_line();
         let run = ui.button("Run");
-        if active && ui.is_key_pressed(imgui::Key::Escape) && !self.console.is_empty() {
-            self.console.clear();
+        if self.console.is_empty() {
             self.hist_pos = None;
-            self.nonce += 1;
-            self.refocus = true;
         }
         if active && ui.is_key_pressed(imgui::Key::UpArrow) && !self.history.is_empty() {
             let p = self
@@ -476,7 +480,7 @@ impl DebugView {
             ui.tooltip_text("Unlock every checkpoint in this instance.");
         }
         ui.separator();
-        let h = (ui.content_region_avail()[1] - 120.0).max(160.0);
+        let h = ui.content_region_avail()[1].max(widgets::px(ui, 160.0));
         let (cmds, me) = devlink::registry();
         let prefix = me.map_or("!".to_string(), |m| m.prefix);
         ui.child_window("world_box").size([0.0, h]).build(ui, || {
@@ -510,20 +514,29 @@ impl DebugView {
             "Chat equivalents: !who, !kick <player> [reason], !mute <player> [duration], !unmute \
              <player>, !tp <player>, !summon <player>, !announce <message>.",
         );
-        ui.text("Announce");
+        widgets::label(ui, "Announce");
+        ui.set_next_item_width(-(ui.calc_text_size("Send")[0] + 3.0 * widgets::px(ui, 8.0)));
+        let enter = ui
+            .input_text("##announce", &mut self.announce)
+            .hint("a message to everyone online")
+            .enter_returns_true(true)
+            .build();
         ui.same_line();
-        ui.set_next_item_width(-90.0);
-        ui.input_text("##announce", &mut self.announce).build();
-        ui.same_line();
-        if ui.button("Send") && !self.announce.trim().is_empty() {
-            devlink::command(&format!("announce {}", self.announce.trim()));
-            self.announce.clear();
+        {
+            let _d = ui.begin_disabled_with_cond(self.announce.trim().is_empty());
+            if (ui.button("Send") || enter) && !self.announce.trim().is_empty() {
+                devlink::command(&format!("announce {}", self.announce.trim()));
+                self.announce.clear();
+            }
         }
-        ui.text("Mute for");
+        widgets::label(ui, "Mute for");
+        ui.set_next_item_width(widgets::px(ui, 80.0));
+        ui.input_text("##mute_for", &mut self.mute_for)
+            .hint("30m, 2h, 1d")
+            .build();
         ui.same_line();
-        ui.set_next_item_width(80.0);
-        ui.input_text("##mute_for", &mut self.mute_for).build();
-        let h = (ui.content_region_avail()[1] - 120.0).max(160.0);
+        ui.text_disabled("(used by Mute; empty = until unmuted by hand)");
+        let h = ui.content_region_avail()[1].max(widgets::px(ui, 160.0));
         let (cmds, me) = devlink::registry();
         let prefix = me.map_or("!".to_string(), |m| m.prefix);
         let online = devlink::online();
@@ -562,6 +575,14 @@ impl DebugView {
                     ui.table_next_column();
                     let who = quote(&o.character);
                     if ui.small_button("Kick") {
+                        ui.open_popup("##kick");
+                    }
+                    if widgets::confirm_popup(
+                        ui,
+                        "##kick",
+                        &format!("Kick {}? They can log in again.", o.character),
+                        "Kick",
+                    ) {
                         devlink::command(&format!("player kick {who}"));
                     }
                     ui.same_line();
@@ -636,7 +657,7 @@ impl DebugView {
     fn generated(&mut self, ui: &Ui, page: &str) {
         let (cmds, me) = devlink::registry();
         let prefix = me.map_or("!".to_string(), |m| m.prefix);
-        let h = (ui.content_region_avail()[1] - 120.0).max(120.0);
+        let h = ui.content_region_avail()[1].max(widgets::px(ui, 120.0));
         let forms = &mut self.forms;
         ui.child_window("generated_box")
             .size([0.0, h])
@@ -673,21 +694,29 @@ fn help_pane(ui: &Ui, c: &Cmd, prefix: &str, forms: &mut CommandsView) {
     forms.draw_command(ui, c, prefix);
 }
 
-/// The last 20 ack lines of any command, at the bottom of every Debug tab.
-fn results_strip(ui: &Ui) {
-    ui.text_disabled("Results");
-    ui.child_window("results").border(true).build(ui, || {
-        let all = devlink::results();
-        if all.is_empty() {
-            widgets::empty(ui, "No command run yet.");
-        }
-        for (ms, cmd, result) in all.iter().rev().take(20) {
-            ui.text_colored(
-                result_color(ui, result),
-                format!("{} {cmd} -> {result}", crate::util::clock(*ms)),
-            );
-        }
-    });
+/// The strip's height: five result lines.
+fn results_height(ui: &Ui) -> f32 {
+    5.0 * ui.text_line_height_with_spacing() + 2.0 * ui.clone_style().window_padding()[1]
+}
+
+/// The last 20 ack lines of any command, newest first, at the bottom of every Debug tab.
+fn results_strip(ui: &Ui, h: f32) {
+    ui.text_disabled("Results, newest first");
+    ui.child_window("results")
+        .size([0.0, h])
+        .border(true)
+        .build(ui, || {
+            let all = devlink::results();
+            if all.is_empty() {
+                widgets::empty(ui, "No command run yet.");
+            }
+            for (ms, cmd, result) in all.iter().rev().take(20) {
+                ui.text_colored(
+                    result_color(ui, result),
+                    format!("{} {cmd} -> {result}", crate::util::clock(*ms)),
+                );
+            }
+        });
 }
 
 /// `ok: ...` green, `error: ...` red, anything else plain (the server's ack status).

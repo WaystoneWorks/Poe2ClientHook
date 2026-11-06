@@ -99,6 +99,11 @@ fn with<T>(f: impl FnOnce(&Settings) -> T) -> T {
     f(g.get_or_insert_with(|| load(&path(), &dir().join("overlay_page.txt"))))
 }
 
+/// `scale_override` without copying the settings (read every frame).
+pub fn scale_override() -> Option<f32> {
+    with(|s| s.scale_override)
+}
+
 /// A splitter's saved left width.
 pub fn split_width(id: &str) -> Option<f32> {
     with(|s| s.split_widths.get(id).copied())

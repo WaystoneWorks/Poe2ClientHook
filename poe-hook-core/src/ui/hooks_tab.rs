@@ -67,10 +67,11 @@ impl HooksView {
                 imgui::TableColumnSetup::new("callback"),
                 imgui::TableColumnSetup::new("calls"),
                 imgui::TableColumnSetup::new("calls/s"),
-                imgui::TableColumnSetup::new("avg (us)"),
-                imgui::TableColumnSetup::new("max ms"),
-                imgui::TableColumnSetup::new("ms/s"),
+                imgui::TableColumnSetup::new("avg"),
+                imgui::TableColumnSetup::new("max (ms)"),
+                imgui::TableColumnSetup::new("load (ms/s)"),
             ],
+            "callback",
         ) {
             for i in order {
                 let (name, calls, total, max) = &stats[i];
@@ -78,18 +79,15 @@ impl HooksView {
                 ui.table_next_column();
                 ui.text(name);
                 ui.table_next_column();
-                ui.text(calls.to_string());
+                ui.text(widgets::thousands(*calls as usize));
                 ui.table_next_column();
                 ui.text(format!("{rate:.0}"));
                 ui.table_next_column();
-                ui.text(format!(
-                    "{:.1}",
-                    if *calls > 0 {
-                        *total as f64 / *calls as f64 / 1000.0
-                    } else {
-                        0.0
-                    }
-                ));
+                ui.text(duration_us(if *calls > 0 {
+                    *total as f64 / *calls as f64 / 1000.0
+                } else {
+                    0.0
+                }));
                 ui.table_next_column();
                 let max_ms = *max as f64 / 1e6;
                 if max_ms > 16.0 {
@@ -105,5 +103,16 @@ impl HooksView {
                 }
             }
         }
+    }
+}
+
+/// A time in microseconds in the unit that reads best: `12.3 us`, `4.56 ms`, `1.61 s`.
+fn duration_us(us: f64) -> String {
+    if us < 1000.0 {
+        format!("{us:.1} us")
+    } else if us < 1e6 {
+        format!("{:.2} ms", us / 1000.0)
+    } else {
+        format!("{:.2} s", us / 1e6)
     }
 }

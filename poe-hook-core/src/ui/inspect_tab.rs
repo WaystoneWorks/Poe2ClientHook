@@ -75,7 +75,9 @@ impl EntitiesView {
         ui.same_line();
         ui.checkbox("alive", &mut self.alive_only);
         let f = self.filter.to_lowercase();
-        let rows: Vec<_> = crate::entities::list()
+        let all = crate::entities::list();
+        let total = all.len();
+        let rows: Vec<_> = all
             .into_iter()
             .map(|e| {
                 let live = crate::entities::live(&e);
@@ -89,9 +91,23 @@ impl EntitiesView {
                         || e.id.to_string() == f)
             })
             .collect();
-        widgets::counter(ui, &format!("{} entities", widgets::thousands(rows.len())));
+        widgets::counter(
+            ui,
+            &format!(
+                "{} of {}",
+                widgets::thousands(rows.len()),
+                widgets::plural(total, "entity")
+            ),
+        );
         if rows.is_empty() {
-            widgets::empty(ui, "No entities yet: enter an area.");
+            widgets::empty(
+                ui,
+                if total == 0 {
+                    "No entities yet: enter an area."
+                } else {
+                    "No entity matches the filter (or none is alive)."
+                },
+            );
             return;
         }
         let selected = std::cell::Cell::new(self.selected);
@@ -100,15 +116,11 @@ impl EntitiesView {
             "entities",
             ui.content_region_avail()[0] * 0.55,
             || {
-                if let Some(_t) = ui.begin_table_header_with_flags(
+                if let Some(_t) = crate::ui::list_table(
+                    ui,
                     "entity_list2",
                     ["id", "type", "grid"].map(imgui::TableColumnSetup::new),
-                    crate::ui::table_opts().flags(
-                        imgui::TableFlags::RESIZABLE
-                            | imgui::TableFlags::ROW_BG
-                            | imgui::TableFlags::BORDERS_INNER_V
-                            | imgui::TableFlags::SCROLL_Y,
-                    ),
+                    "type",
                 ) {
                     let mut clipper = ListClipper::new(rows.len()).begin(ui);
                     while clipper.step() {
@@ -237,12 +249,13 @@ impl WatchesView {
              pointer; names: player, pos, actor, exe. Example: pos+0x44c (f32 facing).",
         );
         widgets::input_bar(ui, "watch_expr", &mut self.new_expr, "expression", 360.0);
+        let enter = ui.is_item_deactivated() && ui.is_key_pressed(imgui::Key::Enter);
         ui.same_line();
-        ui.set_next_item_width(90.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 90.0));
         let names: Vec<&str> = KINDS.iter().map(|k| k.name()).collect();
         ui.combo_simple_string("##kind", &mut self.new_kind, &names);
         ui.same_line();
-        if ui.button("Add") && !self.new_expr.trim().is_empty() {
+        if (ui.button("Add") || enter) && !self.new_expr.trim().is_empty() {
             self.list.push(Watch {
                 expr: self.new_expr.trim().to_owned(),
                 kind: KINDS[self.new_kind],
@@ -259,6 +272,7 @@ impl WatchesView {
             ui,
             "watches",
             ["", "type", "expression", "value"].map(imgui::TableColumnSetup::new),
+            "value",
         ) {
             for (i, w) in self.list.iter().enumerate() {
                 ui.table_next_column();

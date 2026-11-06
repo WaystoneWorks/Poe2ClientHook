@@ -70,19 +70,15 @@ impl CoverageView {
             widgets::empty(ui, "No opcodes yet: connect to a server.");
             return;
         }
-        if let Some(_t) = ui.begin_table_header_with_flags(
+        if let Some(_t) = crate::ui::list_table(
+            ui,
             "coverage2",
             [
                 "visible", "channel", "dir", "opcode", "name", "official", "ours", "session",
                 "size",
             ]
             .map(imgui::TableColumnSetup::new),
-            crate::ui::table_opts().flags(
-                imgui::TableFlags::RESIZABLE
-                    | imgui::TableFlags::ROW_BG
-                    | imgui::TableFlags::BORDERS_INNER_V
-                    | imgui::TableFlags::SCROLL_Y,
-            ),
+            "name",
         ) {
             for ((c, d, op), s) in rows {
                 let name = crate::packets::name(c, d, op);
@@ -95,10 +91,13 @@ impl CoverageView {
                 ui.table_next_column();
                 ui.text(c.name());
                 ui.table_next_column();
-                ui.text(match d {
-                    Dir::In => "S->C",
-                    Dir::Out => "C->S",
-                });
+                ui.text(d.name());
+                if ui.is_item_hovered() {
+                    ui.tooltip_text(match d {
+                        Dir::In => "server to client",
+                        Dir::Out => "client to server",
+                    });
+                }
                 ui.table_next_column();
                 ui.text(format!("{op:#06x}"));
                 ui.table_next_column();

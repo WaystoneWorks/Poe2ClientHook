@@ -31,7 +31,7 @@ impl SettingsView {
             "Saved in logs/poe-hook/overlay.toml, which a deploy never overwrites. poe-hook.toml \
              is written by deploys: edit it, then Reload core.",
         );
-        ui.text("General");
+        ui.separator_with_text("General");
         let mut popups = settings::get().show_slow_hook_popups;
         if ui.checkbox("Show slow hook popups", &mut popups) {
             settings::update(|s| s.show_slow_hook_popups = popups);
@@ -57,7 +57,7 @@ impl SettingsView {
         }
         widgets::label(ui, "Scale");
         ui.set_next_item_width(12.0 * ui.current_font_size());
-        ui.slider_config("##scale", 0.5f32, 3.0f32)
+        ui.slider_config("##scale", 0.5f32, 4.0f32)
             .build(&mut self.scale);
         if ui.is_item_deactivated_after_edit() {
             let v = (self.scale * 4.0).round() / 4.0;
@@ -65,9 +65,10 @@ impl SettingsView {
             settings::update(|s| s.scale_override = Some(v));
         }
         ui.same_line();
-        let auto = settings::get().scale_override.is_none() && cfg.overlay.scale <= 0.0;
+        let auto = settings::get().scale_override.unwrap_or(cfg.overlay.scale) <= 0.0;
         if ui.button("Automatic##scale") {
-            settings::update(|s| s.scale_override = None);
+            // 0 = automatic, also over a fixed overlay.scale in poe-hook.toml.
+            settings::update(|s| s.scale_override = Some(0.0));
             self.scale = crate::overlay::wanted_scale(crate::overlay::extent().1);
         }
         ui.same_line();

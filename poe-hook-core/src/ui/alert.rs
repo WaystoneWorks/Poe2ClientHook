@@ -63,10 +63,10 @@ fn dismiss() {
     QUEUE.lock().unwrap().pop_front();
 }
 
-/// Draws the first queued alert.
 /// How many alerts were dismissed: part of the window id, so each alert opens fresh.
 static SHOWN: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
+/// Draws the first queued alert.
 pub fn draw(ui: &Ui) {
     let Some(alert) = current() else { return };
     let [w, h] = ui.io().display_size();
@@ -126,9 +126,12 @@ pub fn draw(ui: &Ui) {
                 }
             }
             ui.same_line();
+            // Keys only while the alert has focus (Enter in the Console must not dismiss it).
+            let keys = ui.is_window_focused();
             if ui.button("OK")
-                || ui.is_key_pressed(imgui::Key::Enter)
-                || ui.is_key_pressed(imgui::Key::Escape)
+                || (keys
+                    && (ui.is_key_pressed(imgui::Key::Enter)
+                        || ui.is_key_pressed(imgui::Key::Escape)))
             {
                 done = true;
             }

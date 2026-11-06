@@ -68,7 +68,7 @@ impl ServerView {
     }
 
     fn draw_desync(&mut self, ui: &Ui, plots: &PlotContext) {
-        ui.set_next_item_width(200.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 200.0));
         ui.slider("seconds##desync", 2, 120, &mut self.seconds);
         let now = poe_hook_shared::unix_ms();
         let since = now.saturating_sub(self.seconds as u64 * 1000);
@@ -114,7 +114,7 @@ impl ServerView {
         let width = ui.content_region_avail()[0];
         if let Some(token) = plot.begin_plot_with_size(
             "Distance from the client's position (cells)",
-            [width, 260.0],
+            [width, crate::ui::widgets::px(ui, 260.0)],
         ) {
             plot.setup_axes_limits(
                 -(self.seconds as f64),
@@ -136,7 +136,9 @@ impl ServerView {
             .iter()
             .chain(pxs.iter().filter(|v| v.is_finite()))
             .fold((f64::MAX, f64::MIN), |(a, b), &v| (a.min(v), b.max(v)));
-        if let Some(token) = plot.begin_plot_with_size("x (cells)", [width, 200.0]) {
+        if let Some(token) =
+            plot.begin_plot_with_size("x (cells)", [width, crate::ui::widgets::px(ui, 200.0)])
+        {
             plot.setup_axes_limits(
                 -(self.seconds as f64),
                 0.0,

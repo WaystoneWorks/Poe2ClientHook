@@ -57,6 +57,7 @@ fn draw(ui: &Ui, filter: &mut String) {
             imgui::TableColumnSetup::new("when"),
             imgui::TableColumnSetup::new("note"),
         ],
+        "note",
     ) {
         for n in &notes {
             ui.table_next_column();

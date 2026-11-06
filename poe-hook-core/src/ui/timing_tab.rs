@@ -28,7 +28,7 @@ impl TimingView {
             "Frame time, messages per 100 ms and the lockstep backlog.",
             "The same series go into snapshots (timings.csv).",
         );
-        ui.set_next_item_width(200.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 200.0));
         ui.slider("seconds", 2, 120, &mut self.seconds);
         ui.same_line();
         if ui.button("Reset") {
@@ -55,7 +55,10 @@ impl TimingView {
         let plot = ui.implot(plots);
         let width = ui.content_region_avail()[0];
         let x_min = -(self.seconds as f64);
-        if let Some(token) = plot.begin_plot_with_size("Frame time (ms)", [width, 220.0]) {
+        if let Some(token) = plot.begin_plot_with_size(
+            "Frame time (ms)",
+            [width, crate::ui::widgets::px(ui, 220.0)],
+        ) {
             plot.setup_axes_limits(x_min, 0.0, 0.0, (worst * 1.2).max(10.0), PlotCond::Always);
             LinePlot::new("frame ms", &fx, &fy).plot(&plot);
             token.end();
@@ -75,7 +78,10 @@ impl TimingView {
         let xs: Vec<f64> = (0..buckets).map(|i| x_min + i as f64 * 0.1).collect();
         let (inn, out) = (count(Series::PacketIn), count(Series::PacketOut));
         let top = inn.iter().chain(&out).cloned().fold(1.0, f64::max);
-        if let Some(token) = plot.begin_plot_with_size("Messages per 100 ms", [width, 200.0]) {
+        if let Some(token) = plot.begin_plot_with_size(
+            "Messages per 100 ms",
+            [width, crate::ui::widgets::px(ui, 200.0)],
+        ) {
             plot.setup_axes_limits(x_min, 0.0, 0.0, top * 1.2, PlotCond::Always);
             StemPlot::new("received", &xs, &inn).plot(&plot);
             LinePlot::new("sent", &xs, &out).plot(&plot);
@@ -89,7 +95,7 @@ impl TimingView {
         let top = by.iter().cloned().fold(2.0, f64::max);
         if let Some(token) = plot.begin_plot_with_size(
             "Lockstep backlog (frames queued in the world)",
-            [width, 200.0],
+            [width, crate::ui::widgets::px(ui, 200.0)],
         ) {
             plot.setup_axes_limits(x_min, 0.0, 0.0, top * 1.2, PlotCond::Always);
             LinePlot::new("frames", &bx, &by).plot(&plot);

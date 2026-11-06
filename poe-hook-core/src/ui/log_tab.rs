@@ -162,12 +162,12 @@ impl LogView {
         widgets::filter(ui, "log_filter", &mut self.filter, "filter", 260.0);
         ui.same_line();
         let mut s = self.source as usize;
-        ui.set_next_item_width(80.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 80.0));
         if ui.combo_simple_string("##source", &mut s, &["hook", "client", "both"]) {
             self.source = [Source::Hook, Source::Client, Source::Both][s];
         }
         ui.same_line();
-        ui.set_next_item_width(80.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 80.0));
         ui.combo_simple_string("##level", &mut self.level, &LEVELS);
         ui.same_line();
         let mut follow = self.follow.following();
@@ -202,7 +202,7 @@ impl LogView {
         widgets::counter(
             ui,
             &format!(
-                "{} of {} rows",
+                "{} of {} lines",
                 widgets::thousands(self.shown.len()),
                 widgets::thousands(self.records.len() + self.client.len())
             ),

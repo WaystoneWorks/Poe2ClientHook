@@ -52,7 +52,7 @@ impl StatsView {
             }
         }));
         self.set = self.set.min(items.len() - 1);
-        ui.set_next_item_width(100.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, 100.0));
         ui.combo_simple_string("##stat_set", &mut self.set, &items);
         if sets.is_empty() {
             widgets::empty(ui, "No player stats yet: enter an area.");
@@ -90,6 +90,7 @@ impl StatsView {
                 imgui::TableColumnSetup::new("stat"),
                 imgui::TableColumnSetup::new("value"),
             ],
+            "stat",
         ) {
             let mut clipper = ListClipper::new(rows.len()).begin(ui);
             while clipper.step() {
@@ -149,6 +150,7 @@ impl ActionsView {
             "actions",
             ["time", "frame", "slot", "", "action", "type id", "id"]
                 .map(imgui::TableColumnSetup::new),
+            "action",
         ) {
             let mut clipper = ListClipper::new(events.len()).begin(ui);
             while clipper.step() {

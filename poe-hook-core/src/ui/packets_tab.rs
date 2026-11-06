@@ -27,7 +27,7 @@ pub struct PacketsView {
     channels: [bool; 3],
     hide_noise: bool,
     paused: bool,
-    follow: bool,
+    follow: super::follow::Follow,
     selected: Option<u64>,
     shown: Vec<usize>,
     shown_key: (String, bool, bool, [bool; 3], bool, u64, bool),
@@ -51,7 +51,7 @@ impl PacketsView {
             channels: [true; 3],
             hide_noise: true,
             paused: false,
-            follow: true,
+            follow: super::follow::Follow::new(),
             selected: None,
             shown: Vec::new(),
             shown_key: (String::new(), true, true, [true; 3], true, 0, false),
@@ -165,7 +165,14 @@ impl PacketsView {
         ui.same_line();
         ui.checkbox("pause", &mut self.paused);
         ui.same_line();
-        ui.checkbox("follow", &mut self.follow);
+        let mut following = self.follow.following();
+        if ui.checkbox("follow", &mut following) {
+            if following {
+                self.follow.jump();
+            } else {
+                self.follow.pause(self.shown.len());
+            }
+        }
         ui.same_line();
         ui.checkbox(
             format!("show hidden ({})", crate::hidden::count()),
@@ -190,7 +197,7 @@ impl PacketsView {
             return;
         }
         let selected = std::cell::Cell::new(self.selected);
-        let follow = std::cell::Cell::new(self.follow);
+        let mut follow = std::mem::replace(&mut self.follow, super::follow::Follow::new());
         let (msgs, shown) = (&self.msgs, &self.shown);
         let msg = self
             .selected
@@ -217,11 +224,13 @@ impl PacketsView {
                     | imgui::TableFlags::ROW_BG
                     | imgui::TableFlags::BORDERS_INNER_V
                     | imgui::TableFlags::SCROLL_Y;
-                if let Some(_t) = ui.begin_table_header_with_flags(
+                if let Some(_t) = crate::ui::list_table(
+                    ui,
                     "packet_list",
                     ["seq", "time", "dir", "op", "name", "size"].map(imgui::TableColumnSetup::new),
-                    super::table_opts().flags(flags),
+                    "name",
                 ) {
+                    follow.begin(ui, shown.len());
                     let mut clipper = ListClipper::new(shown.len()).begin(ui);
                     while clipper.step() {
                         for row in clipper.display_start()..clipper.display_end() {
@@ -238,7 +247,7 @@ impl PacketsView {
                                 .build()
                             {
                                 selected.set(Some(m.seq));
-                                follow.set(false);
+                                follow.pause(shown.len());
                             }
                             ui.table_next_column();
                             ui.text(crate::util::clock(m.unix_ms));
@@ -265,9 +274,7 @@ impl PacketsView {
                             ));
                         }
                     }
-                    if follow.get() {
-                        ui.set_scroll_here_y(1.0);
-                    }
+                    follow.end(ui, shown.len());
                 }
             },
             || {
@@ -304,15 +311,23 @@ impl PacketsView {
                     m.dir.name(),
                     m.opcode
                 ));
-                ui.input_text_multiline("##opcode_note", opcode_note, [-1.0, 48.0])
-                    .build();
+                ui.input_text_multiline(
+                    "##opcode_note",
+                    opcode_note,
+                    [-1.0, crate::ui::widgets::px(ui, 48.0)],
+                )
+                .build();
                 if ui.button("Save opcode note") {
                     crate::notes::set_opcode_note(m.channel, m.dir, m.opcode, opcode_note);
                     crate::ui::notice(format!("Note saved for {:#06x} {name}", m.opcode));
                 }
                 ui.text_disabled(format!("Note on this message only (#{}):", m.seq));
-                ui.input_text_multiline("##message_note", message_note, [-1.0, 48.0])
-                    .build();
+                ui.input_text_multiline(
+                    "##message_note",
+                    message_note,
+                    [-1.0, crate::ui::widgets::px(ui, 48.0)],
+                )
+                .build();
                 if ui.button("Save message note") {
                     crate::notes::set_message_note(m, message_note);
                     crate::ui::notice(format!("Note saved for message #{}", m.seq));
@@ -326,7 +341,7 @@ impl PacketsView {
             },
         );
         self.selected = selected.get();
-        self.follow = follow.get();
+        self.follow = follow;
     }
 }
 

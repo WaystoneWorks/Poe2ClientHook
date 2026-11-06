@@ -359,6 +359,26 @@ pub fn registry() -> (Vec<Cmd>, Option<Me>) {
     REGISTRY.lock().unwrap().clone()
 }
 
+/// Whether the server says this account is not an admin (per-frame callers: no copy).
+pub fn not_admin() -> bool {
+    REGISTRY
+        .lock()
+        .unwrap()
+        .1
+        .as_ref()
+        .is_some_and(|m| !m.admin)
+}
+
+/// Whether the registry assigns any command to an overlay tab (`Debug>World`), without a copy.
+pub fn has_overlay_commands(tab: &str) -> bool {
+    REGISTRY
+        .lock()
+        .unwrap()
+        .0
+        .iter()
+        .any(|c| c.overlay.as_deref() == Some(tab))
+}
+
 /// The server's instances (how old the list is, the list, idle minutes before an empty
 /// instance closes).
 pub fn instances() -> Option<(Duration, Vec<Inst>, u64)> {

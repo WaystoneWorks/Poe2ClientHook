@@ -38,6 +38,38 @@ pub fn top_level_string(text: &str, key: &str) -> Option<String> {
     None
 }
 
+/// The raw value of `key` in `[table]` of `text` (comments stripped), if set.
+pub fn table_value(text: &str, table: &str, key: &str) -> Option<String> {
+    let header = format!("[{table}]");
+    let mut inside = false;
+    for line in text.lines() {
+        let t = line.trim();
+        if t.starts_with('[') {
+            inside = t == header;
+            continue;
+        }
+        if !inside || t.starts_with('#') {
+            continue;
+        }
+        if let Some((k, v)) = t.split_once('=')
+            && k.trim() == key
+        {
+            return Some(v.split('#').next().unwrap_or("").trim().to_owned());
+        }
+    }
+    None
+}
+
+/// Older installs got `[overlay] scale = 1.0`, the default then; the default is now 0
+/// (automatic from the display height). Returns the text with that one value moved over, or
+/// `None` when nothing changes (any other scale is the user's choice and is kept).
+pub fn migrate_overlay_scale(text: &str) -> Option<String> {
+    match table_value(text, "overlay", "scale").as_deref() {
+        Some("1.0") | Some("1") => Some(set_key_in_text(text, Some("overlay"), "scale", "0.0")),
+        _ => None,
+    }
+}
+
 pub(crate) fn set_key_in_text(text: &str, table: Option<&str>, key: &str, value: &str) -> String {
     let line = format!("{key} = {value}");
     let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
@@ -96,6 +128,24 @@ pub fn hook_path(path: &Path) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_old_default_overlay_scale_becomes_automatic() {
+        let old =
+            "mode = \"private\"\n[overlay]\nenabled = true\nscale = 1.0\n[packets]\nscale = 1.0\n";
+        let new = migrate_overlay_scale(old).unwrap();
+        assert_eq!(
+            table_value(&new, "overlay", "scale").as_deref(),
+            Some("0.0")
+        );
+        assert_eq!(
+            table_value(&new, "packets", "scale").as_deref(),
+            Some("1.0")
+        );
+        assert!(migrate_overlay_scale(&new).is_none());
+        let mine = "[overlay]\nscale = 1.5 # big\n";
+        assert!(migrate_overlay_scale(mine).is_none());
+    }
 
     const SAMPLE: &str = "# comment\n\nmode = \"private\"\n\n[log]\nlevel = \"debug\"\n\n[features]\n# note\nauto_keys = [\"x\"]\n";
 

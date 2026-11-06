@@ -87,12 +87,9 @@ impl ProtocolView {
                         continue;
                     }
                     let line = format!(
-                        "{:8} {} {op:#06x} {}",
+                        "{:8} {:3} {op:#06x} {}",
                         c.name(),
-                        match d {
-                            Dir::In => "S>C",
-                            Dir::Out => "C>S",
-                        },
+                        d.name(),
                         name.unwrap_or("?")
                     );
                     if !f.is_empty() && !line.to_lowercase().contains(&f) {
@@ -121,8 +118,12 @@ impl ProtocolView {
                         *note_for = Some(key);
                     }
                     ui.text_disabled("Your note on this opcode (what you think it does):");
-                    ui.input_text_multiline("##proto_note", note, [-1.0, 54.0])
-                        .build();
+                    ui.input_text_multiline(
+                        "##proto_note",
+                        note,
+                        [-1.0, crate::ui::widgets::px(ui, 54.0)],
+                    )
+                    .build();
                     if ui.button("Save note##proto") {
                         crate::notes::set_opcode_note(key.0, key.1, key.2, note);
                         crate::ui::notice(format!("Note saved for {:#06x}", key.2));

@@ -193,15 +193,13 @@ impl App {
     /// The sidebar: groups (folding headers; Research starts folded) and their entries (our
     /// server's group hidden while read-only). With text in the search box: the matching pages.
     fn nav(&mut self, ui: &Ui) {
-        ui.set_next_item_width(-1.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, -1.0));
         let enter = ui
             .input_text("##page_search", &mut self.page_search)
             .hint("search pages")
+            .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .enter_returns_true(true)
             .build();
-        if ui.is_item_active() && ui.is_key_pressed(imgui::Key::Escape) {
-            self.page_search.clear();
-        }
         ui.text_disabled("Ctrl+P: palette");
         let f = self.page_search.trim().to_lowercase();
         if !f.is_empty() {
@@ -224,20 +222,32 @@ impl App {
             if found.is_empty() {
                 widgets::empty(ui, "No page matches.");
             }
-            if enter && let Some((page, _)) = found.first() {
-                self.go(*page);
-            }
-            for (page, name) in found {
+            let mut take = if enter {
+                found.first().map(|f| f.0)
+            } else {
+                None
+            };
+            for (page, name) in &found {
                 if ui
                     .selectable_config(format!("{name}##ps{page:?}"))
-                    .selected(self.page == page)
+                    .selected(self.page == *page)
                     .build()
                 {
-                    self.go(page);
+                    take = Some(*page);
                 }
+            }
+            // Opening a result ends the search, so the sidebar shows the groups again.
+            if let Some(page) = take {
+                self.go(page);
+                self.page_search.clear();
             }
             return;
         }
+        // Group headers are quiet bars, so the selected page stands out, not the groups.
+        let stock = ui.clone_style();
+        let _h = ui.push_style_color(imgui::StyleColor::Header, [0.20, 0.22, 0.27, 0.55]);
+        let _hh = ui.push_style_color(imgui::StyleColor::HeaderHovered, [0.26, 0.29, 0.36, 0.80]);
+        let _ha = ui.push_style_color(imgui::StyleColor::HeaderActive, [0.30, 0.34, 0.42, 1.00]);
         for g in GROUPS {
             if g.custom && !custom_server() {
                 continue;
@@ -262,6 +272,18 @@ impl App {
             if !open {
                 continue;
             }
+            let _eh = ui.push_style_color(
+                imgui::StyleColor::Header,
+                stock.color(imgui::StyleColor::Header),
+            );
+            let _ehh = ui.push_style_color(
+                imgui::StyleColor::HeaderHovered,
+                stock.color(imgui::StyleColor::HeaderHovered),
+            );
+            let _eha = ui.push_style_color(
+                imgui::StyleColor::HeaderActive,
+                stock.color(imgui::StyleColor::HeaderActive),
+            );
             for e in g.entries {
                 let selected = e.pages.iter().any(|(p, _)| *p == self.page);
                 if ui
@@ -292,32 +314,51 @@ impl App {
         save_page(page);
     }
 
-    /// For an entry with several pages: its tabs.
+    /// For an entry with several pages: its tabs (Ctrl+PageUp / Ctrl+PageDown cycle them).
     fn page_tabs(&mut self, ui: &Ui) {
         let Some(e) = entry_of(self.page) else {
             return;
         };
-        if e.pages.iter().filter(|(p, _)| visible(*p)).count() > 1 {
-            let mut first = true;
-            for (page, name) in e.pages.iter().filter(|(p, _)| visible(*p)) {
-                if !first {
-                    ui.same_line();
-                }
-                first = false;
-                let on = *page == self.page;
-                let w = ui.calc_text_size(name)[0] + 20.0;
-                if ui
-                    .selectable_config(format!("{name}##tab"))
-                    .selected(on)
-                    .size([w, 0.0])
-                    .build()
-                    && !on
-                {
-                    self.go(*page);
-                }
-            }
-            ui.separator();
+        let tabs: Vec<(Page, &str)> = e
+            .pages
+            .iter()
+            .filter(|(p, _)| visible(*p))
+            .map(|(p, n)| (*p, *n))
+            .collect();
+        if tabs.len() <= 1 {
+            return;
         }
+        let at = tabs.iter().position(|(p, _)| *p == self.page).unwrap_or(0);
+        let io = ui.io();
+        if io.key_ctrl() && !io.want_text_input() {
+            if ui.is_key_pressed(imgui::Key::PageDown) {
+                self.go(tabs[(at + 1) % tabs.len()].0);
+            } else if ui.is_key_pressed(imgui::Key::PageUp) {
+                self.go(tabs[(at + tabs.len() - 1) % tabs.len()].0);
+            }
+        }
+        let pad = ui.current_font_size();
+        let _align = ui.push_style_var(imgui::StyleVar::SelectableTextAlign([0.5, 0.5]));
+        for (i, (page, name)) in tabs.iter().enumerate() {
+            if i > 0 {
+                ui.same_line();
+            }
+            let on = *page == self.page;
+            let w = ui.calc_text_size(name)[0] + 2.0 * pad;
+            if ui
+                .selectable_config(format!("{name}##tab"))
+                .selected(on)
+                .size([w, 0.0])
+                .build()
+                && !on
+            {
+                self.go(*page);
+            }
+            if ui.is_item_hovered() && i == 0 {
+                ui.tooltip_text("Ctrl+PageUp / Ctrl+PageDown: previous / next tab");
+            }
+        }
+        ui.separator();
     }
 
     fn draw_page(&mut self, ui: &Ui, plots: &dear_implot::PlotContext) {
@@ -378,11 +419,12 @@ impl App {
             ui.set_window_size([pw, ph]);
             ui.set_keyboard_focus_here();
         }
-        ui.set_next_item_width(-1.0);
+        ui.set_next_item_width(crate::ui::widgets::px(ui, -1.0));
         let before = self.palette_query.clone();
         let enter = ui
             .input_text("##palette_query", &mut self.palette_query)
             .hint("page name, or a server command line")
+            .flags(imgui::InputTextFlags::ESCAPE_CLEARS_ALL)
             .enter_returns_true(true)
             .build();
         if self.palette_query != before {
@@ -433,11 +475,11 @@ impl App {
         match items.into_iter().nth(i).map(|(_, item)| item) {
             Some(PaletteItem::Page(p)) => self.go(p),
             // A bare command that needs arguments: open its form instead of running it.
-            Some(PaletteItem::Command(line, true)) => {
-                self.debug.select_help(&line);
+            Some(PaletteItem::Command(_, true, name)) => {
+                self.debug.select_help(&name);
                 self.go(Page::DebugHelp);
             }
-            Some(PaletteItem::Command(line, false)) => {
+            Some(PaletteItem::Command(line, false, _)) => {
                 crate::devlink::command(&line);
             }
             None => {}
@@ -498,7 +540,7 @@ impl App {
                 let what = if needs_args { "Form" } else { "Run " };
                 items.push((
                     format!("{what}   {}  - {}", c.usage(), c.summary),
-                    PaletteItem::Command(line, needs_args),
+                    PaletteItem::Command(line, needs_args, name.clone()),
                 ));
             }
         }
@@ -508,8 +550,8 @@ impl App {
 
 enum PaletteItem {
     Page(Page),
-    /// The command line to run, and whether it still needs arguments.
-    Command(String, bool),
+    /// The command line to run, whether it still needs arguments, and the command's name.
+    Command(String, bool, String),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -694,7 +736,7 @@ fn visible(page: Page) -> bool {
     if page_is_custom(page) && !custom_server() {
         return false;
     }
-    !(admin_only(page) && crate::devlink::registry().1.is_some_and(|m| !m.admin))
+    !(admin_only(page) && crate::devlink::not_admin())
 }
 
 fn save_page(page: Page) {
@@ -711,23 +753,32 @@ fn load_page() -> Page {
 }
 
 /// Table options for the overlay's tables: columns fit their contents, resizable, striped.
-/// A table that fills the rest of the page and scrolls under a frozen header row (the long
-/// lists: Stats, Actions, Hooks, Notes, Watches).
+/// A table that fills the rest of its pane and scrolls under a frozen header row (the long
+/// lists). The `stretch` column takes the spare width, so long names are not cut.
 pub fn list_table<'ui, Name: AsRef<str>, const N: usize>(
     ui: &'ui Ui,
     id: &str,
     columns: [imgui::TableColumnSetup<Name>; N],
+    stretch: &str,
 ) -> Option<imgui::TableToken<'ui>> {
     let t = ui.begin_table_with_flags(
         id,
         N,
         table_opts().flags(
-            imgui::TableFlags::RESIZABLE | imgui::TableFlags::ROW_BG | imgui::TableFlags::SCROLL_Y,
+            imgui::TableFlags::RESIZABLE
+                | imgui::TableFlags::ROW_BG
+                | imgui::TableFlags::BORDERS_INNER_V
+                | imgui::TableFlags::SCROLL_Y,
         ),
     )?;
     ui.table_setup_scroll_freeze(0, 1);
     for c in &columns {
-        ui.table_setup_column(&c.name, c.flags, c.width);
+        let width = if c.name.as_ref() == stretch {
+            Some(imgui::TableColumnWidth::Stretch(1.0))
+        } else {
+            c.width
+        };
+        ui.table_setup_column(&c.name, c.flags, width);
     }
     ui.table_headers_row();
     Some(t)

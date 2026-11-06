@@ -50,7 +50,7 @@ pub fn filter(ui: &Ui, id: &str, buf: &mut String, hint: &str, width: f32) -> bo
 
 /// A toolbar text box that is not a filter (an address, an expression): no `Ctrl+F`.
 pub fn input_bar(ui: &Ui, id: &str, buf: &mut String, hint: &str, width: f32) -> bool {
-    ui.set_next_item_width(width);
+    ui.set_next_item_width(px(ui, width));
     ui.input_text(format!("##{id}"), buf).hint(hint).build()
 }
 
@@ -78,6 +78,11 @@ pub fn thousands(n: usize) -> String {
         out.push(c);
     }
     out
+}
+
+/// A length given for the 13 px base font, at the overlay's current scale.
+pub fn px(ui: &Ui, v: f32) -> f32 {
+    v * ui.current_font_size() / 13.0
 }
 
 /// A muted label before the next widget on the same row ("Cell [x] [y]").
@@ -118,6 +123,8 @@ pub fn confirm_popup(ui: &Ui, popup: &str, question: &str, yes: &str) -> bool {
 pub fn plural(n: usize, thing: &str) -> String {
     if n == 1 {
         format!("1 {thing}")
+    } else if let Some(stem) = thing.strip_suffix('y') {
+        format!("{} {stem}ies", thousands(n))
     } else if thing.ends_with("ch") || thing.ends_with('s') {
         format!("{} {thing}es", thousands(n))
     } else {
@@ -138,7 +145,10 @@ thread_local! {
 /// List on the left, detail on the right, a draggable splitter between them. The left width is
 /// kept per `id` in `overlay.toml`.
 pub fn split(ui: &Ui, id: &str, default_left: f32, left: impl FnOnce(), right: impl FnOnce()) {
+    // Widths are kept for the base font (overlay.toml), so they follow the scale.
+    let k = px(ui, 1.0);
     let avail = ui.content_region_avail();
+    let (lo, hi) = (120.0 * k, (avail[0] - 160.0 * k).max(120.0 * k));
     let dragging = DRAG.with(|d| {
         d.borrow()
             .as_ref()
@@ -146,21 +156,19 @@ pub fn split(ui: &Ui, id: &str, default_left: f32, left: impl FnOnce(), right: i
             .map(|(_, w)| *w)
     });
     let saved = dragging.or_else(|| settings::split_width(id));
-    let w = saved
-        .unwrap_or(default_left)
-        .clamp(120.0, (avail[0] - 160.0).max(120.0));
+    let w = (saved.unwrap_or(default_left) * k).clamp(lo, hi);
     ui.child_window(format!("{id}_left"))
         .size([w, avail[1]])
         .border(true)
         .build(ui, left);
     ui.same_line_with_spacing(0.0, 0.0);
-    ui.invisible_button(format!("##{id}_split"), [6.0, avail[1]]);
+    ui.invisible_button(format!("##{id}_split"), [6.0 * k, avail[1]]);
     if ui.is_item_hovered() || ui.is_item_active() {
         ui.set_mouse_cursor(Some(imgui::MouseCursor::ResizeEW));
     }
     // The width follows the mouse in memory; overlay.toml is written once, on release.
     if ui.is_item_active() {
-        let nw = (w + ui.io().mouse_delta()[0]).clamp(120.0, (avail[0] - 160.0).max(120.0));
+        let nw = (w + ui.io().mouse_delta()[0]).clamp(lo, hi) / k;
         DRAG.with(|d| *d.borrow_mut() = Some((id.to_string(), nw)));
     }
     if ui.is_item_deactivated()
@@ -187,6 +195,7 @@ mod tests {
         assert_eq!(plural(1204, "row"), "1,204 rows");
         assert_eq!(plural(2, "watch"), "2 watches");
         assert_eq!(plural(0, "instance"), "0 instances");
+        assert_eq!(plural(3, "entity"), "3 entities");
     }
 
     #[test]
