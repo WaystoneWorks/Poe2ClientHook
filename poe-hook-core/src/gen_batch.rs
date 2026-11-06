@@ -41,8 +41,9 @@ use poe_hook_shared::{
     mem::{read, readable, wide_string},
 };
 
-/// The `ClientWorld` object: `new(0x17e8)` in `world_replace`.
-const WORLD_SIZE: usize = 0x17e8;
+/// The `ClientWorld` object: `new(0x1810)` in `world_replace` (`0x141014047`). Allocating less than
+/// the build's size overflows the heap in the constructor: check it on every new build.
+const WORLD_SIZE: usize = 0x1810;
 /// The base generator (`local_2e8`, 704 bytes, in `HeadlessWorld_LoadArea`) with room to spare.
 const GEN_SIZE: usize = 0x400;
 /// World stats the generator reads (`terrain_topology_pick`): forced topology (1-based index)
