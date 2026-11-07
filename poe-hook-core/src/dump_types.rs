@@ -898,14 +898,9 @@ unsafe extern "win64" fn on_read_initial_state(regs: *mut Registers, _: usize) {
                 }
                 // NaN/inf scan of every component (first 0x800 bytes): a degenerate transform
                 // would explain an invisible model and a grey camera.
-                let begin =
-                    read::<usize>(entity + crate::sigs::off().entity_components_begin).unwrap_or(0);
-                let end =
-                    read::<usize>(entity + crate::sigs::off().entity_components_end).unwrap_or(0);
-                for (i, c) in (begin..end).step_by(8).enumerate() {
-                    let Some(comp) = read::<usize>(c) else {
-                        continue;
-                    };
+                // `components` caps the count: the entity may have been freed by an area change
+                // within the 5 s, and a garbage begin..end must not become a walk over memory.
+                for (i, comp) in crate::entities::components(entity).into_iter().enumerate() {
                     let vt = read::<usize>(comp).unwrap_or(0);
                     let bad: Vec<String> = (0..0x800usize)
                         .step_by(4)
