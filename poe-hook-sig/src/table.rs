@@ -2,8 +2,8 @@
 //!
 //! ```toml
 //! [build]
-//! version = "0.5.5f"
-//! build_revision = "326410"
+//! version = "0.5.5g"
+//! build_revision = "328873"
 //! revision_pattern = "20 <rev:bytes6> 00 25 53 2e 70 6f 65 63 61 70"
 //! pe_timestamp = 0x6ac302e0
 //! image_size = 0x04ca0000
@@ -12,7 +12,7 @@
 //! name = "client_platform_detect"
 //! features = ["login_patch"]   # the features that are off when this one does not resolve
 //! pattern = "40 55 53 56 57 ..."
-//! ghidra = 0x1421a6e90         # the table build's address: logged and sanity-checked, never used
+//! ghidra = 0x1421a7210         # the table build's address: logged and sanity-checked, never used
 //! expect = "40 55 53"          # bytes required at the resolved address (patches: exact)
 //! patch = "31 c0 c3"
 //! pdata = true                 # the address must start a .pdata function
@@ -315,7 +315,7 @@ mod tests {
 name = "a"
 features = ["f"]
 pattern = "40 55 53 ?? ??"
-ghidra = 0x1421a6e90
+ghidra = 0x1421a7210
 expect = "40 55 53"
 patch = "31 c0 c3"
 [[sig]]
@@ -341,7 +341,7 @@ value = 0x44c
         )
         .unwrap();
         assert_eq!(t.features(), ["f", "g"]);
-        assert_eq!(t.sig("a").unwrap().ghidra, Some(0x1_421a_6e90));
+        assert_eq!(t.sig("a").unwrap().ghidra, Some(0x1_421a_7210));
         assert_eq!(t.field("x.y").unwrap().value, Some(0x44c));
     }
 

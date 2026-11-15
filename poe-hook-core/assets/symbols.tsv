@@ -46,1188 +46,1188 @@
 1408a59e0	MRECmpImpl::`scalar_deleting_destructor'
 1408a5c10	MRECmpImpl::`scalar_deleting_destructor'
 140a65f30	Mt19937_Next
-140b2afa0	world vfunc +0x178: world +0x124 = frame_ms (InitialState, 0x2f8)
-140c7a440	PartyInvitePopup_Decline
-140c7a4d0	PartyInvitePopup_Accept
-140e855a0	league banners at character creation (entries with +0xe0 bit 7, not variants; va
-140ed01a0	
-140ed0d80	create screen: connects to the login connection's signals (+0xb08 -> 0x140edb550
-140ed6e80	create screen Continue/Create button (needs a selected league: +0x320, +0x318)
-140ed72b0	sends CreateCharacter (0x1420f8c20); do not hook its entry, the trace hook crash
-140ed78f0	"character_creation_done": finds the new character by name (0x140ed15c0), sends 
-140ed8070	create screen per-frame update: scene done with +0x390 and +0x392 -> 0x140ed78f0
-140edb550	CreateCharacterState_OnCharacterCreated (u16 result): 0 -> +0x392, creation scen
-140edd8f0	create screen key handler (Space skips the creation scene)
-140ee0be9	
-140ee11b0	delete-character screen result callback
-140ef0470	gateway list loader ("gateway_list.txt" 0x14316c898, "Bundles2/gateway_list.txt"
-140ef1760	LoginState_BuildUi_SelectLoginScreen
-140ef9190	LoginState_SaveLoginAfterAuth
-140efbef0	LoginState_TokenLogin7or8
-140efcdd0	LoginState_StandaloneLogin
-140efd650	LoginState_StartAuthentication
-140efdb00	LoginState_AuthenticationResultHandler
-140efed60	LoginState_HandleAuthenticationError
-140f02880	LoginState_OnSteamEncryptedAppTicket
-140f084a0	
-140f0e500	SelectScreen_ShowWidgets
-140f14a70	SelectScreen_OnCharacterDetails
-140f17fe0	SelectScreen_UpdateStrictUnlockBanner
-140ff40e0	PartyInvite_OnReceived_ShowPopup
-140ff4300	
-141020b20	
-141025c40	MRECmpImpl::`scalar_deleting_destructor'
-14102ecb0	Vulkan loader (LoadLibrary("vulkan-1.dll"), GetProcAddress("vkGetInstanceProcAdd
-141044bb0	MRECmpImpl::`scalar_deleting_destructor'
-141059430	Window_CreateMain_POEWindowClass
-1411a7330	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
-1411b4aa0	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
-1411b5080	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
-1411c9be0	MRECmpImpl::`scalar_deleting_destructor'
-1411d2c00	MRECmpImpl::`scalar_deleting_destructor'
-14124b9f0	MRECmpImpl::`scalar_deleting_destructor'
-1412a2b10	MRECmpImpl::`scalar_deleting_destructor'
-1412cd520	MRECmpImpl::`scalar_deleting_destructor'
-14130c870	MRECmpImpl::`scalar_deleting_destructor'
-141320df0	MRECmpImpl::`scalar_deleting_destructor'
-141330eb0	MRECmpImpl::`scalar_deleting_destructor'
-141347700	MRECmpImpl::`scalar_deleting_destructor'
-141348da0	MRECmpImpl::`scalar_deleting_destructor'
-141391260	tls_callback_1
-1413caf60	Concurrency::details::UMSFreeThreadProxyFactory::`scalar_deleting_destructor'
-141411010	MRECmpImpl::`scalar_deleting_destructor'
-1414111c0	MRECmpImpl::`scalar_deleting_destructor'
-14141f880	Concurrency::details::UMSFreeThreadProxy::`scalar_deleting_destructor'
-141614790	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
-14164a2d0	Session_SendStanceRequest_200
-141683940	ClientWorld_LoadArea
-1416859c0	world_construct_client
-1416b2160	Render: apply visibility to the AO scene node (+0x39a disabled flag)
-1416fc930	Player_SimulationHandler
-1418a5a30	Concurrency::details::UMSFreeThreadProxyFactory::`scalar_deleting_destructor'
-14192f6a0	GEAL EnableRendering lambda body
-141944fc0	[NETWORKING] networking_type option reader
-141985f10	Action_GetPathRequest
-141989da0	(action vfunc +0xe0, the factor)
-141989e70	Action_GetSpeedAccelerationPerSecond
-1419ea5a0	MRECmpImpl::`scalar_deleting_destructor'
-141a48970	Action_OnAnimationEvent (~800 vtables)
-141ab54e0	DodgeRoll_OnStart
-141ab59b0	DodgeRoll_OnAnimationEvent
-141ab5ed0	DodgeRoll_OnEnd
-141ab6230	dodge_roll_travel_distance getter
-141ab62c0	DodgeRoll_StartSprint
-141b84fb0	sprint end check ([rules](../protocol/movement.md#coasting-after-a-sprint))
-141b85320	SprintPart_Start
-141b855b0	sprint end: ends Move, stops the entity (0x141df2040), plays SprintEnd (0x36a, B
-141b88d50	MRECmpImpl::`scalar_deleting_destructor'
-141b95790	
-141b99fb0	DodgeRoll_InitHeading
-141b9a1b0	DodgeRollMove_Start
-141b9a930	DodgeRollMove_Tick
-141b9aa00	DodgeRollMove_Step
-141b9aee0	DodgeRollMove_Stop
-141b9af60	DodgeRollMove_SwitchAnimation
-141b9b180	DodgeRollMove_DistanceLeft
-141b9b210	DodgeRollMove_Target
-141b9b400	DodgeRollMove_Goal
-141b9b650	DodgeRollMove_ReloadCurve
-141b9b700	DodgeRoll_OnStatChanged
-141b9b980	DodgeRollMove_Speed
-141b9be60	MRECmpImpl::`scalar_deleting_destructor'
-141b9e030	DodgeRollMove_CheckClearCells
-141b9e270	DodgeRollMove_ClipToWalkable
-141cde3b0	MoveAction_Create
-141d1a980	
-141d20d80	Terrain_TileHash
-141d310c0	MRECmpImpl::`scalar_deleting_destructor'
-141d50ab0	animation controller: play animation (index, ...)
-141d51d70	AnimationController_Tick
-141d51f10	AnimPlayer_Advance
-141d69f70	MRECmpImpl::`scalar_deleting_destructor'
-141d7fb10	Buff_ReadBody
-141d8fcb0	InventoriesComponent_Read
-141d95f60	pool reader: wire u32 to +0x38, then 0x141d98af0 (u32 to +0x18, i16 to +0x1c), t
-141d99350	Life component reader. Pools: life +0x1a8, mana +0x200, +0x240 (read as energy s
-141db47b0	Animated animation-event handler (type 0x12 MoveEventType -> 0x141f6daf0)
-141db4eb0	animation change: stops it
-141dc2170	BuffsComponent_Read
-141dd4df0	
-141dd8900	Pathfinding_IsArrived
-141dd9020	Pathfinding_FollowPath
-141dd9200	Pathfinding_StepAlongPath
-141dd9550	Pathfinding_SprintTurnWaypoint
-141dd9790	Pathfinding_Plan
-141dd9bb0	Pathfinding_EndPath
-141dd9ea0	Pathfinding_OnLineDone
-141dd9f70	Pathfinding_Tick
-141dda090	Pathfinding_GetSpeed
-141dda220	Pathfinding_SetSpeedMultiplier
-141dda290	Pathfinding component constructor (+0x550 base speed, +0x55c multiplier)
-141ddc630	PlayerComponent_Read
-141dddd40	PlayerComponent_ReadDelta
-141de15a0	Player_ApplyServerSkillUse
-141de1700	Player_ApplyServerSkillTarget
-141de1850	Player_ClearHeldSkill
-141de1940	Player_ApplyServerSkillRelease
-141de1b10	Player vfunc +0x138: set combat stance (+0x20d); +0x20c is the networked byte
-141de5b50	Positioned initial data (facing +0x44c, flags0 bit 7 -> lock)
-141de7970	Positioned simulation handler: 0x1dd/0x1de position, **0x1df SetOrientation (f32
-141de88a0	SetLocationForcedNoCallbacks (stops a running move, 0x141df31b0)
-141de99d0	Positioned::SetOrientation(angle): writes +0x44c (radians, atan2(dy, dx) + π/2) 
-141de9b80	Positioned_RunLine
-141dea170	Positioned_CheckStep
-141deae70	Positioned_ApplyStep
-141deb240	Positioned_SetMoveCurve
-141deb5a0	Positioned_SetMoveCurveTime
-141df0400	Positioned_MoveToWaypoint: movement step, turns toward the path (orientation mod
-141df23f0	Positioned_ReissueAtSpeed
-141df31b0	Positioned_StopMove
-141df3290	Positioned_RootOffsetToCell
-141e078c0	StateMachine reader (shared-state count check)
-141e099b0	Stats_SetCurrentWeaponSet
-141e4cf00	Actor_QueueAction
-141e4dd70	Actor_CanStartAction
-141e4e950	Actor_StartQueuedAction
-141e4fa60	Actor_InstallQueuedMove
-141e4fe40	Actor_ApplyActionSpeedFactor
-141e4ffa0	Actor_ActionSpeedFactorBackTo1
-141e500c0	Actor_SetActionSpeedFactorNow
-141e50540	Actor_PlanMove
-141e51e41	(inside the Actor tick 0x141e508f0)
-141e53c90	Actor_EndMoveAction
-141e5ba50	Actor_OnPathStarted
-141e5be90	movement reset / stat listener: stops Move when Actor +0x2a1 bit 2 is set
-141e5c610	Actor_OnPathArrived
-141e5da30	Actor_StartWasdWalk
-141e5e210	Actor_ReaimWasdWalk
-141e61520	Actor RecalculateStance ("Aiming", "AimingUpwards", "Ranged", "Mounted", "Unarme
-141e649d0	SelectAnimationVariationForMovementSpeed
-141e6b500	Actor "is sprinting": Actor +0x915 or the stat is_sprinting
-141e7f190	Entity_ReadInitialState
-141e7f490	Entity_ReadLinkRecords
-141e7f690	Entity_Destroy
-141e808f0	object registry insert ("Replacing awake/asleep/deleted object")
-141e81f90	Entity_LeaveWakeZone
-141e8cb40	LinkRecord_ReadValues
-141e972a0	create an action from an actor skill
-141ed6310	Line_Advance
-141ed6400	
-141ed66d0	Line_Setup
-141ed6ce0	Line_Step
-141ed6f30	Line_End
-141ed8820	
-141eda570	MoveCurve_Load
-141eda740	MoveCurve_SetTime
-141eda7b0	MoveCurve_Advance
-141edab60	MoveCurve_Value
-141edacf0	MoveCurve_LinearValue
-141edb1c0	MoveCurve_SegmentValue
-141edbeb0	SkillUseParams_Write
-141edbfb0	SkillUseParams_Read
-141edc0a0	
-141edc200	
-141ede540	Pathfinder_Plan
-141ee0e20	
-141ee0fe0	
-141ee1910	
-141eea7b0	
-141eeaa40	
-141f0d4f0	
-141f1ba50	UniformInt_Draw
-141f44240	SocialEntryPacket_Read
-141f46140	MRECmpImpl::`scalar_deleting_destructor'
-141f46370	MRECmpImpl::`scalar_deleting_destructor'
-141f4aef0	MRECmpImpl::`scalar_deleting_destructor'
-141f4c8b0	MRECmpImpl::`scalar_deleting_destructor'
-141f4cb00	MRECmpImpl::`scalar_deleting_destructor'
-141f4dac0	MRECmpImpl::`scalar_deleting_destructor'
-141f4e400	MRECmpImpl::`scalar_deleting_destructor'
-141f51b20	MRECmpImpl::`scalar_deleting_destructor'
-141f53310	MRECmpImpl::`scalar_deleting_destructor'
-141f53510	
-141f53a20	MRECmpImpl::`scalar_deleting_destructor'
-141f53f20	MRECmpImpl::`scalar_deleting_destructor'
-141f54bb0	MRECmpImpl::`scalar_deleting_destructor'
-141f55460	MRECmpImpl::`scalar_deleting_destructor'
-141f558b0	MRECmpImpl::`scalar_deleting_destructor'
-141f56410	MRECmpImpl::`scalar_deleting_destructor'
-141f56860	MRECmpImpl::`scalar_deleting_destructor'
-141f59d30	SimMsg_ReadHeader
-141f6dca0	MoveEvent_Start
-141f6f650	MoveEvent_GetTargetCell
-141f70430	MoveEvent_MovePositioned
-141f71bb0	MoveEvent_ClipToWalkable
-141f77610	MRECmpImpl::`scalar_deleting_destructor'
-141f77710	MRECmpImpl::`scalar_deleting_destructor'
-141f77bd0	MRECmpImpl::`scalar_deleting_destructor'
-141f77e50	S->C 0x1c8 StartAction reader
-141f796a0	0x1df reader
-141f79880	S->C 0x64 MoveDirectionUpdate reader
-141f7a390	BuffAdded_1eb_Read
-141f7a940	BuffRemoved_1ec_Read
-141f7bcc0	SkillTargetAck_1af_Read
-141f99ee0	RoomSet_GetFeatureRooms
-141fa98d0	RoomSet_GetExactRooms
-141faa090	RoomSet_GetPossibleRooms_Exits
-141faa7c0	TerrainRng_Seed
-141faaa10	TerrainRng_Below
-141faaae0	TerrainRng_Range
-141ffe1d0	TerrainGen_Construct
-142001ac0	TerrainGen_TileDoodads
-142003d00	TerrainGen_Doodads
-142005f20	TerrainGen_AddObject
-142007a30	terrain_topology_pick
-14200ac10	TerrainGen_Layout
-14200d1f0	TerrainGen_Run
-1420ac1a0	dungeon door groups: door sizes per edge set 0x141d162b0 (sets built by 0x141d16
-1420ae070	dungeon border tile placement; fallbacks: middle exits 0x1420aea30, height flatt
-1420b0f90	dungeon exit wiggle (after the fill): sorted position set at tile pass +0xb0, fi
-1420e9820	Dungeon_EdgeLambda
-1420f2330	MRECmpImpl::`scalar_deleting_destructor'
-1420f2500	MRECmpImpl::`scalar_deleting_destructor'
-1420f2780	MRECmpImpl::`scalar_deleting_destructor'
-1420f2bb0	Packet0003_Credentials_Serialize
-1420f2f00	MRECmpImpl::`scalar_deleting_destructor'
-1420f3120	MRECmpImpl::`scalar_deleting_destructor'
-1420f5c10	login session receive loop (caller of the message reader on the login connection
-1420f65d0	LoginClientHash_Get32
-1420f6b40	ClientLoginSession_SendCredentials_0003
-1420f6e50	ClientLoginSession_SendSteamTicket_0005
-1420f7180	ClientLoginSession_ProcessPacket: login message switch (opcode - 2); case 0x14 I
-1420f71e3	login packet dispatcher switch (ClientLoginSession?), opcodes 0x02-0x47; opcode 
-1420f71f5	login dispatch switch (opcode - 2; byte table 0x1420f8a10, targets 0x1420e9a64);
-1420fad70	MRECmpImpl::`scalar_deleting_destructor'
-1420fcb70	InitialState CharacterState flags -> local player (+0x3eca..+0x3ede)
-1420fda15	
-142111ca0	loader for server-delivered encrypted code modules ([crypto.md](crypto.md))
-142115490	
-142115ad0	Session_HandleAccountMessage
-14211a6e0	Social_AddPartyInvitation
-14211c660	Chat_ProcessCommand
-14211de90	chat sender (0x16, wstring; "@whisper")
-14211e950	Session_SendUseSkill_1a5
-14211ebe0	
-14211ed90	Session_SendSkillInputEnd_1ac
-14211ee10	Session_SendSkillReleased_1ad
-14211f860	Social_SendPartyInvite
-14211fb00	Social_SendPartyDecline
-1421228d0	Game_SendMoveDirection_63
-142123ec0	Session_CycleWeaponSet
-142124030	Session_SendWeaponSetSwap_fe
-14212ac10	instance packet-cipher builder (out, InstanceDetails + 0x38, &is_client), only c
-14212c3f0	AreaInfo reader: optional blocks by flags0/flags1 bits; flags0 bit 7: stat recor
-14212cde0	instance server connect ("Connecting to instance server at {}:{} " 0x14351d610)
-14212e7e0	logout routine ("FourLogOut"): 0 / 2 = exit to login / game, 1 = exit to charact
-14212eb20	game-session send (packet->vtable[1](packet, stream)); senders build the packet 
-14212ed70	sends 0x358 ExitReport (once per session); 0x141f55e30 serializer u8, u16 len, b
-14212fe10	game session update / instance session receive loop: frame reports, auto network
-142130484	0x1c frame report sender; 0x141f56da0 its serializer
-14213dd60	
-14213e730	HeadlessWorld_LoadArea
-14213ee40	world start (InitialState vfunc +0x1f0): applies all queued packets
-14213f410	flush packets scheduled at the current (entity, component, sequence) position
-14213f4f0	game world update in frame mode (world, ctx, f32 real dt): plays queued frames i
-14213f8f0	world frame drain (world, f32 frame_dt): pops one frame length (deque world +0x6
-14213fe30	world vfunc +0x3c8: visual update job (dt, played simulation time)
-1421433d0	simulation packet queue (param = world +0x260): 0x2f7 pushes a separator and wor
-142146490	frame-mode entity update loop (component vfunc +0x50, then 0x141e8b960)
-142158b60	Actor component simulation handler: 0x64 WASD, 0x65, 0x1c8 start action, 0x1c9..
-14215965e	
-14215980a	Actor 0x1cc (u16 action id, u8) -> Actor vfunc +0x130 (end action?)
-142159920	Actor 0x1fc (f32, u16) -> Actor vfunc +0x100
-14215ce30	MRECmpImpl::`scalar_deleting_destructor'
-14215da10	MRECmpImpl::`scalar_deleting_destructor'
-14215deb0	MRECmpImpl::`scalar_deleting_destructor'
-14215e430	MRECmpImpl::`scalar_deleting_destructor'
-14215e720	MRECmpImpl::`scalar_deleting_destructor'
-14215efc0	MRECmpImpl::`scalar_deleting_destructor'
-14215f000	login incoming-packet factory (opcode -> class); 0x13 CharacterCreated class 0x1
-142160550	MRECmpImpl::`scalar_deleting_destructor'
-142160bb0	MRECmpImpl::`scalar_deleting_destructor'
-142161710	MRECmpImpl::`scalar_deleting_destructor'
-142162f80	MRECmpImpl::`scalar_deleting_destructor'
-142163800	MRECmpImpl::`scalar_deleting_destructor'
-142164f40	MRECmpImpl::`scalar_deleting_destructor'
-1421652b0	MRECmpImpl::`scalar_deleting_destructor'
-142165930	
-142166200	MRECmpImpl::`scalar_deleting_destructor'
-142166900	MRECmpImpl::`scalar_deleting_destructor'
-142166c70	MRECmpImpl::`scalar_deleting_destructor'
-142167230	MRECmpImpl::`scalar_deleting_destructor'
-142167e80	MRECmpImpl::`scalar_deleting_destructor'
-142169e00	MRECmpImpl::`scalar_deleting_destructor'
-14216ad30	MRECmpImpl::`scalar_deleting_destructor'
-14216af00	MRECmpImpl::`scalar_deleting_destructor'
-14216b1b0	MRECmpImpl::`scalar_deleting_destructor'
-14216bf60	MRECmpImpl::`scalar_deleting_destructor'
-14216d270	MRECmpImpl::`scalar_deleting_destructor'
-14216da30	MRECmpImpl::`scalar_deleting_destructor'
-142171f00	MRECmpImpl::`scalar_deleting_destructor'
-1421744a0	MRECmpImpl::`scalar_deleting_destructor'
-142175360	MRECmpImpl::`scalar_deleting_destructor'
-142175ae0	MRECmpImpl::`scalar_deleting_destructor'
-142175f60	MRECmpImpl::`scalar_deleting_destructor'
-142178240	MRECmpImpl::`scalar_deleting_destructor'
-142178ba0	MRECmpImpl::`scalar_deleting_destructor'
-142179c50	MRECmpImpl::`scalar_deleting_destructor'
-14217aef0	MRECmpImpl::`scalar_deleting_destructor'
-14217b720	MRECmpImpl::`scalar_deleting_destructor'
-14217bfd0	MRECmpImpl::`scalar_deleting_destructor'
-14217c4f0	MRECmpImpl::`scalar_deleting_destructor'
-14217ceb0	MRECmpImpl::`scalar_deleting_destructor'
-14217d8a0	MRECmpImpl::`scalar_deleting_destructor'
-14217de50	MRECmpImpl::`scalar_deleting_destructor'
-14217fa90	MRECmpImpl::`scalar_deleting_destructor'
-14217fee0	MRECmpImpl::`scalar_deleting_destructor'
-142190fe0	StatsComponent_Read
-142191f20	Stats component message handler: 0x1d3 StatsUpdate (set 0 -> container at compon
-1421942a0	S->C 0x1fe SetPause reader; applied via world vfunc +0x200 0x141693250
-142194650	MRECmpImpl::`scalar_deleting_destructor'
-1421951d0	MRECmpImpl::`scalar_deleting_destructor'
-142196050	MRECmpImpl::`scalar_deleting_destructor'
-142196800	UseSkillAck_1ae_Read
-1421968e0	
-14219a850	Actor skill container reader; 0x14219afb0 skill list; 0x142198bd0 one skill
-1421a30f0	
-1421a4f60	Murmur2_Bytes
-1421a6e90	ClientPlatform_Detect
-1421a7300	ClientPlatform_Equals
-1421a7d00	stream read (stream, dst, len): copies from the receive ring at +0x268 + +0x278 
-1421a7e30	stream write (stream, src, len): appends to the send buffer (+0x280, length +0x2
-1421a7f90	stream flush (stream, err, force): plaintext tap (+0x190), cipher (+0x1b8 slot 1
-1421a8007	inside the flush, after the lock, before the cipher: pending plaintext [+0x280] 
-1421a8500	installs a cipher on a Tcpstream
-1421adc10	crypto session constructor (DH groups, DSA key, "#2")
-1421aee10	crypto: DH2 agree + SHA-512 -> 64-byte key material ("#1")
-1421aefe0	crypto: verify server signature + derive keys ("General Rhoa Failure #3"), hooke
-1421af380	builds the two-direction Salsa20 cipher from the key material
-1421b4110	MRECmpImpl::`scalar_deleting_destructor'
-1421cbd40	Sha256_Bytes32
-1421d5170	HNC bit queue: key material XOR table 0x142f23aa0 + swaps, Salsa20 pair
-1421d5420	HNC incoming byte parser ("HNC Protocol Violated")
-1421d5a10	message reader (registry, stream): reads the opcode, lets the registered handler
-1421e6ef0	resource_wait_loaded
-1421fe5d0	StandalonePatcher_GetErrorText
-1423dc3c0	CmdLine_ParseArgs
-1423dd340	
-1423e0430	LoginCredentials_GetFilePath
-1423e05c0	LoginCredentials_Load32
-1423e06b0	LoginCredentials_Save32
-1425dc920	BackendError_GetText
-1426102a0	CharacterPortrait_GetIconPath
-1426bec20	stat container set (container, key, value): sorted (i32 key, i32 value) array at
-1426d6280	EquipmentVisual_Read
-1427045e0	GEAL script interpreter loop
-142728880	CharacterEntries_Read
-1427499e0	Patcher_RunPatching
-1427684d0	MRECmpImpl::`scalar_deleting_destructor'
-142768510	MRECmpImpl::`scalar_deleting_destructor'
-142775ce0	MRECmpImpl::`scalar_deleting_destructor'
-14277b5d0	MRECmpImpl::`scalar_deleting_destructor'
-1427c12b0	UI element SetVisible (element, bool) (signature ui_set_visible, feature ui_pane
-142860490	MRECmpImpl::`scalar_deleting_destructor'
-1428604d0	MRECmpImpl::`scalar_deleting_destructor'
-1428605b0	MRECmpImpl::`scalar_deleting_destructor'
-1428808b0	Concurrency::details::UMSFreeThreadProxyFactory::`scalar_deleting_destructor'
-142b15570	Crypto++ Salsa20 key setup
-142b3badc	DelayLoad_FMOD_Memory_Initialize
-142b3bae8	DelayLoad_?createStream@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEBDIPEAUFMOD_CREATESOUNDEXINFO@@PEAPEAVSound@2@@Z
-142b3baf4	DelayLoad_?setCallback@System@FMOD@@QEAA?AW4FMOD_RESULT@@P6A?AW43@PEAUFMOD_SYSTEM@@IPEAX11@ZI@Z
-142b3bb00	DelayLoad_?setAdvancedSettings@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEAUFMOD_ADVANCEDSETTINGS@@@Z
-142b3bb0c	DelayLoad_?setSoftwareChannels@System@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
-142b3bb18	DelayLoad_?getDriver@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEAH@Z
-142b3bb24	DelayLoad_?setDriver@System@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
-142b3bb30	DelayLoad_?getDriverInfo@System@FMOD@@QEAA?AW4FMOD_RESULT@@HPEADHPEAUFMOD_GUID@@PEAHPEAW4FMOD_SPEAKERMODE@@2@Z
-142b3bb3c	DelayLoad_?getNumDrivers@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEAH@Z
-142b3bb48	DelayLoad_?getLength@Sound@FMOD@@QEAA?AW4FMOD_RESULT@@PEAII@Z
-142b3bb54	DelayLoad_?release@Sound@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b3bb60	DelayLoad_?getDSP@ChannelControl@FMOD@@QEAA?AW4FMOD_RESULT@@HPEAPEAVDSP@2@@Z
-142b3bb6c	DelayLoad_?getMeteringInfo@DSP@FMOD@@QEAA?AW4FMOD_RESULT@@PEAUFMOD_DSP_METERING_INFO@@0@Z
-142b3bb78	DelayLoad_?setMeteringEnabled@DSP@FMOD@@QEAA?AW4FMOD_RESULT@@_N0@Z
-142b3bb84	DelayLoad_FMOD_Memory_GetStats
-142b9ec5b	DelayLoad_D3D11CreateDevice
-142b9ece0	DelayLoad_EOS_Logging_SetCallback
-142b9ecec	DelayLoad_EOS_Auth_Login
-142b9ecf8	DelayLoad_EOS_Logging_SetLogLevel
-142b9ed04	DelayLoad_EOS_Shutdown
-142b9ed10	DelayLoad_EOS_Initialize
-142b9ed1c	DelayLoad_EOS_EResult_ToString
-142b9ed28	DelayLoad_EOS_Platform_CheckForLauncherAndRestart
-142b9ed34	DelayLoad_EOS_Platform_GetAuthInterface
-142b9ed40	DelayLoad_EOS_Platform_GetActiveLocaleCode
-142b9ed4c	DelayLoad_EOS_Auth_Token_Release
-142b9ed58	DelayLoad_EOS_Auth_CopyUserAuthToken
-142b9ed64	DelayLoad_EOS_Platform_SetNetworkStatus
-142b9ed70	DelayLoad_EOS_Platform_Tick
-142b9ed7c	DelayLoad_EOS_EpicAccountId_IsValid
-142b9ed88	DelayLoad_EOS_Platform_SetApplicationStatus
-142b9ed94	DelayLoad_EOS_Platform_Create
-142b9eda0	DelayLoad_EOS_Platform_Release
-142b9edac	DelayLoad_EOS_Ecom_Checkout
-142b9edb8	DelayLoad_EOS_Ecom_Transaction_CopyEntitlementByIndex
-142b9edc4	DelayLoad_EOS_Ecom_CopyOfferByIndex
-142b9edd0	DelayLoad_EOS_Platform_GetEcomInterface
-142b9eddc	DelayLoad_EOS_Ecom_CopyItemById
-142b9ede8	DelayLoad_EOS_Ecom_CatalogItem_Release
-142b9edf4	DelayLoad_EOS_Ecom_CopyTransactionById
-142b9ee00	DelayLoad_EOS_Ecom_Transaction_GetEntitlementsCount
-142b9ee0c	DelayLoad_EOS_Ecom_QueryEntitlements
-142b9ee18	DelayLoad_EOS_Ecom_GetOfferCount
-142b9ee24	DelayLoad_EOS_Ecom_Entitlement_Release
-142b9ee30	DelayLoad_EOS_Ecom_Transaction_Release
-142b9ee3c	DelayLoad_EOS_Ecom_CatalogOffer_Release
-142b9ee48	DelayLoad_EOS_Ecom_QueryOffers
-142b9ee54	DelayLoad_EOS_Ecom_CopyEntitlementByIndex
-142b9ee60	DelayLoad_EOS_EpicAccountId_ToString
-142b9ee6c	DelayLoad_EOS_Ecom_GetEntitlementsCount
-142b9eef1	DelayLoad_SteamAPI_UnregisterCallback
-142b9eefd	DelayLoad_SteamInternal_ContextInit
-142b9ef09	DelayLoad_SteamAPI_Shutdown
-142b9ef15	DelayLoad_SteamAPI_GetHSteamUser
-142b9ef21	DelayLoad_SteamInternal_CreateInterface
-142b9ef2d	DelayLoad_SteamAPI_RegisterCallback
-142b9ef39	DelayLoad_SteamAPI_RestartAppIfNecessary
-142b9ef45	DelayLoad_SteamAPI_Init
-142b9ef51	DelayLoad_SteamInternal_FindOrCreateUserInterface
-142b9ef5d	DelayLoad_SteamAPI_RunCallbacks
-142b9ef69	DelayLoad_SteamAPI_RegisterCallResult
-142b9ef75	DelayLoad_SteamAPI_UnregisterCallResult
-142b9effa	DelayLoad_?setUserData@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEAX@Z
-142b9f006	DelayLoad_?getUserData@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAX@Z
-142b9f012	DelayLoad_?setCallback@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@P6A?AW44@IPEAUFMOD_STUDIO_EVENTINSTANCE@@PEAX@ZI@Z
-142b9f01e	DelayLoad_?keyOff@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b9f02a	DelayLoad_?setParameterByID@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@UFMOD_STUDIO_PARAMETER_ID@@M_N@Z
-142b9f036	DelayLoad_?release@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b9f042	DelayLoad_?getChannelGroup@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAVChannelGroup@3@@Z
-142b9f04e	DelayLoad_?getPlaybackState@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAW4FMOD_STUDIO_PLAYBACK_STATE@@@Z
-142b9f05a	DelayLoad_?setTimelinePosition@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
-142b9f066	DelayLoad_?getTimelinePosition@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
-142b9f072	DelayLoad_?stop@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@W4FMOD_STUDIO_STOP_MODE@@@Z
-142b9f07e	DelayLoad_?start@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b9f08a	DelayLoad_?set3DAttributes@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEBUFMOD_3D_ATTRIBUTES@@@Z
-142b9f096	DelayLoad_?get3DAttributes@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAUFMOD_3D_ATTRIBUTES@@@Z
-142b9f0a2	DelayLoad_?setVolume@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z
-142b9f0ae	DelayLoad_?isValid@EventInstance@Studio@FMOD@@QEBA_NXZ
-142b9f0ba	DelayLoad_?getLoadingState@Bank@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAW4FMOD_STUDIO_LOADING_STATE@@@Z
-142b9f0c6	DelayLoad_?unload@Bank@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b9f0d2	DelayLoad_?getParameterDescriptionList@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAUFMOD_STUDIO_PARAMETER_DESCRIPTION@@HPEAH@Z
-142b9f0de	DelayLoad_?loadBankCustom@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEBUFMOD_STUDIO_BANK_INFO@@IPEAPEAVBank@23@@Z
-142b9f0ea	DelayLoad_?setListenerWeight@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@HM@Z
-142b9f0f6	DelayLoad_?setListenerAttributes@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@HPEBUFMOD_3D_ATTRIBUTES@@PEBUFMOD_VECTOR@@@Z
-142b9f102	DelayLoad_?setNumListeners@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
-142b9f10e	DelayLoad_?lookupID@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAUFMOD_GUID@@@Z
-142b9f11a	DelayLoad_?setParameterByID@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@UFMOD_STUDIO_PARAMETER_ID@@M_N@Z
-142b9f126	DelayLoad_?getSoundInfo@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAUFMOD_STUDIO_SOUND_INFO@@@Z
-142b9f132	DelayLoad_?getVCA@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAPEAVVCA@23@@Z
-142b9f13e	DelayLoad_?getEvent@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAPEAVEventDescription@23@@Z
-142b9f14a	DelayLoad_?getCoreSystem@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAV13@@Z
-142b9f156	DelayLoad_?update@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b9f162	DelayLoad_?release@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
-142b9f16e	DelayLoad_?initialize@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@HIIPEAX@Z
-142b9f17a	DelayLoad_?setAdvancedSettings@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEAUFMOD_STUDIO_ADVANCEDSETTINGS@@@Z
-142b9f186	DelayLoad_?create@System@Studio@FMOD@@SA?AW4FMOD_RESULT@@PEAPEAV123@I@Z
-142b9f192	DelayLoad_?setVolume@VCA@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z
-142b9f19e	DelayLoad_?getInstanceCount@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
-142b9f1aa	DelayLoad_?createInstance@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAVEventInstance@23@@Z
-142b9f1b6	DelayLoad_?hasSustainPoint@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEA_N@Z
-142b9f1c2	DelayLoad_?isStream@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEA_N@Z
-142b9f1ce	DelayLoad_?isOneshot@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEA_N@Z
-142b9f1da	DelayLoad_?getLength@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
-142b9f1e6	DelayLoad_?getUserProperty@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAUFMOD_STUDIO_USER_PROPERTY@@@Z
-142b9f1f2	DelayLoad_?getParameterDescriptionByIndex@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@HPEAUFMOD_STUDIO_PARAMETER_DESCRIPTION@@@Z
-142b9f1fe	DelayLoad_?getParameterDescriptionCount@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
-142b9f20a	DelayLoad_?isValid@EventDescription@Studio@FMOD@@QEBA_NXZ
-142b9f218	DloadAcquireSectionWriteAccess
-142b9f364	DloadMakePermanentImageCommit
-142b9f498	DloadProtectSection
-142b9f528	DloadReleaseSectionWriteAccess
-142b9f9dc	std::shared_ptr<_EXCEPTION_RECORD_const_>::operator=
-142b9fbb0	FID_conflict:`scalar_deleting_destructor'
-142b9ffdc	_CallMemberFunction2
-142b9ffec	_anon_13FC80AB::_CopyExceptionObject
-142ba01bc	__ExceptionPtrCopy
-142ba021c	__ExceptionPtrCurrentException
-142ba04e0	Concurrency::details::_ContextCallback::_CallInContext
-142ba05cc	Get_STL_host_status
-142ba0630	Concurrency::details::_Reschedule_chore
-142ba0668	Concurrency::details::_Schedule_chore
-142ba0a60	_Mbrtowc
-142ba0e98	_Xtime_get_ticks
-142ba2e38	std::_Init_locks::_Init_locks
-142ba2e7c	std::_Lockit::_Lockit
-142ba2ef4	std::_Lockit::~_Lockit
-142ba3138	std::regex_error::regex_error
-142ba3224	std::regex_error::_Stringify
-142ba33ec	std::locale::_Locimp::_Locimp
-142ba3468	std::locale::_Locimp::_Locimp
-142ba34f0	std::locale::_Locimp::`scalar_deleting_destructor'
-142ba354c	std::_Facet_Register
-142ba36fc	std::_Locinfo::_Locinfo_ctor
-142ba3768	std::_Locinfo::_Locinfo_dtor
-142ba3784	std::locale::_Locimp::_New_Locimp
-142ba37b8	std::locale::_Locimp::_New_Locimp
-142ba3840	_Deletegloballocale
-142ba3938	std::ios_base::_Ios_base_dtor
-142ba3b6c	_Getwctype
-142ba3f8c	_Getcvt
-142ba4024	_Wcrtomb
-142ba4288	_Wcscoll
-142ba436c	_Getcoll
-142ba43a0	_Strcoll
-142ba4680	_Stolx
-142ba4d3c	std::locale::_Locimp::_Locimp_ctor
-142ba4f18	std::_Locinfo::_Locinfo_ctor
-142ba54c0	basic_filebuf<>
-142ba5a74	__std_fs_open_handle
-142ba601c	__crtLCMapStringW
-142ba63a0	__crtCompareStringW
-142ba7c0c	std::_Mpunct<unsigned_short>::_Getvals<unsigned_short>
-142ba7cfc	std::numpunct<unsigned_short>::_Getvals<unsigned_short>
-142ba7e84	_Hash_array_representation<>
-142ba7ef8	std::_LStrxfrm<unsigned_short>
-142babf10	~_Tidy_guard<>
-142bac464	Ffmt
-142bac7ec	Getcat
-142bac8a8	Getcat
-142bac964	Getcat
-142baca20	Getcat
-142bacadc	Getcat
-142bacb98	Getcat
-142bacc54	Getcat
-142bacd2c	Getcat
-142bace04	Getcat
-142bacedc	Getcat
-142bacfb4	Getcat
-142bad070	Getcat
-142bad12c	Getcat
-142bad1f4	Getcat
-142bafbc0	FID_conflict:_Getvals
-142bafc48	Inc
-142bb2df8	Rep
-142bb2ea8	Rep
-142bb321c	do_compare
-142bb5a74	do_hash
-142bb5a88	do_in
-142bb5b34	do_length
-142bb5c28	do_narrow
-142bb7570	do_put
-142bb7c90	do_scan_is
-142bb7cf4	do_scan_not
-142bb7fac	do_unshift
-142bb8050	std::ctype<unsigned_short>::do_widen
-142bb8094	std::ctype<unsigned_short>::do_widen
-142bb810c	equal
-142bb88b4	std::_Mpunct<char>::_Getvals<char>
-142bb9304	Getcat
-142bb93c0	Getcat
-142bb947c	Getcat
-142bb9538	Getcat
-142bb9610	Getcat
-142bb96e8	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getcat
-142bbdd34	tls_callback_2
-142bbdd9c	__dyn_tls_on_demand_init
-142bbdde8	_Init_thread_footer
-142bbdecc	`eh_vector_destructor_iterator'
-142bbdf38	__ArrayUnwind
-142bbdf9c	__scrt_acquire_startup_lock
-142bbe014	__scrt_initialize_onexit_tables
-142bbe138	__scrt_release_startup_lock
-142bbe15c	__scrt_uninitialize_crt
-142bbe188	_onexit
-142bbe1c4	atexit
-142bbe208	`eh_vector_constructor_iterator'
-142bbe278	tls_callback_3
-142bbe3bc	`eh_vector_copy_constructor_iterator'
-142bbe514	__scrt_common_main_seh
-142bbe688	entry
-142bbe978	__GSHandlerCheck
-142bbe998	__GSHandlerCheckCommon
-142bbea10	__security_check_cookie
-142bbea40	__chkstk
-142bbea90	__raise_securityfailure
-142bbec4c	capture_current_context
-142bbecbc	capture_previous_context
-142bbed30	FID_conflict:__GSHandlerCheck_EH
-142bbedb0	__scrt_is_ucrt_dll_in_use
-142bbef0c	__scrt_get_show_window_mode
-142bbf010	__security_init_cookie
-142bd8640	tls_callback_0
-142bd8650	tls_callback_4
-142c101f7	DelayLoad_Ordinal_101
-142c1027c	DelayLoad_vkGetImageMemoryRequirements
-142c10288	DelayLoad_vkBindImageMemory
-142c10294	DelayLoad_vkFreeMemory
-142c102a0	DelayLoad_vkCmdCopyBuffer
-142c102ac	DelayLoad_vkGetPhysicalDeviceMemoryProperties
-142c102b8	DelayLoad_vkUnmapMemory
-142c102c4	DelayLoad_vkCreateBuffer
-142c102d0	DelayLoad_vkFlushMappedMemoryRanges
-142c102dc	DelayLoad_vkGetDeviceProcAddr
-142c102e8	DelayLoad_vkDestroyBuffer
-142c102f4	DelayLoad_vkAllocateMemory
-142c10300	DelayLoad_vkBindBufferMemory
-142c1030c	DelayLoad_vkGetInstanceProcAddr
-142c10318	DelayLoad_vkGetPhysicalDeviceProperties
-142c10324	DelayLoad_vkInvalidateMappedMemoryRanges
-142c10330	DelayLoad_vkDestroyImage
-142c1033c	DelayLoad_vkCreateImage
-142c10348	DelayLoad_vkMapMemory
-142c10354	DelayLoad_vkGetBufferMemoryRequirements
-142c24876	DelayLoad_BinkPause
-142c24882	DelayLoad_BinkDoFrameAsyncWait
-142c2488e	DelayLoad_BinkRequestStopAsyncThreadsMulti
-142c2489a	DelayLoad_BinkSetVolume
-142c248a6	DelayLoad_BinkNextFrame
-142c248b2	DelayLoad_BinkSetWillLoop
-142c248be	DelayLoad_BinkWaitStopAsyncThreadsMulti
-142c248ca	DelayLoad_BinkOpenDirectSound
-142c248d6	DelayLoad_BinkShouldSkip
-142c248e2	DelayLoad_BinkDoFrameAsyncMulti
-142c248ee	DelayLoad_BinkStartAsyncThread
-142c248fa	DelayLoad_BinkSetSoundSystem
-142c24906	DelayLoad_BinkCurrentSubtitle
-142c24912	DelayLoad_BinkSetMemory
-142c2491e	DelayLoad_BinkWait
-142c2492a	DelayLoad_BinkGoto
-142c24936	DelayLoad_BinkClose
-142c24942	DelayLoad_BinkOpen
-142c2494e	DelayLoad_BinkLoadSubtitles
-142c2495a	DelayLoad_BinkSetOSFileCallbacks
-142c24966	DelayLoad_BinkGetError
-142c24b30	_com_error::_com_error
-142c24bb0	FID_conflict:__GSHandlerCheck_EH
-142c24c30	__GSHandlerCheck_SEH
-142c24cb8	_CallSETranslator<>
-142c24d0c	_CallSETranslator<>
-142c24f30	__FrameHandler3::FrameUnwindToEmptyState
-142c24f94	__FrameHandler4::FrameUnwindToEmptyState
-142c25098	__FrameHandler4::GetEstablisherFrame
-142c25744	_CreateFrameInfo
-142c257d4	_GetImageBase
-142c257e8	_GetThrowImageBase
-142c257fc	_SetImageBase
-142c25b8c	__std_exception_copy
-142c25c1c	__std_exception_destroy
-142c25e50	__DestructExceptionObject
-142c25ec0	_IsExceptionObjectToBeDestroyed
-142c25ef0	__AdjustPointer
-142c25f7c	__current_exception
-142c25fa4	Unwind@142c13ae4
-142c25fc0	__std_type_info_compare
-142c261f4	set_unexpected
-142c266a8	__uncaught_exception
-142c266c8	__uncaught_exceptions
-142c266e4	__vcrt_initialize
-142c2670c	__vcrt_uninitialize
-142c26748	vcrt_getptd
-142c26764	__vcrt_getptd_noexit
-142c26824	__vcrt_getptd_noinit
-142c26874	__vcrt_initialize_ptd
-142c268bc	__vcrt_uninitialize_ptd
-142c268e0	__FrameHandler3::GetCurrentState
-142c26908	__FrameHandler3::GetUnwindTryBlock
-142c26934	__FrameHandler3::SetState
-142c26940	__FrameHandler3::SetUnwindTryBlock
-142c26ae4	BuildCatchObjectHelperInternal<__FrameHandler3>
-142c26ce4	BuildCatchObjectHelperInternal<__FrameHandler4>
-142c26ee8	BuildCatchObjectInternal<__FrameHandler3>
-142c26fa8	BuildCatchObjectInternal<__FrameHandler4>
-142c2706c	CatchIt<__FrameHandler3>
-142c27140	CatchIt<__FrameHandler4>
-142c2814c	TypeMatchHelper<__FrameHandler3>
-142c28a60	__FrameHandler3::CxxCallCatchBlock
-142c290b4	ExFilterRethrowFH4
-142c290e4	__FrameHandler3::FrameUnwindToState
-142c29578	__FrameHandler3::GetHandlerSearchState
-142c29700	Is_bad_exception_allowed
-142c29a14	__except_validate_context_record
-142c29a4c	__except_validate_jump_buffer
-142c29b0c	pcharNode<>
-142c29b80	DName::append<pcharNode>
-142c29dc8	DName::DName
-142c29df4	DName::DName
-142c29f1c	DName::DName
-142c2a058	operator_new
-142c2a0b4	Replicator::operator[]
-142c2a0f4	DName::operator+
-142c2a120	DName::operator+
-142c2a14c	DName::operator+
-142c2a178	DName::operator+
-142c2a1a4	DName::operator+=
-142c2a27c	DName::operator+=
-142c2a340	Replicator::operator+=
-142c2a398	UnDecorator::UScore
-142c2b3a0	DName::doPchar
-142c2bb18	UnDecorator::getBasedType
-142c2cc78	UnDecorator::getDataType
-142c2d7ac	UnDecorator::getExternalDataType
-142c2df18	pDNameNode::getLastChar
-142c2df44	pairNode::getLastChar
-142c2df90	UnDecorator::getLexicalFrame
-142c2e088	_HeapManager::getMemoryWithBuffer
-142c2e118	UnDecorator::getNoexcept
-142c2ef24	UnDecorator::getPtrRefDataType
-142c2f4b4	UnDecorator::getReturnType
-142c2fae4	UnDecorator::getSignedDimension
-142c2fb6c	DNameStatusNode::getString
-142c2fbc8	pDNameNode::getString
-142c2fbf8	pairNode::getString
-142c2fc44	pcharNode::getString
-142c2fe1c	UnDecorator::getSymbolName
-142c31008	UnDecorator::getVCallThunkType
-142c31248	UnDecorator::getVdispMapType
-142c317d0	pairNode::length
-142c31a48	__vcrt_initialize_locks
-142c31aac	__vcrt_uninitialize_locks
-142c31c50	__vcrt_FlsAlloc
-142c31c98	__vcrt_FlsFree
-142c31ce0	__vcrt_FlsGetValue
-142c31d28	__vcrt_FlsSetValue
-142c31d7c	__vcrt_InitializeCriticalSectionEx
-142c31e20	_CallSettingFrame
-142c31ec0	_CallSettingFrameEncoded
-142c32220	_LocaleUpdate::_LocaleUpdate
-142c32578	common_flush_all
-142c32740	fflush
-142c32da4	_ungetwc_nolock
-142c32ee0	ungetwc
-142c333b0	operator()<>
-142c333f0	operator()<>
-142c338ec	__crt_stdio_output::is_wide_character_specifier<wchar_t>
-142c384a8	type_case_Z
-142c38e38	__acrt_stdio_char_traits<char>::validate_stream_is_ansi_if_required
-142c38ed4	__crt_stdio_output::string_output_adapter<char>::write_string
-142c38f78	__crt_stdio_output::string_output_adapter<wchar_t>::write_string
-142c39e9c	_fgetc_nolock
-142c3a1a8	fgetwc
-142c3a200	__acrt_initialize_stdio
-142c3a320	__acrt_iob_func
-142c3a334	__acrt_uninitialize_stdio
-142c3a390	_get_stream_buffer_pointers
-142c3a424	operator()<>
-142c3a824	fgetpos
-142c3a870	operator()<>
-142c3aad0	_time64
-142c3ac74	ungetc
-142c3adc4	fsetpos
-142c3adfc	_fread_nolock_s
-142c3b05c	fread
-142c3b07c	fread_s
-142c3b124	common_putenv<>
-142c3b448	FID_conflict:_putenv_s
-142c3b8bc	__acrt_call_reportfault
-142c3bbdc	_invoke_watson
-142c3bd5c	common_end_thread
-142c3bfc4	_endthread
-142c3bfdc	set_terminate
-142c3c350	FID_conflict:_localtime64
-142c3c3a8	_fdclass
-142c3c3d8	__crt_time_is_leap_year<int>
-142c3c438	compute_iso_week_internal
-142c3e620	_difftime64
-142c3e8b8	tolower
-142c3e8e4	toupper
-142c3e910	common_strtod_l<>
-142c3e9b8	common_strtod_l<>
-142c3ea60	common_strtod_l<>
-142c3eb08	common_strtod_l<>
-142c3ebb0	parse_floating_point<>
-142c3ec50	parse_floating_point<>
-142c3ecf0	parse_floating_point<>
-142c3ed90	parse_floating_point<>
-142c401d4	__crt_strtox::parse_floating_point_possible_infinity<char,__crt_strtox::c_string_character_source<char>,char_const*___ptr64>
-142c40330	__crt_strtox::parse_floating_point_possible_infinity<wchar_t,__crt_strtox::c_string_character_source<wchar_t>,wchar_t_const*___ptr64>
-142c409e4	__crt_strtox::parse_floating_point_write_result<float>
-142c40b54	__crt_strtox::parse_floating_point_write_result<double>
-142c4310c	__crt_strtox::convert_hexadecimal_string_to_floating_type_common
-142c436c4	memcpy_s
-142c4376c	roundf
-142c437d4	__acrt_errno_from_os_error
-142c43888	__doserrno
-142c438a8	__doserrno
-142c438c8	wcsncmp
-142c438f4	round
-142c43994	__crt_strtox::is_overflow_condition<unsigned___int64>
-142c44b40	isalnum
-142c44bf0	isdigit
-142c44ca0	islower
-142c44d50	isprint
-142c44e00	isspace
-142c44eb0	isupper
-142c44f60	isxdigit
-142c457dc	common_gmtime_s<__int64>
-142c45974	compute_year
-142c45a64	__getgmtimebuf
-142c45ab0	_gmtime64
-142c45b00	operator()<>
-142c45ddc	setlocale
-142c460a8	wcrtomb
-142c462f0	__crt_time_is_leap_year<__int64>
-142c4668c	rand_s
-142c466d8	__crt_strtox::parse_floating_point<__crt_strtox::input_adapter_character_source<__crt_stdio_input::string_input_adapter<char>_>,float>
-142c46780	__crt_strtox::parse_floating_point<__crt_strtox::input_adapter_character_source<__crt_stdio_input::string_input_adapter<char>_>,double>
-142c47a5c	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_floating_point_specifier_t<float>
-142c47b00	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_floating_point_specifier_t<double>
-142c47f34	__crt_stdio_input::skip_whitespace<__crt_stdio_input::string_input_adapter,char>
-142c47fec	__crt_stdio_input::format_string_parser<char>::advance
-142c481b4	__crt_stdio_input::format_string_parser<char>::length
-142c48250	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process
-142c48344	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_conversion_specifier
-142c48464	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_floating_point_specifier
-142c484d4	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_integer_specifier
-142c48610	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_state
-142c486c8	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_string_specifier
-142c4899c	__crt_stdio_input::format_string_parser<char>::scan_optional_length_modifier
-142c48c74	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::write_character
-142c48d0c	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::write_integer
-142c491d0	wcscpy_s
-142c49580	_aligned_malloc
-142c4a0a8	feof
-142c4a0d4	common_fsopen<char>
-142c4a190	common_fsopen<wchar_t>
-142c4a380	strncmp
-142c4a678	ilogbf
-142c4a794	operator()<>
-142c4aa4c	_cexit
-142c4aab4	operator()<>
-142c4ab98	get_global_action_nolock
-142c4abd4	__acrt_get_sigabrt_handler
-142c4b330	_fileno
-142c4b358	__crt_seh_guarded_call<int>::operator()<<lambda_d6a03b27cb314eb65d447ab85fffcbf2>,<lambda_3e61fc1153d2eec3991e8733eecb5419>&___ptr64,<lambda_8d9723598c44aced2bc47669cc68e4e1>_>
-142c4b5b0	common_stat_handle_file_opened<_stat64>
-142c4b7fc	convert_to_stat_mode
-142c4b938	get_drive_number_from_path
-142c4b99c	is_root_unc_name
-142c4bd3c	__ascii_wcsicmp
-142c4bd7c	_wcsicmp
-142c4c2e0	is_valid_drive
-142c4c3a0	strncpy
-142c4cac8	operator()<>
-142c4da50	strcmp
-142c4dbbc	common_open<>
-142c4dc6c	common_sopen_dispatch<>
-142c4dd30	common_sopen_dispatch<>
-142c4e278	truncate_ctrl_z_if_present
-142c4e33c	FID_conflict:_open
-142c4e47c	FID_conflict:_sopen_s
-142c4e8a0	FID_conflict:_sopen_s
-142c4e8d4	common_fgets<char>
-142c4ecc4	__acrt_initialize_locks
-142c4ed0c	__acrt_lock
-142c4ed28	__acrt_uninitialize_locks
-142c4ed60	__acrt_unlock
-142c4ed7c	_lock_locales
-142c4eda8	__pctype_func
-142c4edd8	___lc_codepage_func
-142c4ee08	___lc_collate_cp_func
-142c4ee38	___lc_locale_name_func
-142c4ee6c	___mb_cur_max_func
-142c4f584	__strncnt
-142c4f720	parse_command_line<char>
-142c4f8e0	__acrt_allocate_buffer_for_argv
-142c4f940	_configure_narrow_argv
-142c4fdd8	free_environment<>
-142c4ffb8	uninitialize_environment_internal<>
-142c4ffd4	uninitialize_environment_internal<>
-142c5002c	__dcrt_get_or_create_wide_environment_nolock
-142c500b4	operator()<>
-142c500f0	operator()<>
-142c50450	_initialize_onexit_table
-142c50478	_register_onexit_function
-142c50600	__acrt_uninitialize
-142c506d0	_get_narrow_winmain_command_line
-142c507fc	_set_fmode
-142c5083c	_setmode_nolock
-142c5091c	__crt_seh_guarded_call<void>::operator()<<lambda_1d892b297fdedeee07ed8124eeb2f2fa>,<lambda_ffc046909424fd52df0ac47e64813305>&___ptr64,<lambda_01a7098693036236037e7cdb9bca3d73>_>
-142c50a58	__crt_seh_guarded_call<void>::operator()<<lambda_410d79af7f07d98d83a3f525b3859a53>,<lambda_3e16ef9562a7dcce91392c22ab16ea36>&___ptr64,<lambda_38119f0e861e05405d8a144b9b982f0a>_>
-142c50ac8	__crt_seh_guarded_call<void>::operator()<<lambda_7f2adfce497ff2baa965cd4f576ecfd1>,<lambda_2a444430fde8c29194d880d93eed5e8f>&___ptr64,<lambda_8dff2cf36a5417162780cd64fa2883ef>&___ptr64>
-142c50af4	<lambda_2a444430fde8c29194d880d93eed5e8f>::operator()
-142c50c8c	__acrt_uninitialize_locale
-142c50ec8	_configthreadlocale
-142c514dc	_wsetlocale
-142c530f4	write_text_ansi_nolock
-142c531f8	write_text_utf16le_nolock
-142c53314	write_text_utf8_nolock
-142c53954	__acrt_stdio_parse_mode<char>
-142c53c18	__acrt_stdio_parse_mode<wchar_t>
-142c554d8	ceilf
-142c55560	strcpy_s
-142c557b4	stream_is_at_end_of_file_nolock
-142c559b8	operator()<>
-142c559f8	operator()<>
-142c55a38	operator()<>
-142c55a80	operator()<>
-142c55ae0	construct_ptd_array
-142c55bd0	destroy_ptd_array
-142c55cc8	replace_current_thread_locale_nolock
-142c56030	__acrt_initialize_ptd
-142c5606c	__acrt_uninitialize_ptd
-142c56090	initialize_inherited_file_handles_nolock
-142c56288	__acrt_initialize_lowio
-142c562c4	__acrt_uninitialize_lowio
-142c56304	_calloc_base
-142c5637c	__acrt_LCMapStringW
-142c56404	__acrt_update_locale_info
-142c56568	_commit
-142c56638	__acrt_stdio_allocate_stream
-142c56690	__acrt_stdio_free_stream
-142c56798	__acrt_stdio_free_buffer_nolock
-142c567d8	iswctype
-142c568b0	_malloc_base
-142c57328	should_round_up
-142c579f4	__acrt_should_use_temporary_buffer
-142c57a3c	__acrt_stdio_begin_temporary_buffering_nolock
-142c57e90	operator()<>
-142c58998	__acrt_eagerly_load_locale_apis
-142c58b18	__acrt_uninitialize_winapi_thunks
-142c58c10	_errcode
-142c59150	_raise_exc
-142c59178	_raise_exc_ex
-142c59488	_raise_excf
-142c594b4	_set_errno_from_matherr
-142c596e4	_set_exp
-142c5971c	_sptype
-142c59790	_clrfp
-142c597b0	_ctrlfp
-142c5982c	_set_statfp
-142c5984c	_statfp
-142c59860	__acrt_MultiByteToWideChar
-142c598bc	__acrt_WideCharToMultiByte
-142c5a210	_d_int
-142c5a328	_fd_int
-142c5a400	_fdtest
-142c5a44c	_fperrraise
-142c5a500	__acrt_get_begin_thread_init_policy
-142c5a554	__acrt_get_process_end_policy
-142c5b1fc	__tzset
-142c5b23c	_isindst
-142c5b26c	_realloc_base
-142c5b608	__acrt_LCMapStringA
-142c5b6a0	_isctype_l
-142c5b7a8	fegetround
-142c5bccc	_FDscale
-142c5be94	_msize_base
-142c5bf04	_openfile
-142c5bfa0	_wopenfile
-142c5c1a0	_FDunscale
-142c5c22c	_getdrive
-142c5c3d8	wcspbrk
-142c5c40c	__acrt_lowio_create_handle_array
-142c5c4b4	__acrt_lowio_destroy_handle_array
-142c5c504	__acrt_lowio_ensure_fh_exists
-142c5c5ac	__acrt_lowio_lock_fh
-142c5c694	__acrt_lowio_unlock_fh
-142c5c6bc	_alloc_osfhnd
-142c5cb64	_waccess_s
-142c5dedc	getSystemCP
-142c5e44c	update_thread_multibyte_data_internal
-142c5e504	__acrt_initialize_multibyte
-142c5e8b4	_ismbblead
-142c5ea9c	_recalloc_base
-142c5ec7c	_query_new_handler
-142c5ecb0	_set_new_handler
-142c5ed28	__acrt_locale_free_monetary
-142c5f368	__acrt_locale_free_numeric
-142c5f6ec	initialize_lc_time
-142c5fa2c	__acrt_locale_free_time
-142c5fb34	__acrt_locale_initialize_time
-142c5fcd4	wcscspn
-142c5fd14	__acrt_add_locale_ref
-142c5fda0	__acrt_free_locale
-142c5ff18	__acrt_locale_add_lc_time_reference
-142c5ff40	__acrt_locale_free_lc_time_if_unreferenced
-142c5ff78	__acrt_locale_release_lc_time_reference
-142c5ffa0	__acrt_release_locale_ref
-142c60048	__acrt_update_thread_locale_data
-142c600b8	_updatetlocinfoEx_nolock
-142c601c8	GetLocaleNameFromLangCountry
-142c60298	GetLocaleNameFromLanguage
-142c60708	ProcessCodePage
-142c607d4	TestDefaultCountry
-142c60838	TranslateName
-142c60c20	GetLcidFromLangCountry
-142c60cf0	GetLcidFromLanguage
-142c6112c	ProcessCodePage
-142c611dc	TestDefaultLanguage
-142c61288	TranslateName
-142c61308	__acrt_get_qualified_locale_downlevel
-142c61770	_putwch_nolock
-142c617ac	__ascii_wcsnicmp
-142c617f8	_wcsnicmp
-142c619dc	_strnicmp
-142c61a2c	_strnicmp_l
-142c61b44	_exception_enabled
-142c61e5c	_handle_nan
-142c61e78	_handle_nanf
-142c623e0	__acrt_initialize_fma3
-142c62450	__remainder_piby2d2f_forC
-142c63b50	_get_fpsr
-142c63b6a	_fclrf
-142c63ba0	_wcsnicoll
-142c63bf0	_wcsnicoll_l
-142c63ce0	_strnicoll
-142c63cf8	_strnicoll_l
-142c63f98	fegetexceptflag
-142c64148	__acrt_fenv_get_fp_status_word_from_exception_mask
-142c6435c	common_getenv_nolock<wchar_t>
-142c64510	_FDnorm
-142c645f0	_mbsdec_l
-142c6469c	common_xtox<unsigned_long,wchar_t>
-142c64770	common_xtox_s<unsigned_long,wchar_t>
-142c647dc	_itow_s
-142c647fc	wcscmp
-142c64a10	__dcrt_lowio_ensure_console_output_initialized
-142c64a80	__dcrt_write_console
-142c64b40	_controlfp_s
-142c64ba4	fegetenv
-142c64bc4	fesetenv
-142c64c10	feholdexcept
-142c64c60	ceil
-142c652dc	__acrt_CompareStringW
-142c6571c	__acrt_CompareStringA
-142c657a8	fetestexcept
-142c657cc	_clearfp
-142c65844	_control87
-142cbf800	_FindPESection
-142cbf850	_IsNonwritableInCurrentImage
-142cbf8cb	DelayLoad_BinkRegisterFrameBuffers
-142cbf8d7	DelayLoad_BinkAllocateFrameBuffers
-142cbf8e3	DelayLoad_BinkGetFrameBuffersInfo
-142cbf968	longjmp
-142cbfda8	__acrt_initialize_clock
-142cc28d0	__common_scos_cout_rare
-142cc3f70	floorf
-142cc9630	_guard_dispatch_icall
-142cca320	memcmp
-142cd985c	__l1::dtor$8
-142cdb800	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cde27c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142ce3746	__l1::dtor$9
-142ce3775	__l1::dtor$13
-142ce3ecc	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142ce514c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142ce8e6c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142cebd2b	__l1::dtor$2
-142ced760	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142ceeb2c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cf254c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142cf2b08	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cf2bc4	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cf535c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cf5a7c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cf6dcb	__l1::dtor$8
-142cf7b08	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cf7d98	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142cfe590	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d0a89c	__l1::dtor$1
-142d10a80	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d13596	__l1::dtor$8
-142d1448c	__l1::dtor$8
-142d144d3	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d15f54	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d17bf0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d1c130	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d1cabc	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$5
-142d1fb90	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
-142d2b4cc	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d2be30	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d2be98	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$3
-142d2bec4	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$5
-142d2c8e0	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
-142d34430	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d3794f	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d37f74	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
-142d3d78c	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
-142d3da17	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d3ec68	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d4068c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d406d0	__l1::dtor$8
-142d44480	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
-142d46830	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d49d44	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d4c390	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d4c42c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d5214c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d536b8	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d5397c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d540ec	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d5443c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d5524f	__l1::dtor$8
-142d566bc	__l1::dtor$4
-142d5766c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d576a4	__l1::dtor$2
-142d58fa0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d5b190	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d5bbd8	__l1::dtor$13
-142d5cf8c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d634ac	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d64a5c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142d65812	__l1::dtor$2
-142d65a32	__l1::dtor$2
-142d65b10	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d6bee0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d726f8	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d76458	__l1::dtor$3
-142d7e40c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d82ed0	__l1::dtor$3
-142d846b0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142d84700	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142da501c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142db1f38	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142db28c0	__l1::dtor$3
-142dbb91c	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$5
-142dbc898	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dbda40	__l1::dtor$3
-142dc2ec0	__l1::dtor$2
-142dcb36f	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
-142dcf62c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dcf748	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dcfd9c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dd1ee1	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dd3ad0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dd3b80	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dd3cc0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dd40f0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dd96b0	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
-142de3848	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142de3f3c	__l1::dtor$8
-142df0fc0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142df205c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142df5e2c	__l1::dtor$2
-142df85cf	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142dfaf2c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dfb57c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dfb5e0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142dfba60	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e00fdb	__l1::dtor$10
-142e04b48	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142e10bc4	__l1::dtor$10
-142e14ee4	__l1::dtor$9
-142e19dd8	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142e1e935	__l1::dtor$1
-142e1f070	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e1fac4	__l1::dtor$8
-142e22170	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142e4653c	`public:_void___cdecl_CArray<CTaskDialog::_CTaskDialogButton,CTaskDialog::_CTaskDialogButton_const&___ptr64>::SetSize(__int64,__int64)___ptr64'::__l1::dtor$3
-142e4a0cc	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
-142e4a510	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
-142e5a888	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e5aef8	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e5af74	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e5b008	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e60a0c	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
-142e61284	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142e6997e	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142e7793e	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
-142e78885	__l1::dtor$12
-142e7c785	__l1::dtor$12
-142e7c965	__l1::dtor$12
-142e80d8c	__l1::dtor$12
-142e84428	__l1::dtor$2
-142e84b60	__l1::dtor$9
-142e85f97	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
-142e9bc14	std::_Fac_tidy_reg_t::~_Fac_tidy_reg_t
-142e9be60	_Init_atexit::~_Init_atexit
-1430b7a18	inventory panel class vtable (constructors 0x1408ea1f0, 0x1408ecfa0), found by t
-1435288d8	string "HNC Protocol Violated" (no direct code references)
+140b2afc0	world vfunc +0x178: world +0x124 = frame_ms (InitialState, 0x2f8)
+140c7a8a0	PartyInvitePopup_Decline
+140c7a930	PartyInvitePopup_Accept
+140e85960	league banners at character creation (entries with +0xe0 bit 7, not variants; va
+140ed0560	
+140ed1140	create screen: connects to the login connection's signals (+0xb08 -> 0x140edb910
+140ed7240	create screen Continue/Create button (needs a selected league: +0x320, +0x318)
+140ed7670	sends CreateCharacter (0x1420f8fa0); do not hook its entry, the trace hook crash
+140ed7cb0	"character_creation_done": finds the new character by name (0x140ed1980), sends 
+140ed8430	create screen per-frame update: scene done with +0x390 and +0x392 -> 0x140ed7cb0
+140edb910	CreateCharacterState_OnCharacterCreated (u16 result): 0 -> +0x392, creation scen
+140eddcb0	create screen key handler (Space skips the creation scene)
+140ee0fa9	
+140ee1570	delete-character screen result callback
+140ef0830	gateway list loader ("gateway_list.txt" 0x14316d858, "Bundles2/gateway_list.txt"
+140ef1b20	LoginState_BuildUi_SelectLoginScreen
+140ef9550	LoginState_SaveLoginAfterAuth
+140efc2b0	LoginState_TokenLogin7or8
+140efd190	LoginState_StandaloneLogin
+140efda10	LoginState_StartAuthentication
+140efdec0	LoginState_AuthenticationResultHandler
+140eff120	LoginState_HandleAuthenticationError
+140f02c40	LoginState_OnSteamEncryptedAppTicket
+140f08860	
+140f0e8c0	SelectScreen_ShowWidgets
+140f14e30	SelectScreen_OnCharacterDetails
+140f183a0	SelectScreen_UpdateStrictUnlockBanner
+140ff44a0	PartyInvite_OnReceived_ShowPopup
+140ff46c0	
+141020ee0	
+141026000	MRECmpImpl::`scalar_deleting_destructor'
+14102f070	Vulkan loader (LoadLibrary("vulkan-1.dll"), GetProcAddress("vkGetInstanceProcAdd
+141044f70	MRECmpImpl::`scalar_deleting_destructor'
+1410597f0	Window_CreateMain_POEWindowClass
+1411a76f0	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
+1411b4e60	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
+1411b5440	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
+1411c9fa0	MRECmpImpl::`scalar_deleting_destructor'
+1411d2fc0	MRECmpImpl::`scalar_deleting_destructor'
+14124bdb0	MRECmpImpl::`scalar_deleting_destructor'
+1412a2ed0	MRECmpImpl::`scalar_deleting_destructor'
+1412cd8e0	MRECmpImpl::`scalar_deleting_destructor'
+14130cc30	MRECmpImpl::`scalar_deleting_destructor'
+1413211b0	MRECmpImpl::`scalar_deleting_destructor'
+141331270	MRECmpImpl::`scalar_deleting_destructor'
+141347ac0	MRECmpImpl::`scalar_deleting_destructor'
+141349160	MRECmpImpl::`scalar_deleting_destructor'
+141391620	tls_callback_1
+1413cb320	Concurrency::details::UMSFreeThreadProxyFactory::`scalar_deleting_destructor'
+1414113d0	MRECmpImpl::`scalar_deleting_destructor'
+141411580	MRECmpImpl::`scalar_deleting_destructor'
+14141fc40	Concurrency::details::UMSFreeThreadProxy::`scalar_deleting_destructor'
+141614b50	Concurrency::details::platform::WaiterThread::`scalar_deleting_destructor'
+14164a690	Session_SendStanceRequest_200
+141683d00	ClientWorld_LoadArea
+141685d80	world_construct_client
+1416b2520	Render: apply visibility to the AO scene node (+0x39a disabled flag)
+1416fcd40	Player_SimulationHandler
+1418a5e40	Concurrency::details::UMSFreeThreadProxyFactory::`scalar_deleting_destructor'
+14192fab0	GEAL EnableRendering lambda body
+1419453d0	[NETWORKING] networking_type option reader
+141986320	Action_GetPathRequest
+14198a1b0	(action vfunc +0xe0, the factor)
+14198a280	Action_GetSpeedAccelerationPerSecond
+1419ea9b0	MRECmpImpl::`scalar_deleting_destructor'
+141a48d80	Action_OnAnimationEvent (~800 vtables)
+141ab58f0	DodgeRoll_OnStart
+141ab5dc0	DodgeRoll_OnAnimationEvent
+141ab62e0	DodgeRoll_OnEnd
+141ab6640	dodge_roll_travel_distance getter
+141ab66d0	DodgeRoll_StartSprint
+141b853c0	sprint end check ([rules](../protocol/movement.md#coasting-after-a-sprint))
+141b85730	SprintPart_Start
+141b859c0	sprint end: ends Move, stops the entity (0x141df23c0), plays SprintEnd (0x36a, B
+141b89160	MRECmpImpl::`scalar_deleting_destructor'
+141b95ba0	
+141b9a3c0	DodgeRoll_InitHeading
+141b9a5c0	DodgeRollMove_Start
+141b9ad40	DodgeRollMove_Tick
+141b9ae10	DodgeRollMove_Step
+141b9b2f0	DodgeRollMove_Stop
+141b9b370	DodgeRollMove_SwitchAnimation
+141b9b590	DodgeRollMove_DistanceLeft
+141b9b620	DodgeRollMove_Target
+141b9b810	DodgeRollMove_Goal
+141b9ba60	DodgeRollMove_ReloadCurve
+141b9bb10	DodgeRoll_OnStatChanged
+141b9bd90	DodgeRollMove_Speed
+141b9c270	MRECmpImpl::`scalar_deleting_destructor'
+141b9e440	DodgeRollMove_CheckClearCells
+141b9e680	DodgeRollMove_ClipToWalkable
+141cde7c0	MoveAction_Create
+141d1ad00	
+141d21100	Terrain_TileHash
+141d31440	MRECmpImpl::`scalar_deleting_destructor'
+141d50e30	animation controller: play animation (index, ...)
+141d520f0	AnimationController_Tick
+141d52290	AnimPlayer_Advance
+141d6a2f0	MRECmpImpl::`scalar_deleting_destructor'
+141d7fe90	Buff_ReadBody
+141d90030	InventoriesComponent_Read
+141d962e0	pool reader: wire u32 to +0x38, then 0x141d98e70 (u32 to +0x18, i16 to +0x1c), t
+141d996d0	Life component reader. Pools: life +0x1a8, mana +0x200, +0x240 (read as energy s
+141db4b30	Animated animation-event handler (type 0x12 MoveEventType -> 0x141f6de70)
+141db5230	animation change: stops it
+141dc24f0	BuffsComponent_Read
+141dd5170	
+141dd8c80	Pathfinding_IsArrived
+141dd93a0	Pathfinding_FollowPath
+141dd9580	Pathfinding_StepAlongPath
+141dd98d0	Pathfinding_SprintTurnWaypoint
+141dd9b10	Pathfinding_Plan
+141dd9f30	Pathfinding_EndPath
+141dda220	Pathfinding_OnLineDone
+141dda2f0	Pathfinding_Tick
+141dda410	Pathfinding_GetSpeed
+141dda5a0	Pathfinding_SetSpeedMultiplier
+141dda610	Pathfinding component constructor (+0x550 base speed, +0x55c multiplier)
+141ddc9b0	PlayerComponent_Read
+141dde0c0	PlayerComponent_ReadDelta
+141de1920	Player_ApplyServerSkillUse
+141de1a80	Player_ApplyServerSkillTarget
+141de1bd0	Player_ClearHeldSkill
+141de1cc0	Player_ApplyServerSkillRelease
+141de1e90	Player vfunc +0x138: set combat stance (+0x20d); +0x20c is the networked byte
+141de5ed0	Positioned initial data (facing +0x44c, flags0 bit 7 -> lock)
+141de7cf0	Positioned simulation handler: 0x1dd/0x1de position, **0x1df SetOrientation (f32
+141de8c20	SetLocationForcedNoCallbacks (stops a running move, 0x141df3530)
+141de9d50	Positioned::SetOrientation(angle): writes +0x44c (radians, atan2(dy, dx) + π/2) 
+141de9f00	Positioned_RunLine
+141dea4f0	Positioned_CheckStep
+141deb1f0	Positioned_ApplyStep
+141deb5c0	Positioned_SetMoveCurve
+141deb920	Positioned_SetMoveCurveTime
+141df0780	Positioned_MoveToWaypoint: movement step, turns toward the path (orientation mod
+141df2770	Positioned_ReissueAtSpeed
+141df3530	Positioned_StopMove
+141df3610	Positioned_RootOffsetToCell
+141e07c40	StateMachine reader (shared-state count check)
+141e09d30	Stats_SetCurrentWeaponSet
+141e4d280	Actor_QueueAction
+141e4e0f0	Actor_CanStartAction
+141e4ecd0	Actor_StartQueuedAction
+141e4fde0	Actor_InstallQueuedMove
+141e501c0	Actor_ApplyActionSpeedFactor
+141e50320	Actor_ActionSpeedFactorBackTo1
+141e50440	Actor_SetActionSpeedFactorNow
+141e508c0	Actor_PlanMove
+141e521c1	(inside the Actor tick 0x141e50c70)
+141e54010	Actor_EndMoveAction
+141e5bdd0	Actor_OnPathStarted
+141e5c210	movement reset / stat listener: stops Move when Actor +0x2a1 bit 2 is set
+141e5c990	Actor_OnPathArrived
+141e5ddb0	Actor_StartWasdWalk
+141e5e590	Actor_ReaimWasdWalk
+141e618a0	Actor RecalculateStance ("Aiming", "AimingUpwards", "Ranged", "Mounted", "Unarme
+141e64d50	SelectAnimationVariationForMovementSpeed
+141e6b880	Actor "is sprinting": Actor +0x915 or the stat is_sprinting
+141e7f510	Entity_ReadInitialState
+141e7f810	Entity_ReadLinkRecords
+141e7fa10	Entity_Destroy
+141e80c70	object registry insert ("Replacing awake/asleep/deleted object")
+141e82310	Entity_LeaveWakeZone
+141e8cec0	LinkRecord_ReadValues
+141e97620	create an action from an actor skill
+141ed6690	Line_Advance
+141ed6780	
+141ed6a50	Line_Setup
+141ed7060	Line_Step
+141ed72b0	Line_End
+141ed8ba0	
+141eda8f0	MoveCurve_Load
+141edaac0	MoveCurve_SetTime
+141edab30	MoveCurve_Advance
+141edaee0	MoveCurve_Value
+141edb070	MoveCurve_LinearValue
+141edb540	MoveCurve_SegmentValue
+141edc230	SkillUseParams_Write
+141edc330	SkillUseParams_Read
+141edc420	
+141edc580	
+141ede8c0	Pathfinder_Plan
+141ee11a0	
+141ee1360	
+141ee1c90	
+141eeab30	
+141eeadc0	
+141f0d870	
+141f1bdd0	UniformInt_Draw
+141f445c0	SocialEntryPacket_Read
+141f464c0	MRECmpImpl::`scalar_deleting_destructor'
+141f466f0	MRECmpImpl::`scalar_deleting_destructor'
+141f4b270	MRECmpImpl::`scalar_deleting_destructor'
+141f4cc30	MRECmpImpl::`scalar_deleting_destructor'
+141f4ce80	MRECmpImpl::`scalar_deleting_destructor'
+141f4de40	MRECmpImpl::`scalar_deleting_destructor'
+141f4e780	MRECmpImpl::`scalar_deleting_destructor'
+141f51ea0	MRECmpImpl::`scalar_deleting_destructor'
+141f53690	MRECmpImpl::`scalar_deleting_destructor'
+141f53890	
+141f53da0	MRECmpImpl::`scalar_deleting_destructor'
+141f542a0	MRECmpImpl::`scalar_deleting_destructor'
+141f54f30	MRECmpImpl::`scalar_deleting_destructor'
+141f557e0	MRECmpImpl::`scalar_deleting_destructor'
+141f55c30	MRECmpImpl::`scalar_deleting_destructor'
+141f56790	MRECmpImpl::`scalar_deleting_destructor'
+141f56be0	MRECmpImpl::`scalar_deleting_destructor'
+141f5a0b0	SimMsg_ReadHeader
+141f6e020	MoveEvent_Start
+141f6f9d0	MoveEvent_GetTargetCell
+141f707b0	MoveEvent_MovePositioned
+141f71f30	MoveEvent_ClipToWalkable
+141f77990	MRECmpImpl::`scalar_deleting_destructor'
+141f77a90	MRECmpImpl::`scalar_deleting_destructor'
+141f77f50	MRECmpImpl::`scalar_deleting_destructor'
+141f781d0	S->C 0x1c8 StartAction reader
+141f79a20	0x1df reader
+141f79c00	S->C 0x64 MoveDirectionUpdate reader
+141f7a710	BuffAdded_1eb_Read
+141f7acc0	BuffRemoved_1ec_Read
+141f7c040	SkillTargetAck_1af_Read
+141f9a260	RoomSet_GetFeatureRooms
+141fa9c50	RoomSet_GetExactRooms
+141faa410	RoomSet_GetPossibleRooms_Exits
+141faab40	TerrainRng_Seed
+141faad90	TerrainRng_Below
+141faae60	TerrainRng_Range
+141ffe550	TerrainGen_Construct
+142001e40	TerrainGen_TileDoodads
+142004080	TerrainGen_Doodads
+1420062a0	TerrainGen_AddObject
+142007db0	terrain_topology_pick
+14200af90	TerrainGen_Layout
+14200d570	TerrainGen_Run
+1420ac520	dungeon door groups: door sizes per edge set 0x141d16630 (sets built by 0x141d16
+1420ae3f0	dungeon border tile placement; fallbacks: middle exits 0x1420aedb0, height flatt
+1420b1310	dungeon exit wiggle (after the fill): sorted position set at tile pass +0xb0, fi
+1420e9ba0	Dungeon_EdgeLambda
+1420f26b0	MRECmpImpl::`scalar_deleting_destructor'
+1420f2880	MRECmpImpl::`scalar_deleting_destructor'
+1420f2b00	MRECmpImpl::`scalar_deleting_destructor'
+1420f2f30	Packet0003_Credentials_Serialize
+1420f3280	MRECmpImpl::`scalar_deleting_destructor'
+1420f34a0	MRECmpImpl::`scalar_deleting_destructor'
+1420f5f90	login session receive loop (caller of the message reader on the login connection
+1420f6950	LoginClientHash_Get32
+1420f6ec0	ClientLoginSession_SendCredentials_0003
+1420f71d0	ClientLoginSession_SendSteamTicket_0005
+1420f7500	ClientLoginSession_ProcessPacket: login message switch (opcode - 2); case 0x14 I
+1420f7563	login packet dispatcher switch (ClientLoginSession?), opcodes 0x02-0x47; opcode 
+1420f7575	login dispatch switch (opcode - 2; byte table 0x1420f8d90, targets 0x1420e9de4);
+1420fb0f0	MRECmpImpl::`scalar_deleting_destructor'
+1420fcef0	InitialState CharacterState flags -> local player (+0x3eca..+0x3ede)
+1420fdd95	
+142112020	loader for server-delivered encrypted code modules ([crypto.md](crypto.md))
+142115810	
+142115e50	Session_HandleAccountMessage
+14211aa60	Social_AddPartyInvitation
+14211c9e0	Chat_ProcessCommand
+14211e210	chat sender (0x16, wstring; "@whisper")
+14211ecd0	Session_SendUseSkill_1a5
+14211ef60	
+14211f110	Session_SendSkillInputEnd_1ac
+14211f190	Session_SendSkillReleased_1ad
+14211fbe0	Social_SendPartyInvite
+14211fe80	Social_SendPartyDecline
+142122c50	Game_SendMoveDirection_63
+142124240	Session_CycleWeaponSet
+1421243b0	Session_SendWeaponSetSwap_fe
+14212af90	instance packet-cipher builder (out, InstanceDetails + 0x38, &is_client), only c
+14212c770	AreaInfo reader: optional blocks by flags0/flags1 bits; flags0 bit 7: stat recor
+14212d160	instance server connect ("Connecting to instance server at {}:{} " 0x14351d990)
+14212eb60	logout routine ("FourLogOut"): 0 / 2 = exit to login / game, 1 = exit to charact
+14212eea0	game-session send (packet->vtable[1](packet, stream)); senders build the packet 
+14212f0f0	sends 0x358 ExitReport (once per session); 0x141f561b0 serializer u8, u16 len, b
+142130190	game session update / instance session receive loop: frame reports, auto network
+142130804	0x1c frame report sender; 0x141f57120 its serializer
+14213e0e0	
+14213eab0	HeadlessWorld_LoadArea
+14213f1c0	world start (InitialState vfunc +0x1f0): applies all queued packets
+14213f790	flush packets scheduled at the current (entity, component, sequence) position
+14213f870	game world update in frame mode (world, ctx, f32 real dt): plays queued frames i
+14213fc70	world frame drain (world, f32 frame_dt): pops one frame length (deque world +0x6
+1421401b0	world vfunc +0x3c8: visual update job (dt, played simulation time)
+142143750	simulation packet queue (param = world +0x260): 0x2f7 pushes a separator and wor
+142146810	frame-mode entity update loop (component vfunc +0x50, then 0x141e8bce0)
+142158ee0	Actor component simulation handler: 0x64 WASD, 0x65, 0x1c8 start action, 0x1c9..
+1421599de	
+142159b8a	Actor 0x1cc (u16 action id, u8) -> Actor vfunc +0x130 (end action?)
+142159ca0	Actor 0x1fc (f32, u16) -> Actor vfunc +0x100
+14215d1b0	MRECmpImpl::`scalar_deleting_destructor'
+14215dd90	MRECmpImpl::`scalar_deleting_destructor'
+14215e230	MRECmpImpl::`scalar_deleting_destructor'
+14215e7b0	MRECmpImpl::`scalar_deleting_destructor'
+14215eaa0	MRECmpImpl::`scalar_deleting_destructor'
+14215f340	MRECmpImpl::`scalar_deleting_destructor'
+14215f380	login incoming-packet factory (opcode -> class); 0x13 CharacterCreated class 0x1
+1421608d0	MRECmpImpl::`scalar_deleting_destructor'
+142160f30	MRECmpImpl::`scalar_deleting_destructor'
+142161a90	MRECmpImpl::`scalar_deleting_destructor'
+142163300	MRECmpImpl::`scalar_deleting_destructor'
+142163b80	MRECmpImpl::`scalar_deleting_destructor'
+1421652c0	MRECmpImpl::`scalar_deleting_destructor'
+142165630	MRECmpImpl::`scalar_deleting_destructor'
+142165cb0	
+142166580	MRECmpImpl::`scalar_deleting_destructor'
+142166c80	MRECmpImpl::`scalar_deleting_destructor'
+142166ff0	MRECmpImpl::`scalar_deleting_destructor'
+1421675b0	MRECmpImpl::`scalar_deleting_destructor'
+142168200	MRECmpImpl::`scalar_deleting_destructor'
+14216a180	MRECmpImpl::`scalar_deleting_destructor'
+14216b0b0	MRECmpImpl::`scalar_deleting_destructor'
+14216b280	MRECmpImpl::`scalar_deleting_destructor'
+14216b530	MRECmpImpl::`scalar_deleting_destructor'
+14216c2e0	MRECmpImpl::`scalar_deleting_destructor'
+14216d5f0	MRECmpImpl::`scalar_deleting_destructor'
+14216ddb0	MRECmpImpl::`scalar_deleting_destructor'
+142172280	MRECmpImpl::`scalar_deleting_destructor'
+142174820	MRECmpImpl::`scalar_deleting_destructor'
+1421756e0	MRECmpImpl::`scalar_deleting_destructor'
+142175e60	MRECmpImpl::`scalar_deleting_destructor'
+1421762e0	MRECmpImpl::`scalar_deleting_destructor'
+1421785c0	MRECmpImpl::`scalar_deleting_destructor'
+142178f20	MRECmpImpl::`scalar_deleting_destructor'
+142179fd0	MRECmpImpl::`scalar_deleting_destructor'
+14217b270	MRECmpImpl::`scalar_deleting_destructor'
+14217baa0	MRECmpImpl::`scalar_deleting_destructor'
+14217c350	MRECmpImpl::`scalar_deleting_destructor'
+14217c870	MRECmpImpl::`scalar_deleting_destructor'
+14217d230	MRECmpImpl::`scalar_deleting_destructor'
+14217dc20	MRECmpImpl::`scalar_deleting_destructor'
+14217e1d0	MRECmpImpl::`scalar_deleting_destructor'
+14217fe10	MRECmpImpl::`scalar_deleting_destructor'
+142180260	MRECmpImpl::`scalar_deleting_destructor'
+142191360	StatsComponent_Read
+1421922a0	Stats component message handler: 0x1d3 StatsUpdate (set 0 -> container at compon
+142194620	S->C 0x1fe SetPause reader; applied via world vfunc +0x200 0x141693610
+1421949d0	MRECmpImpl::`scalar_deleting_destructor'
+142195550	MRECmpImpl::`scalar_deleting_destructor'
+1421963d0	MRECmpImpl::`scalar_deleting_destructor'
+142196b80	UseSkillAck_1ae_Read
+142196c60	
+14219abd0	Actor skill container reader; 0x14219b330 skill list; 0x142198f50 one skill
+1421a3470	
+1421a52e0	Murmur2_Bytes
+1421a7210	ClientPlatform_Detect
+1421a7680	ClientPlatform_Equals
+1421a8080	stream read (stream, dst, len): copies from the receive ring at +0x268 + +0x278 
+1421a81b0	stream write (stream, src, len): appends to the send buffer (+0x280, length +0x2
+1421a8310	stream flush (stream, err, force): plaintext tap (+0x190), cipher (+0x1b8 slot 1
+1421a8387	inside the flush, after the lock, before the cipher: pending plaintext [+0x280] 
+1421a8880	installs a cipher on a Tcpstream
+1421adf90	crypto session constructor (DH groups, DSA key, "#2")
+1421af190	crypto: DH2 agree + SHA-512 -> 64-byte key material ("#1")
+1421af360	crypto: verify server signature + derive keys ("General Rhoa Failure #3"), hooke
+1421af700	builds the two-direction Salsa20 cipher from the key material
+1421b4490	MRECmpImpl::`scalar_deleting_destructor'
+1421cc0c0	Sha256_Bytes32
+1421d54f0	HNC bit queue: key material XOR table 0x142f24a50 + swaps, Salsa20 pair
+1421d57a0	HNC incoming byte parser ("HNC Protocol Violated")
+1421d5d90	message reader (registry, stream): reads the opcode, lets the registered handler
+1421e7270	resource_wait_loaded
+1421fe950	StandalonePatcher_GetErrorText
+1423dc740	CmdLine_ParseArgs
+1423dd6c0	
+1423e07b0	LoginCredentials_GetFilePath
+1423e0940	LoginCredentials_Load32
+1423e0a30	LoginCredentials_Save32
+1425dcca0	BackendError_GetText
+142610620	CharacterPortrait_GetIconPath
+1426befa0	stat container set (container, key, value): sorted (i32 key, i32 value) array at
+1426d6600	EquipmentVisual_Read
+142704960	GEAL script interpreter loop
+142728c00	CharacterEntries_Read
+142749d60	Patcher_RunPatching
+142768850	MRECmpImpl::`scalar_deleting_destructor'
+142768890	MRECmpImpl::`scalar_deleting_destructor'
+142776060	MRECmpImpl::`scalar_deleting_destructor'
+14277b950	MRECmpImpl::`scalar_deleting_destructor'
+1427c1630	UI element SetVisible (element, bool) (signature ui_set_visible, feature ui_pane
+142860810	MRECmpImpl::`scalar_deleting_destructor'
+142860850	MRECmpImpl::`scalar_deleting_destructor'
+142860930	MRECmpImpl::`scalar_deleting_destructor'
+142880c30	Concurrency::details::UMSFreeThreadProxyFactory::`scalar_deleting_destructor'
+142b158f0	Crypto++ Salsa20 key setup
+142b3be5c	DelayLoad_FMOD_Memory_Initialize
+142b3be68	DelayLoad_?createStream@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEBDIPEAUFMOD_CREATESOUNDEXINFO@@PEAPEAVSound@2@@Z
+142b3be74	DelayLoad_?setCallback@System@FMOD@@QEAA?AW4FMOD_RESULT@@P6A?AW43@PEAUFMOD_SYSTEM@@IPEAX11@ZI@Z
+142b3be80	DelayLoad_?setAdvancedSettings@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEAUFMOD_ADVANCEDSETTINGS@@@Z
+142b3be8c	DelayLoad_?setSoftwareChannels@System@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
+142b3be98	DelayLoad_?getDriver@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEAH@Z
+142b3bea4	DelayLoad_?setDriver@System@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
+142b3beb0	DelayLoad_?getDriverInfo@System@FMOD@@QEAA?AW4FMOD_RESULT@@HPEADHPEAUFMOD_GUID@@PEAHPEAW4FMOD_SPEAKERMODE@@2@Z
+142b3bebc	DelayLoad_?getNumDrivers@System@FMOD@@QEAA?AW4FMOD_RESULT@@PEAH@Z
+142b3bec8	DelayLoad_?getLength@Sound@FMOD@@QEAA?AW4FMOD_RESULT@@PEAII@Z
+142b3bed4	DelayLoad_?release@Sound@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b3bee0	DelayLoad_?getDSP@ChannelControl@FMOD@@QEAA?AW4FMOD_RESULT@@HPEAPEAVDSP@2@@Z
+142b3beec	DelayLoad_?getMeteringInfo@DSP@FMOD@@QEAA?AW4FMOD_RESULT@@PEAUFMOD_DSP_METERING_INFO@@0@Z
+142b3bef8	DelayLoad_?setMeteringEnabled@DSP@FMOD@@QEAA?AW4FMOD_RESULT@@_N0@Z
+142b3bf04	DelayLoad_FMOD_Memory_GetStats
+142b9efdb	DelayLoad_D3D11CreateDevice
+142b9f060	DelayLoad_EOS_Logging_SetCallback
+142b9f06c	DelayLoad_EOS_Auth_Login
+142b9f078	DelayLoad_EOS_Logging_SetLogLevel
+142b9f084	DelayLoad_EOS_Shutdown
+142b9f090	DelayLoad_EOS_Initialize
+142b9f09c	DelayLoad_EOS_EResult_ToString
+142b9f0a8	DelayLoad_EOS_Platform_CheckForLauncherAndRestart
+142b9f0b4	DelayLoad_EOS_Platform_GetAuthInterface
+142b9f0c0	DelayLoad_EOS_Platform_GetActiveLocaleCode
+142b9f0cc	DelayLoad_EOS_Auth_Token_Release
+142b9f0d8	DelayLoad_EOS_Auth_CopyUserAuthToken
+142b9f0e4	DelayLoad_EOS_Platform_SetNetworkStatus
+142b9f0f0	DelayLoad_EOS_Platform_Tick
+142b9f0fc	DelayLoad_EOS_EpicAccountId_IsValid
+142b9f108	DelayLoad_EOS_Platform_SetApplicationStatus
+142b9f114	DelayLoad_EOS_Platform_Create
+142b9f120	DelayLoad_EOS_Platform_Release
+142b9f12c	DelayLoad_EOS_Ecom_Checkout
+142b9f138	DelayLoad_EOS_Ecom_Transaction_CopyEntitlementByIndex
+142b9f144	DelayLoad_EOS_Ecom_CopyOfferByIndex
+142b9f150	DelayLoad_EOS_Platform_GetEcomInterface
+142b9f15c	DelayLoad_EOS_Ecom_CopyItemById
+142b9f168	DelayLoad_EOS_Ecom_CatalogItem_Release
+142b9f174	DelayLoad_EOS_Ecom_CopyTransactionById
+142b9f180	DelayLoad_EOS_Ecom_Transaction_GetEntitlementsCount
+142b9f18c	DelayLoad_EOS_Ecom_QueryEntitlements
+142b9f198	DelayLoad_EOS_Ecom_GetOfferCount
+142b9f1a4	DelayLoad_EOS_Ecom_Entitlement_Release
+142b9f1b0	DelayLoad_EOS_Ecom_Transaction_Release
+142b9f1bc	DelayLoad_EOS_Ecom_CatalogOffer_Release
+142b9f1c8	DelayLoad_EOS_Ecom_QueryOffers
+142b9f1d4	DelayLoad_EOS_Ecom_CopyEntitlementByIndex
+142b9f1e0	DelayLoad_EOS_EpicAccountId_ToString
+142b9f1ec	DelayLoad_EOS_Ecom_GetEntitlementsCount
+142b9f271	DelayLoad_SteamAPI_UnregisterCallback
+142b9f27d	DelayLoad_SteamInternal_ContextInit
+142b9f289	DelayLoad_SteamAPI_Shutdown
+142b9f295	DelayLoad_SteamAPI_GetHSteamUser
+142b9f2a1	DelayLoad_SteamInternal_CreateInterface
+142b9f2ad	DelayLoad_SteamAPI_RegisterCallback
+142b9f2b9	DelayLoad_SteamAPI_RestartAppIfNecessary
+142b9f2c5	DelayLoad_SteamAPI_Init
+142b9f2d1	DelayLoad_SteamInternal_FindOrCreateUserInterface
+142b9f2dd	DelayLoad_SteamAPI_RunCallbacks
+142b9f2e9	DelayLoad_SteamAPI_RegisterCallResult
+142b9f2f5	DelayLoad_SteamAPI_UnregisterCallResult
+142b9f37a	DelayLoad_?setUserData@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEAX@Z
+142b9f386	DelayLoad_?getUserData@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAX@Z
+142b9f392	DelayLoad_?setCallback@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@P6A?AW44@IPEAUFMOD_STUDIO_EVENTINSTANCE@@PEAX@ZI@Z
+142b9f39e	DelayLoad_?keyOff@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b9f3aa	DelayLoad_?setParameterByID@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@UFMOD_STUDIO_PARAMETER_ID@@M_N@Z
+142b9f3b6	DelayLoad_?release@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b9f3c2	DelayLoad_?getChannelGroup@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAVChannelGroup@3@@Z
+142b9f3ce	DelayLoad_?getPlaybackState@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAW4FMOD_STUDIO_PLAYBACK_STATE@@@Z
+142b9f3da	DelayLoad_?setTimelinePosition@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
+142b9f3e6	DelayLoad_?getTimelinePosition@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
+142b9f3f2	DelayLoad_?stop@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@W4FMOD_STUDIO_STOP_MODE@@@Z
+142b9f3fe	DelayLoad_?start@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b9f40a	DelayLoad_?set3DAttributes@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEBUFMOD_3D_ATTRIBUTES@@@Z
+142b9f416	DelayLoad_?get3DAttributes@EventInstance@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAUFMOD_3D_ATTRIBUTES@@@Z
+142b9f422	DelayLoad_?setVolume@EventInstance@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z
+142b9f42e	DelayLoad_?isValid@EventInstance@Studio@FMOD@@QEBA_NXZ
+142b9f43a	DelayLoad_?getLoadingState@Bank@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAW4FMOD_STUDIO_LOADING_STATE@@@Z
+142b9f446	DelayLoad_?unload@Bank@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b9f452	DelayLoad_?getParameterDescriptionList@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAUFMOD_STUDIO_PARAMETER_DESCRIPTION@@HPEAH@Z
+142b9f45e	DelayLoad_?loadBankCustom@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEBUFMOD_STUDIO_BANK_INFO@@IPEAPEAVBank@23@@Z
+142b9f46a	DelayLoad_?setListenerWeight@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@HM@Z
+142b9f476	DelayLoad_?setListenerAttributes@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@HPEBUFMOD_3D_ATTRIBUTES@@PEBUFMOD_VECTOR@@@Z
+142b9f482	DelayLoad_?setNumListeners@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@H@Z
+142b9f48e	DelayLoad_?lookupID@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAUFMOD_GUID@@@Z
+142b9f49a	DelayLoad_?setParameterByID@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@UFMOD_STUDIO_PARAMETER_ID@@M_N@Z
+142b9f4a6	DelayLoad_?getSoundInfo@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAUFMOD_STUDIO_SOUND_INFO@@@Z
+142b9f4b2	DelayLoad_?getVCA@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAPEAVVCA@23@@Z
+142b9f4be	DelayLoad_?getEvent@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAPEAVEventDescription@23@@Z
+142b9f4ca	DelayLoad_?getCoreSystem@System@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAV13@@Z
+142b9f4d6	DelayLoad_?update@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b9f4e2	DelayLoad_?release@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@XZ
+142b9f4ee	DelayLoad_?initialize@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@HIIPEAX@Z
+142b9f4fa	DelayLoad_?setAdvancedSettings@System@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@PEAUFMOD_STUDIO_ADVANCEDSETTINGS@@@Z
+142b9f506	DelayLoad_?create@System@Studio@FMOD@@SA?AW4FMOD_RESULT@@PEAPEAV123@I@Z
+142b9f512	DelayLoad_?setVolume@VCA@Studio@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z
+142b9f51e	DelayLoad_?getInstanceCount@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
+142b9f52a	DelayLoad_?createInstance@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAPEAVEventInstance@23@@Z
+142b9f536	DelayLoad_?hasSustainPoint@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEA_N@Z
+142b9f542	DelayLoad_?isStream@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEA_N@Z
+142b9f54e	DelayLoad_?isOneshot@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEA_N@Z
+142b9f55a	DelayLoad_?getLength@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
+142b9f566	DelayLoad_?getUserProperty@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEBDPEAUFMOD_STUDIO_USER_PROPERTY@@@Z
+142b9f572	DelayLoad_?getParameterDescriptionByIndex@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@HPEAUFMOD_STUDIO_PARAMETER_DESCRIPTION@@@Z
+142b9f57e	DelayLoad_?getParameterDescriptionCount@EventDescription@Studio@FMOD@@QEBA?AW4FMOD_RESULT@@PEAH@Z
+142b9f58a	DelayLoad_?isValid@EventDescription@Studio@FMOD@@QEBA_NXZ
+142b9f598	DloadAcquireSectionWriteAccess
+142b9f6e4	DloadMakePermanentImageCommit
+142b9f818	DloadProtectSection
+142b9f8a8	DloadReleaseSectionWriteAccess
+142b9fd5c	std::shared_ptr<_EXCEPTION_RECORD_const_>::operator=
+142b9ff30	FID_conflict:`scalar_deleting_destructor'
+142ba035c	_CallMemberFunction2
+142ba036c	_anon_13FC80AB::_CopyExceptionObject
+142ba053c	__ExceptionPtrCopy
+142ba059c	__ExceptionPtrCurrentException
+142ba0860	Concurrency::details::_ContextCallback::_CallInContext
+142ba094c	Get_STL_host_status
+142ba09b0	Concurrency::details::_Reschedule_chore
+142ba09e8	Concurrency::details::_Schedule_chore
+142ba0de0	_Mbrtowc
+142ba1218	_Xtime_get_ticks
+142ba31b8	std::_Init_locks::_Init_locks
+142ba31fc	std::_Lockit::_Lockit
+142ba3274	std::_Lockit::~_Lockit
+142ba34b8	std::regex_error::regex_error
+142ba35a4	std::regex_error::_Stringify
+142ba376c	std::locale::_Locimp::_Locimp
+142ba37e8	std::locale::_Locimp::_Locimp
+142ba3870	std::locale::_Locimp::`scalar_deleting_destructor'
+142ba38cc	std::_Facet_Register
+142ba3a7c	std::_Locinfo::_Locinfo_ctor
+142ba3ae8	std::_Locinfo::_Locinfo_dtor
+142ba3b04	std::locale::_Locimp::_New_Locimp
+142ba3b38	std::locale::_Locimp::_New_Locimp
+142ba3bc0	_Deletegloballocale
+142ba3cb8	std::ios_base::_Ios_base_dtor
+142ba3eec	_Getwctype
+142ba430c	_Getcvt
+142ba43a4	_Wcrtomb
+142ba4608	_Wcscoll
+142ba46ec	_Getcoll
+142ba4720	_Strcoll
+142ba4a00	_Stolx
+142ba50bc	std::locale::_Locimp::_Locimp_ctor
+142ba5298	std::_Locinfo::_Locinfo_ctor
+142ba5840	basic_filebuf<>
+142ba5df4	__std_fs_open_handle
+142ba639c	__crtLCMapStringW
+142ba6720	__crtCompareStringW
+142ba7f8c	std::_Mpunct<unsigned_short>::_Getvals<unsigned_short>
+142ba807c	std::numpunct<unsigned_short>::_Getvals<unsigned_short>
+142ba8204	_Hash_array_representation<>
+142ba8278	std::_LStrxfrm<unsigned_short>
+142bac290	~_Tidy_guard<>
+142bac7e4	Ffmt
+142bacb6c	Getcat
+142bacc28	Getcat
+142bacce4	Getcat
+142bacda0	Getcat
+142bace5c	Getcat
+142bacf18	Getcat
+142bacfd4	Getcat
+142bad0ac	Getcat
+142bad184	Getcat
+142bad25c	Getcat
+142bad334	Getcat
+142bad3f0	Getcat
+142bad4ac	Getcat
+142bad574	Getcat
+142baff40	FID_conflict:_Getvals
+142baffc8	Inc
+142bb3178	Rep
+142bb3228	Rep
+142bb359c	do_compare
+142bb5df4	do_hash
+142bb5e08	do_in
+142bb5eb4	do_length
+142bb5fa8	do_narrow
+142bb78f0	do_put
+142bb8010	do_scan_is
+142bb8074	do_scan_not
+142bb832c	do_unshift
+142bb83d0	std::ctype<unsigned_short>::do_widen
+142bb8414	std::ctype<unsigned_short>::do_widen
+142bb848c	equal
+142bb8c34	std::_Mpunct<char>::_Getvals<char>
+142bb9684	Getcat
+142bb9740	Getcat
+142bb97fc	Getcat
+142bb98b8	Getcat
+142bb9990	Getcat
+142bb9a68	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getcat
+142bbe0b4	tls_callback_2
+142bbe11c	__dyn_tls_on_demand_init
+142bbe168	_Init_thread_footer
+142bbe24c	`eh_vector_destructor_iterator'
+142bbe2b8	__ArrayUnwind
+142bbe31c	__scrt_acquire_startup_lock
+142bbe394	__scrt_initialize_onexit_tables
+142bbe4b8	__scrt_release_startup_lock
+142bbe4dc	__scrt_uninitialize_crt
+142bbe508	_onexit
+142bbe544	atexit
+142bbe588	`eh_vector_constructor_iterator'
+142bbe5f8	tls_callback_3
+142bbe73c	`eh_vector_copy_constructor_iterator'
+142bbe894	__scrt_common_main_seh
+142bbea08	entry
+142bbecf8	__GSHandlerCheck
+142bbed18	__GSHandlerCheckCommon
+142bbed90	__security_check_cookie
+142bbedc0	__chkstk
+142bbee10	__raise_securityfailure
+142bbefcc	capture_current_context
+142bbf03c	capture_previous_context
+142bbf0b0	FID_conflict:__GSHandlerCheck_EH
+142bbf130	__scrt_is_ucrt_dll_in_use
+142bbf28c	__scrt_get_show_window_mode
+142bbf390	__security_init_cookie
+142bd89c0	tls_callback_0
+142bd89d0	tls_callback_4
+142c10577	DelayLoad_Ordinal_101
+142c105fc	DelayLoad_vkGetImageMemoryRequirements
+142c10608	DelayLoad_vkBindImageMemory
+142c10614	DelayLoad_vkFreeMemory
+142c10620	DelayLoad_vkCmdCopyBuffer
+142c1062c	DelayLoad_vkGetPhysicalDeviceMemoryProperties
+142c10638	DelayLoad_vkUnmapMemory
+142c10644	DelayLoad_vkCreateBuffer
+142c10650	DelayLoad_vkFlushMappedMemoryRanges
+142c1065c	DelayLoad_vkGetDeviceProcAddr
+142c10668	DelayLoad_vkDestroyBuffer
+142c10674	DelayLoad_vkAllocateMemory
+142c10680	DelayLoad_vkBindBufferMemory
+142c1068c	DelayLoad_vkGetInstanceProcAddr
+142c10698	DelayLoad_vkGetPhysicalDeviceProperties
+142c106a4	DelayLoad_vkInvalidateMappedMemoryRanges
+142c106b0	DelayLoad_vkDestroyImage
+142c106bc	DelayLoad_vkCreateImage
+142c106c8	DelayLoad_vkMapMemory
+142c106d4	DelayLoad_vkGetBufferMemoryRequirements
+142c24bf6	DelayLoad_BinkPause
+142c24c02	DelayLoad_BinkDoFrameAsyncWait
+142c24c0e	DelayLoad_BinkRequestStopAsyncThreadsMulti
+142c24c1a	DelayLoad_BinkSetVolume
+142c24c26	DelayLoad_BinkNextFrame
+142c24c32	DelayLoad_BinkSetWillLoop
+142c24c3e	DelayLoad_BinkWaitStopAsyncThreadsMulti
+142c24c4a	DelayLoad_BinkOpenDirectSound
+142c24c56	DelayLoad_BinkShouldSkip
+142c24c62	DelayLoad_BinkDoFrameAsyncMulti
+142c24c6e	DelayLoad_BinkStartAsyncThread
+142c24c7a	DelayLoad_BinkSetSoundSystem
+142c24c86	DelayLoad_BinkCurrentSubtitle
+142c24c92	DelayLoad_BinkSetMemory
+142c24c9e	DelayLoad_BinkWait
+142c24caa	DelayLoad_BinkGoto
+142c24cb6	DelayLoad_BinkClose
+142c24cc2	DelayLoad_BinkOpen
+142c24cce	DelayLoad_BinkLoadSubtitles
+142c24cda	DelayLoad_BinkSetOSFileCallbacks
+142c24ce6	DelayLoad_BinkGetError
+142c24eb0	_com_error::_com_error
+142c24f30	FID_conflict:__GSHandlerCheck_EH
+142c24fb0	__GSHandlerCheck_SEH
+142c25038	_CallSETranslator<>
+142c2508c	_CallSETranslator<>
+142c252b0	__FrameHandler3::FrameUnwindToEmptyState
+142c25314	__FrameHandler4::FrameUnwindToEmptyState
+142c25418	__FrameHandler4::GetEstablisherFrame
+142c25ac4	_CreateFrameInfo
+142c25b54	_GetImageBase
+142c25b68	_GetThrowImageBase
+142c25b7c	_SetImageBase
+142c25f0c	__std_exception_copy
+142c25f9c	__std_exception_destroy
+142c261d0	__DestructExceptionObject
+142c26240	_IsExceptionObjectToBeDestroyed
+142c26270	__AdjustPointer
+142c262fc	__current_exception
+142c26324	Unwind@142c13ae4
+142c26340	__std_type_info_compare
+142c26574	set_unexpected
+142c26a28	__uncaught_exception
+142c26a48	__uncaught_exceptions
+142c26a64	__vcrt_initialize
+142c26a8c	__vcrt_uninitialize
+142c26ac8	vcrt_getptd
+142c26ae4	__vcrt_getptd_noexit
+142c26ba4	__vcrt_getptd_noinit
+142c26bf4	__vcrt_initialize_ptd
+142c26c3c	__vcrt_uninitialize_ptd
+142c26c60	__FrameHandler3::GetCurrentState
+142c26c88	__FrameHandler3::GetUnwindTryBlock
+142c26cb4	__FrameHandler3::SetState
+142c26cc0	__FrameHandler3::SetUnwindTryBlock
+142c26e64	BuildCatchObjectHelperInternal<__FrameHandler3>
+142c27064	BuildCatchObjectHelperInternal<__FrameHandler4>
+142c27268	BuildCatchObjectInternal<__FrameHandler3>
+142c27328	BuildCatchObjectInternal<__FrameHandler4>
+142c273ec	CatchIt<__FrameHandler3>
+142c274c0	CatchIt<__FrameHandler4>
+142c284cc	TypeMatchHelper<__FrameHandler3>
+142c28de0	__FrameHandler3::CxxCallCatchBlock
+142c29434	ExFilterRethrowFH4
+142c29464	__FrameHandler3::FrameUnwindToState
+142c298f8	__FrameHandler3::GetHandlerSearchState
+142c29a80	Is_bad_exception_allowed
+142c29d94	__except_validate_context_record
+142c29dcc	__except_validate_jump_buffer
+142c29e8c	pcharNode<>
+142c29f00	DName::append<pcharNode>
+142c2a148	DName::DName
+142c2a174	DName::DName
+142c2a29c	DName::DName
+142c2a3d8	operator_new
+142c2a434	Replicator::operator[]
+142c2a474	DName::operator+
+142c2a4a0	DName::operator+
+142c2a4cc	DName::operator+
+142c2a4f8	DName::operator+
+142c2a524	DName::operator+=
+142c2a5fc	DName::operator+=
+142c2a6c0	Replicator::operator+=
+142c2a718	UnDecorator::UScore
+142c2b720	DName::doPchar
+142c2be98	UnDecorator::getBasedType
+142c2cff8	UnDecorator::getDataType
+142c2db2c	UnDecorator::getExternalDataType
+142c2e298	pDNameNode::getLastChar
+142c2e2c4	pairNode::getLastChar
+142c2e310	UnDecorator::getLexicalFrame
+142c2e408	_HeapManager::getMemoryWithBuffer
+142c2e498	UnDecorator::getNoexcept
+142c2f2a4	UnDecorator::getPtrRefDataType
+142c2f834	UnDecorator::getReturnType
+142c2fe64	UnDecorator::getSignedDimension
+142c2feec	DNameStatusNode::getString
+142c2ff48	pDNameNode::getString
+142c2ff78	pairNode::getString
+142c2ffc4	pcharNode::getString
+142c3019c	UnDecorator::getSymbolName
+142c31388	UnDecorator::getVCallThunkType
+142c315c8	UnDecorator::getVdispMapType
+142c31b50	pairNode::length
+142c31dc8	__vcrt_initialize_locks
+142c31e2c	__vcrt_uninitialize_locks
+142c31fd0	__vcrt_FlsAlloc
+142c32018	__vcrt_FlsFree
+142c32060	__vcrt_FlsGetValue
+142c320a8	__vcrt_FlsSetValue
+142c320fc	__vcrt_InitializeCriticalSectionEx
+142c321a0	_CallSettingFrame
+142c32240	_CallSettingFrameEncoded
+142c325a0	_LocaleUpdate::_LocaleUpdate
+142c328f8	common_flush_all
+142c32ac0	fflush
+142c33124	_ungetwc_nolock
+142c33260	ungetwc
+142c33730	operator()<>
+142c33770	operator()<>
+142c33c6c	__crt_stdio_output::is_wide_character_specifier<wchar_t>
+142c38828	type_case_Z
+142c391b8	__acrt_stdio_char_traits<char>::validate_stream_is_ansi_if_required
+142c39254	__crt_stdio_output::string_output_adapter<char>::write_string
+142c392f8	__crt_stdio_output::string_output_adapter<wchar_t>::write_string
+142c3a21c	_fgetc_nolock
+142c3a528	fgetwc
+142c3a580	__acrt_initialize_stdio
+142c3a6a0	__acrt_iob_func
+142c3a6b4	__acrt_uninitialize_stdio
+142c3a710	_get_stream_buffer_pointers
+142c3a7a4	operator()<>
+142c3aba4	fgetpos
+142c3abf0	operator()<>
+142c3ae50	_time64
+142c3aff4	ungetc
+142c3b144	fsetpos
+142c3b17c	_fread_nolock_s
+142c3b3dc	fread
+142c3b3fc	fread_s
+142c3b4a4	common_putenv<>
+142c3b7c8	FID_conflict:_putenv_s
+142c3bc3c	__acrt_call_reportfault
+142c3bf5c	_invoke_watson
+142c3c0dc	common_end_thread
+142c3c344	_endthread
+142c3c35c	set_terminate
+142c3c6d0	FID_conflict:_localtime64
+142c3c728	_fdclass
+142c3c758	__crt_time_is_leap_year<int>
+142c3c7b8	compute_iso_week_internal
+142c3e9a0	_difftime64
+142c3ec38	tolower
+142c3ec64	toupper
+142c3ec90	common_strtod_l<>
+142c3ed38	common_strtod_l<>
+142c3ede0	common_strtod_l<>
+142c3ee88	common_strtod_l<>
+142c3ef30	parse_floating_point<>
+142c3efd0	parse_floating_point<>
+142c3f070	parse_floating_point<>
+142c3f110	parse_floating_point<>
+142c40554	__crt_strtox::parse_floating_point_possible_infinity<char,__crt_strtox::c_string_character_source<char>,char_const*___ptr64>
+142c406b0	__crt_strtox::parse_floating_point_possible_infinity<wchar_t,__crt_strtox::c_string_character_source<wchar_t>,wchar_t_const*___ptr64>
+142c40d64	__crt_strtox::parse_floating_point_write_result<float>
+142c40ed4	__crt_strtox::parse_floating_point_write_result<double>
+142c4348c	__crt_strtox::convert_hexadecimal_string_to_floating_type_common
+142c43a44	memcpy_s
+142c43aec	roundf
+142c43b54	__acrt_errno_from_os_error
+142c43c08	__doserrno
+142c43c28	__doserrno
+142c43c48	wcsncmp
+142c43c74	round
+142c43d14	__crt_strtox::is_overflow_condition<unsigned___int64>
+142c44ec0	isalnum
+142c44f70	isdigit
+142c45020	islower
+142c450d0	isprint
+142c45180	isspace
+142c45230	isupper
+142c452e0	isxdigit
+142c45b5c	common_gmtime_s<__int64>
+142c45cf4	compute_year
+142c45de4	__getgmtimebuf
+142c45e30	_gmtime64
+142c45e80	operator()<>
+142c4615c	setlocale
+142c46428	wcrtomb
+142c46670	__crt_time_is_leap_year<__int64>
+142c46a0c	rand_s
+142c46a58	__crt_strtox::parse_floating_point<__crt_strtox::input_adapter_character_source<__crt_stdio_input::string_input_adapter<char>_>,float>
+142c46b00	__crt_strtox::parse_floating_point<__crt_strtox::input_adapter_character_source<__crt_stdio_input::string_input_adapter<char>_>,double>
+142c47ddc	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_floating_point_specifier_t<float>
+142c47e80	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_floating_point_specifier_t<double>
+142c482b4	__crt_stdio_input::skip_whitespace<__crt_stdio_input::string_input_adapter,char>
+142c4836c	__crt_stdio_input::format_string_parser<char>::advance
+142c48534	__crt_stdio_input::format_string_parser<char>::length
+142c485d0	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process
+142c486c4	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_conversion_specifier
+142c487e4	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_floating_point_specifier
+142c48854	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_integer_specifier
+142c48990	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_state
+142c48a48	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::process_string_specifier
+142c48d1c	__crt_stdio_input::format_string_parser<char>::scan_optional_length_modifier
+142c48ff4	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::write_character
+142c4908c	__crt_stdio_input::input_processor<char,__crt_stdio_input::string_input_adapter<char>_>::write_integer
+142c49550	wcscpy_s
+142c49900	_aligned_malloc
+142c4a428	feof
+142c4a454	common_fsopen<char>
+142c4a510	common_fsopen<wchar_t>
+142c4a700	strncmp
+142c4a9f8	ilogbf
+142c4ab14	operator()<>
+142c4adcc	_cexit
+142c4ae34	operator()<>
+142c4af18	get_global_action_nolock
+142c4af54	__acrt_get_sigabrt_handler
+142c4b6b0	_fileno
+142c4b6d8	__crt_seh_guarded_call<int>::operator()<<lambda_d6a03b27cb314eb65d447ab85fffcbf2>,<lambda_3e61fc1153d2eec3991e8733eecb5419>&___ptr64,<lambda_8d9723598c44aced2bc47669cc68e4e1>_>
+142c4b930	common_stat_handle_file_opened<_stat64>
+142c4bb7c	convert_to_stat_mode
+142c4bcb8	get_drive_number_from_path
+142c4bd1c	is_root_unc_name
+142c4c0bc	__ascii_wcsicmp
+142c4c0fc	_wcsicmp
+142c4c660	is_valid_drive
+142c4c720	strncpy
+142c4ce48	operator()<>
+142c4ddd0	strcmp
+142c4df3c	common_open<>
+142c4dfec	common_sopen_dispatch<>
+142c4e0b0	common_sopen_dispatch<>
+142c4e5f8	truncate_ctrl_z_if_present
+142c4e6bc	FID_conflict:_open
+142c4e7fc	FID_conflict:_sopen_s
+142c4ec20	FID_conflict:_sopen_s
+142c4ec54	common_fgets<char>
+142c4f044	__acrt_initialize_locks
+142c4f08c	__acrt_lock
+142c4f0a8	__acrt_uninitialize_locks
+142c4f0e0	__acrt_unlock
+142c4f0fc	_lock_locales
+142c4f128	__pctype_func
+142c4f158	___lc_codepage_func
+142c4f188	___lc_collate_cp_func
+142c4f1b8	___lc_locale_name_func
+142c4f1ec	___mb_cur_max_func
+142c4f904	__strncnt
+142c4faa0	parse_command_line<char>
+142c4fc60	__acrt_allocate_buffer_for_argv
+142c4fcc0	_configure_narrow_argv
+142c50158	free_environment<>
+142c50338	uninitialize_environment_internal<>
+142c50354	uninitialize_environment_internal<>
+142c503ac	__dcrt_get_or_create_wide_environment_nolock
+142c50434	operator()<>
+142c50470	operator()<>
+142c507d0	_initialize_onexit_table
+142c507f8	_register_onexit_function
+142c50980	__acrt_uninitialize
+142c50a50	_get_narrow_winmain_command_line
+142c50b7c	_set_fmode
+142c50bbc	_setmode_nolock
+142c50c9c	__crt_seh_guarded_call<void>::operator()<<lambda_1d892b297fdedeee07ed8124eeb2f2fa>,<lambda_ffc046909424fd52df0ac47e64813305>&___ptr64,<lambda_01a7098693036236037e7cdb9bca3d73>_>
+142c50dd8	__crt_seh_guarded_call<void>::operator()<<lambda_410d79af7f07d98d83a3f525b3859a53>,<lambda_3e16ef9562a7dcce91392c22ab16ea36>&___ptr64,<lambda_38119f0e861e05405d8a144b9b982f0a>_>
+142c50e48	__crt_seh_guarded_call<void>::operator()<<lambda_7f2adfce497ff2baa965cd4f576ecfd1>,<lambda_2a444430fde8c29194d880d93eed5e8f>&___ptr64,<lambda_8dff2cf36a5417162780cd64fa2883ef>&___ptr64>
+142c50e74	<lambda_2a444430fde8c29194d880d93eed5e8f>::operator()
+142c5100c	__acrt_uninitialize_locale
+142c51248	_configthreadlocale
+142c5185c	_wsetlocale
+142c53474	write_text_ansi_nolock
+142c53578	write_text_utf16le_nolock
+142c53694	write_text_utf8_nolock
+142c53cd4	__acrt_stdio_parse_mode<char>
+142c53f98	__acrt_stdio_parse_mode<wchar_t>
+142c55858	ceilf
+142c558e0	strcpy_s
+142c55b34	stream_is_at_end_of_file_nolock
+142c55d38	operator()<>
+142c55d78	operator()<>
+142c55db8	operator()<>
+142c55e00	operator()<>
+142c55e60	construct_ptd_array
+142c55f50	destroy_ptd_array
+142c56048	replace_current_thread_locale_nolock
+142c563b0	__acrt_initialize_ptd
+142c563ec	__acrt_uninitialize_ptd
+142c56410	initialize_inherited_file_handles_nolock
+142c56608	__acrt_initialize_lowio
+142c56644	__acrt_uninitialize_lowio
+142c56684	_calloc_base
+142c566fc	__acrt_LCMapStringW
+142c56784	__acrt_update_locale_info
+142c568e8	_commit
+142c569b8	__acrt_stdio_allocate_stream
+142c56a10	__acrt_stdio_free_stream
+142c56b18	__acrt_stdio_free_buffer_nolock
+142c56b58	iswctype
+142c56c30	_malloc_base
+142c576a8	should_round_up
+142c57d74	__acrt_should_use_temporary_buffer
+142c57dbc	__acrt_stdio_begin_temporary_buffering_nolock
+142c58210	operator()<>
+142c58d18	__acrt_eagerly_load_locale_apis
+142c58e98	__acrt_uninitialize_winapi_thunks
+142c58f90	_errcode
+142c594d0	_raise_exc
+142c594f8	_raise_exc_ex
+142c59808	_raise_excf
+142c59834	_set_errno_from_matherr
+142c59a64	_set_exp
+142c59a9c	_sptype
+142c59b10	_clrfp
+142c59b30	_ctrlfp
+142c59bac	_set_statfp
+142c59bcc	_statfp
+142c59be0	__acrt_MultiByteToWideChar
+142c59c3c	__acrt_WideCharToMultiByte
+142c5a590	_d_int
+142c5a6a8	_fd_int
+142c5a780	_fdtest
+142c5a7cc	_fperrraise
+142c5a880	__acrt_get_begin_thread_init_policy
+142c5a8d4	__acrt_get_process_end_policy
+142c5b57c	__tzset
+142c5b5bc	_isindst
+142c5b5ec	_realloc_base
+142c5b988	__acrt_LCMapStringA
+142c5ba20	_isctype_l
+142c5bb28	fegetround
+142c5c04c	_FDscale
+142c5c214	_msize_base
+142c5c284	_openfile
+142c5c320	_wopenfile
+142c5c520	_FDunscale
+142c5c5ac	_getdrive
+142c5c758	wcspbrk
+142c5c78c	__acrt_lowio_create_handle_array
+142c5c834	__acrt_lowio_destroy_handle_array
+142c5c884	__acrt_lowio_ensure_fh_exists
+142c5c92c	__acrt_lowio_lock_fh
+142c5ca14	__acrt_lowio_unlock_fh
+142c5ca3c	_alloc_osfhnd
+142c5cee4	_waccess_s
+142c5e25c	getSystemCP
+142c5e7cc	update_thread_multibyte_data_internal
+142c5e884	__acrt_initialize_multibyte
+142c5ec34	_ismbblead
+142c5ee1c	_recalloc_base
+142c5effc	_query_new_handler
+142c5f030	_set_new_handler
+142c5f0a8	__acrt_locale_free_monetary
+142c5f6e8	__acrt_locale_free_numeric
+142c5fa6c	initialize_lc_time
+142c5fdac	__acrt_locale_free_time
+142c5feb4	__acrt_locale_initialize_time
+142c60054	wcscspn
+142c60094	__acrt_add_locale_ref
+142c60120	__acrt_free_locale
+142c60298	__acrt_locale_add_lc_time_reference
+142c602c0	__acrt_locale_free_lc_time_if_unreferenced
+142c602f8	__acrt_locale_release_lc_time_reference
+142c60320	__acrt_release_locale_ref
+142c603c8	__acrt_update_thread_locale_data
+142c60438	_updatetlocinfoEx_nolock
+142c60548	GetLocaleNameFromLangCountry
+142c60618	GetLocaleNameFromLanguage
+142c60a88	ProcessCodePage
+142c60b54	TestDefaultCountry
+142c60bb8	TranslateName
+142c60fa0	GetLcidFromLangCountry
+142c61070	GetLcidFromLanguage
+142c614ac	ProcessCodePage
+142c6155c	TestDefaultLanguage
+142c61608	TranslateName
+142c61688	__acrt_get_qualified_locale_downlevel
+142c61af0	_putwch_nolock
+142c61b2c	__ascii_wcsnicmp
+142c61b78	_wcsnicmp
+142c61d5c	_strnicmp
+142c61dac	_strnicmp_l
+142c61ec4	_exception_enabled
+142c621dc	_handle_nan
+142c621f8	_handle_nanf
+142c62760	__acrt_initialize_fma3
+142c627d0	__remainder_piby2d2f_forC
+142c63ed0	_get_fpsr
+142c63eea	_fclrf
+142c63f20	_wcsnicoll
+142c63f70	_wcsnicoll_l
+142c64060	_strnicoll
+142c64078	_strnicoll_l
+142c64318	fegetexceptflag
+142c644c8	__acrt_fenv_get_fp_status_word_from_exception_mask
+142c646dc	common_getenv_nolock<wchar_t>
+142c64890	_FDnorm
+142c64970	_mbsdec_l
+142c64a1c	common_xtox<unsigned_long,wchar_t>
+142c64af0	common_xtox_s<unsigned_long,wchar_t>
+142c64b5c	_itow_s
+142c64b7c	wcscmp
+142c64d90	__dcrt_lowio_ensure_console_output_initialized
+142c64e00	__dcrt_write_console
+142c64ec0	_controlfp_s
+142c64f24	fegetenv
+142c64f44	fesetenv
+142c64f90	feholdexcept
+142c64fe0	ceil
+142c6565c	__acrt_CompareStringW
+142c65a9c	__acrt_CompareStringA
+142c65b28	fetestexcept
+142c65b4c	_clearfp
+142c65bc4	_control87
+142cbfb80	_FindPESection
+142cbfbd0	_IsNonwritableInCurrentImage
+142cbfc4b	DelayLoad_BinkRegisterFrameBuffers
+142cbfc57	DelayLoad_BinkAllocateFrameBuffers
+142cbfc63	DelayLoad_BinkGetFrameBuffersInfo
+142cbfce8	longjmp
+142cc0128	__acrt_initialize_clock
+142cc2c50	__common_scos_cout_rare
+142cc42f0	floorf
+142cc99b0	_guard_dispatch_icall
+142cca6a0	memcmp
+142cd9bdc	__l1::dtor$8
+142cdbb80	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cde5fc	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142ce3ac6	__l1::dtor$9
+142ce3af5	__l1::dtor$13
+142ce424c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142ce54cc	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142ce91ec	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142cec0ab	__l1::dtor$2
+142cedae0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142ceeeac	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cf28cc	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142cf2e88	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cf2f44	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cf56dc	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cf5dfc	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cf714b	__l1::dtor$8
+142cf7e88	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cf8118	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142cfe910	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d0ac1c	__l1::dtor$1
+142d10e00	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d13916	__l1::dtor$8
+142d1480c	__l1::dtor$8
+142d14853	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d162d4	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d17f70	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d1c4b0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d1ce3c	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$5
+142d1ff10	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
+142d2b84c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d2c1b0	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d2c218	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$3
+142d2c244	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$5
+142d2cc60	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
+142d34820	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d37d3f	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d38364	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
+142d3db7c	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
+142d3de07	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d3f058	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d40a7c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d40ac0	__l1::dtor$8
+142d44870	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
+142d46c20	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d4a134	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d4c780	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d4c81c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d5253c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d53aa8	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d53d6c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d544dc	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d5482c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d5563f	__l1::dtor$8
+142d56aac	__l1::dtor$4
+142d57a5c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d57a94	__l1::dtor$2
+142d59390	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d5b580	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d5bfc8	__l1::dtor$13
+142d5d37c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d6389c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d64e4c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142d65c02	__l1::dtor$2
+142d65e22	__l1::dtor$2
+142d65f00	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d6c2d0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d72ae8	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d76848	__l1::dtor$3
+142d7e7fc	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d832c0	__l1::dtor$3
+142d84aa0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142d84af0	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142da540c	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142db2328	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142db2cb0	__l1::dtor$3
+142dbbd0c	`public:_class_CMFCRibbonCategory*___ptr64___cdecl_CMFCRibbonBar::AddPrintPreviewCategory(void)___ptr64'::__l1::dtor$5
+142dbcc88	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dbde30	__l1::dtor$3
+142dc32b0	__l1::dtor$2
+142dcb75f	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
+142dcfa1c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dcfb38	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd018c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd22d1	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd3ec0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd3f70	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd40b0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd44e0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dd9aa0	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
+142de3c08	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142de42fc	__l1::dtor$8
+142df1380	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142df241c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142df61ec	__l1::dtor$2
+142df898f	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142dfb2ec	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dfb93c	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dfb9a0	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142dfbe20	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e0139b	__l1::dtor$10
+142e04f08	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142e10f84	__l1::dtor$10
+142e152a4	__l1::dtor$9
+142e1a198	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142e1ecf5	__l1::dtor$1
+142e1f430	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e1fe84	__l1::dtor$8
+142e22530	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142e468fc	`public:_void___cdecl_CArray<CTaskDialog::_CTaskDialogButton,CTaskDialog::_CTaskDialogButton_const&___ptr64>::SetSize(__int64,__int64)___ptr64'::__l1::dtor$3
+142e4a48c	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
+142e4a8d0	`private:_class_money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::basic_string<char,std::char_traits<char>,std::allocator<char>_>___cdecl_std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::_Getmfld(money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::istreambuf_iterator<char,std::char_traits<char>_>&___ptr64,bool,money_get<char,class_std::istreambuf_iterator<char,struct_std::char_traits<char>_>_>::ios_base&___ptr64)const___ptr64'::__l1::dtor$3
+142e5ac48	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e5b2b8	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e5b334	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e5b3c8	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e60dcc	`protected:_void___cdecl_CFrameImpl::LoadTearOffMenus(void)___ptr64'::__l1::dtor$1
+142e61644	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142e69d3e	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142e77cfe	`public:_virtual_int___cdecl_CMFCToolBar::SetButtons(unsigned_int_const*___ptr64,int,int)___ptr64'::__l1::dtor$1
+142e78c45	__l1::dtor$12
+142e7cb45	__l1::dtor$12
+142e7cd25	__l1::dtor$12
+142e8114c	__l1::dtor$12
+142e847e8	__l1::dtor$2
+142e84f20	__l1::dtor$9
+142e86357	`protected:_void___cdecl_CWinApp::UpdatePrinterSelection(int)___ptr64'::__l1::dtor$1
+142e9bfd4	std::_Fac_tidy_reg_t::~_Fac_tidy_reg_t
+142e9c220	_Init_atexit::~_Init_atexit
+1430b89d8	inventory panel class vtable (constructors 0x1408ea1f0, 0x1408ecfa0), found by t
+1435299d8	string "HNC Protocol Violated" (no direct code references)

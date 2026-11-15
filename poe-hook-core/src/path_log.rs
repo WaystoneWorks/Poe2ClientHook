@@ -1,7 +1,7 @@
 //! Research aid (`[features] path_log` or `POE_HOOK_PATH_LOG=1`): logs every path the client
 //! plans for the local player, to compare a port of its pathfinder against the real one.
 //!
-//! Hooks the client's grid pathfinder (`0x141ede540`, JPS-style search with an A* fallback,
+//! Hooks the client's grid pathfinder (`0x141ede8c0`, JPS-style search with an A* fallback,
 //! [docs/re/pathfinding.md](../../../../docs/re/pathfinding.md) in the main repository), calls
 //! the original and logs its inputs and result as one `PATHPLAN` line. Read-only: the arguments
 //! and the result are passed through untouched.
@@ -14,7 +14,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 /// Positioned component bytes logged with each plan (`+0x1e0..+0x290`: flags, sizes, levels,
 /// and the line the entity moves along at `+0x208`, whose point and current cell decide the
-/// pathfinder's line-of-sight variant, `FUN_141ed6400` / `FUN_141b95790`).
+/// pathfinder's line-of-sight variant, `FUN_141ed6780` / `FUN_141b95ba0`).
 const POSITIONED_DUMP: (usize, usize) = (0x1e0, 0xb0);
 /// Layer index byte of the Positioned component (`+0x498`).
 const POSITIONED_LAYER: usize = 0x498;

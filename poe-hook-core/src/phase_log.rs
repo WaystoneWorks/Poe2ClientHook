@@ -1,19 +1,19 @@
 //! Research aid (`POE_HOOK_PHASE_LOG=1`): where in the player's frame the sprint's end and the
 //! keyed messages run. Read-only, logs at function entry.
 //!
-//! - `SCHK frame comp phase`: `SprintPart_EndCheck` `0x141b84fb0`.
-//! - `SEND frame comp phase bonk no_anim ra`: `SprintPart_End` `0x141b855b0`.
-//! - `DRN frame comp phase key=comp,seq vt`: packet apply `0x142143530` for a packet keyed to the
+//! - `SCHK frame comp phase`: `SprintPart_EndCheck` `0x141b853c0`.
+//! - `SEND frame comp phase bonk no_anim ra`: `SprintPart_End` `0x141b859c0`.
+//! - `DRN frame comp phase key=comp,seq vt`: packet apply `0x1421438b0` for a packet keyed to the
 //!   player. `vt` is the packet's vtable (Ghidra address).
-//! - `PH frame comp phase ra`: phase step `0x14213f490`, before the increment.
-//! - `TOL frame stat ra 142 2b4 id`: the facing tolerance `0x1419894c0` (vf `+0x348`) of a player
+//! - `PH frame comp phase ra`: phase step `0x14213f810`, before the increment.
+//! - `TOL frame stat ra 142 2b4 id`: the facing tolerance `0x1419898d0` (vf `+0x348`) of a player
 //!   action: `stat` = `action_required_target_facing_angle_tolerance_degrees` (0x46a7) when it is
-//!   read and non-zero (hook `0x141989526`), `2pi` when the function returns 2*pi (hook
-//!   `0x141989543`); `ra` = caller.
-//! - `FACE frame comp phase new old ra`: `Positioned_SetFacing` `0x141de99d0` of the player, at its
-//!   store `0x141de9aca` (`xmm0` = new angle before the wrap, `+0x44c` = old; locked calls do not
+//!   read and non-zero (hook `0x141989936`), `2pi` when the function returns 2*pi (hook
+//!   `0x141989953`); `ra` = caller.
+//! - `FACE frame comp phase new old ra`: `Positioned_SetFacing` `0x141de9d50` of the player, at its
+//!   store `0x141de9e4a` (`xmm0` = new angle before the wrap, `+0x44c` = old; locked calls do not
 //!   get there). A hook at the function's entry hangs the client at startup. When `ra` is
-//!   `0x141e5e94c` (actor set-target `0x141e5e830`), its own caller follows.
+//!   `0x141e5eccc` (actor set-target `0x141e5ebb0`), its own caller follows.
 //!
 //! Frame state: world `+0x6a4` entity key, `+0x67c` component, `+0x67e` phase; packet header `+0x14`
 //! entity key, `+0x18` component, `+0x1a` seq; entity `+0x78` world, `+0x88` key
@@ -27,13 +27,13 @@ use poe_hook_shared::module::Module;
 
 static MAIN: OnceLock<Module> = OnceLock::new();
 
-const SPRINT_CHECK: usize = 0x141b84fb0;
-const SPRINT_END: usize = 0x141b855b0;
-const PACKET_APPLY: usize = 0x142143530;
-const PHASE_STEP: usize = 0x14213f490;
-const TOL_STAT: usize = 0x141989526;
-const TOL_2PI: usize = 0x141989543;
-const SET_FACING: usize = 0x141de9aca;
+const SPRINT_CHECK: usize = 0x141b853c0;
+const SPRINT_END: usize = 0x141b859c0;
+const PACKET_APPLY: usize = 0x1421438b0;
+const PHASE_STEP: usize = 0x14213f810;
+const TOL_STAT: usize = 0x141989936;
+const TOL_2PI: usize = 0x141989953;
+const SET_FACING: usize = 0x141de9e4a;
 
 pub fn init(main: &Module) -> Result<(), String> {
     MAIN.set(*main).ok();
@@ -185,8 +185,8 @@ unsafe extern "win64" fn on_set_facing(regs: *mut Registers, _user: usize) {
     }
     let (comp, phase) = position().map_or((255, 0), |(_, c, p)| (c, p));
     let ra = read::<usize>(r.rsp as usize + 0x168).unwrap_or(0);
-    // 0x141e5e830: push rdi, sub rsp 0x20, so its return address is 0x30 above ours.
-    let ra2 = if ghidra(ra) == 0x141e5e94c {
+    // 0x141e5ebb0: push rdi, sub rsp 0x20, so its return address is 0x30 above ours.
+    let ra2 = if ghidra(ra) == 0x141e5eccc {
         ghidra(read::<usize>(r.rsp as usize + 0x198).unwrap_or(0))
     } else {
         0

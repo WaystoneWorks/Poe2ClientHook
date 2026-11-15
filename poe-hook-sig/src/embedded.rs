@@ -3,7 +3,7 @@
 use crate::{pe::PeInfo, table::Table};
 
 /// `(version, table text)` of every supported build, oldest first.
-pub const TABLES: &[(&str, &str)] = &[("0.5.5f", include_str!("../../signatures/0.5.5f.toml"))];
+pub const TABLES: &[(&str, &str)] = &[("0.5.5g", include_str!("../../signatures/0.5.5g.toml"))];
 
 /// All embedded tables, parsed. A table that does not parse is a build error of the DLL
 /// (the unit tests parse every one).
