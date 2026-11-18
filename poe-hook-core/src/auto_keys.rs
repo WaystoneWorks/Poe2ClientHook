@@ -466,10 +466,10 @@ unsafe extern "win64" fn on_get_key_state(
 
 type GetCursorPosFn = unsafe extern "system" fn(*mut POINT) -> i32;
 
-/// The game's own main window handle (`*0x1445f1728` points to it; the aim check compares
+/// The game's own main window handle (`*0x1445f17a8` points to it; the aim check compares
 /// GetForegroundWindow with it).
 fn game_hwnd() -> Option<usize> {
-    // `game_window_ptr` signature (0x1445f1728); without it the caller falls back to
+    // `game_window_ptr` signature (0x1445f17a8); without it the caller falls back to
     // finding the window by class.
     let p = poe_hook_shared::mem::read::<usize>(crate::sigs::addr("game_window_ptr").ok()?)?;
     poe_hook_shared::mem::read::<usize>(p).filter(|&h| h != 0)

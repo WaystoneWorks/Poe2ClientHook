@@ -41,7 +41,7 @@ use poe_hook_shared::{
     mem::{read, readable, wide_string},
 };
 
-/// The `ClientWorld` object: `new(0x1810)` in `world_replace` (`0x141014407`). Allocating less than
+/// The `ClientWorld` object: `new(0x1810)` in `world_replace` (`0x141014597`). Allocating less than
 /// the build's size overflows the heap in the constructor: check it on every new build.
 const WORLD_SIZE: usize = 0x1810;
 /// The base generator (`local_2e8`, 704 bytes, in `HeadlessWorld_LoadArea`) with room to spare.
@@ -570,7 +570,7 @@ fn export(
         );
         write("layout.tsv", text.as_bytes());
         // The final corner lattice (terrain +0x40 points per row, +0x48 rows, +0x50 three bytes
-        // per point: ground index, height, flags; flag 8 = unwalkable, read by `0x141d1e650`):
+        // per point: ground index, height, flags; flag 8 = unwalkable, read by `0x141d1e8a0`):
         // `lattice.bin` = u32 points per row, u32 rows, then the raw points.
         if let (Some(pw), Some(ph), Some(pts)) = (
             read::<usize>(terrain + 0x40),
@@ -631,8 +631,8 @@ fn export(
 
 /// `regions.tsv`: the generator's regions (generator `+0x30` → list, `+0xd` main count, `+0x10`
 /// vector of 0x98-byte regions: tile rectangle at `+0x40..+0x4c`, master at `+0x50` → `+0x28`
-/// data with the flags `+0x164..+0x166` that decide whether `0x142006540` runs the unwalkable
-/// marking `0x141fefb00` on the region).
+/// data with the flags `+0x164..+0x166` that decide whether `0x142006790` runs the unwalkable
+/// marking `0x141fefd50` on the region).
 fn regions(generator: usize) -> String {
     let mut out = String::from("# index\tx0\ty0\tw\th\tmain count\tmaster +0x164 +0x165 +0x166\n");
     let Some(list) = read::<usize>(generator + 0x30).filter(|&l| l != 0) else {
