@@ -115,6 +115,10 @@ pub struct FeatureConfig {
     /// `0x1c8`) with the client's grid at that moment, and a `SNAP` line when they differ
     /// (snap_log.rs). Read-only; on by default.
     pub snap_log: bool,
+    /// Log when the local player's movement runs client code the server has not ported (the
+    /// start-in-entity A*, pushing, the step check's entity collision, the clipped move event
+    /// end; unported_log.rs). Read-only; on by default.
+    pub unported_log: bool,
     /// Report the player's position and action to the local instance server every frame
     /// (the server's drift checker and debug link use them, see position_sync.rs). Never in read-only mode.
     pub position_sync: bool,
@@ -154,6 +158,7 @@ impl Default for FeatureConfig {
             movement_log: false,
             path_log: false,
             snap_log: true,
+            unported_log: true,
             position_sync: true,
             position_sync_port: 0,
             auto_keys: Vec::new(),

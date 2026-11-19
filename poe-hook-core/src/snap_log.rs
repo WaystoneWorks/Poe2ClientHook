@@ -52,7 +52,7 @@ pub fn init() -> Result<(), String> {
 }
 
 /// The local player's Positioned component, if `entity` is the player.
-fn player_positioned(entity: usize) -> Option<usize> {
+pub(crate) fn player_positioned(entity: usize) -> Option<usize> {
     let player = crate::dump_types::player();
     if player == 0 || entity != player {
         return None;
@@ -61,7 +61,7 @@ fn player_positioned(entity: usize) -> Option<usize> {
     read::<usize>(comps).filter(|&p| p > 0x10000)
 }
 
-fn grid(pos: usize) -> (i32, i32) {
+pub(crate) fn grid(pos: usize) -> (i32, i32) {
     let o = crate::sigs::off();
     (
         read::<i32>(pos + o.positioned_grid_x).unwrap_or(i32::MIN),
@@ -79,7 +79,7 @@ fn world(pos: usize) -> (f32, f32) {
 
 /// The player tick this apply precedes (messages are applied in the frame drain, before the
 /// entities' ticks).
-fn frame() -> usize {
+pub(crate) fn frame() -> usize {
     crate::dump_types::player_updates() + 1
 }
 

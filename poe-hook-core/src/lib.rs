@@ -44,6 +44,7 @@ mod terrain_tools;
 mod timing;
 mod trace_calls;
 mod ui;
+mod unported_log;
 mod util;
 mod watches;
 
@@ -217,6 +218,13 @@ fn start_features(config: &Config, main: &Module) {
         "snap_log",
         read_only,
         snap_log::init,
+    );
+    report_sig(
+        "unported_log",
+        f.unported_log && f.dump_object_types,
+        "unported_log",
+        read_only,
+        unported_log::init,
     );
     report("crash_log", f.crash_log, || crash::init(main));
     report("exit_trace", f.crash_log, || exit_trace::init(main));
