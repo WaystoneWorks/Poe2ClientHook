@@ -14,6 +14,9 @@
 //! `WM_CHAR` per character (typing a character name). `inpress:x,y` / `inrelease:x,y` hold and
 //! release the left button there (held click-to-move).
 //! `cmd:<server command>` sends that command line over the debug link (private mode only).
+//! `at:<ms>` waits until that many ms after the file was read; a file with any `at:` entry is a
+//! timeline (a replayed session, `scripts/re/replay_session.py`), so the other entries' pauses
+//! after them are skipped.
 //! Nothing is sent to other windows and the real cursor never moves.
 //! The file is deleted once processed, so a test
 //! driver can send input at any time.
@@ -100,7 +103,26 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                     }
                 })
                 .collect();
+            let t0 = Instant::now();
+            let timed = entries.iter().any(|e| e.starts_with("at:"));
+            if timed {
+                // scripts/re/replay_compare.py aligns the replay on this line.
+                log::info!("poe-hook.keys: timeline start, {} entries", entries.len());
+            }
+            let pause = |ms: u64| {
+                if !timed {
+                    std::thread::sleep(Duration::from_millis(ms));
+                }
+            };
             for entry in entries {
+                if let Some(ms) = entry.strip_prefix("at:") {
+                    if let Some(wait) = parse_num(ms)
+                        .and_then(|ms| Duration::from_millis(ms).checked_sub(t0.elapsed()))
+                    {
+                        std::thread::sleep(wait);
+                    }
+                    continue;
+                }
                 if entry == "close" {
                     match game_window() {
                         Some(hwnd) => unsafe {
@@ -122,7 +144,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                         }
                         _ => log::warn!("poe-hook.keys: bad entry {entry:?}"),
                     }
-                    std::thread::sleep(Duration::from_millis(100));
+                    pause(100);
                     continue;
                 }
                 // Posted key held down / released separately (Space: dodge roll, then sprint).
@@ -142,7 +164,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                         },
                         _ => log::warn!("poe-hook.keys: bad entry {entry:?}"),
                     }
-                    std::thread::sleep(Duration::from_millis(100));
+                    pause(100);
                     continue;
                 }
                 // A server command over the authenticated debug link (what the overlay does;
@@ -178,7 +200,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                         (Some(vk), Some(ms)) => input_key(vk as u16, ms),
                         _ => log::warn!("poe-hook.keys: bad entry {entry:?}"),
                     }
-                    std::thread::sleep(Duration::from_millis(100));
+                    pause(100);
                     continue;
                 }
                 // Left button held / released at a position (held click-to-move).
@@ -192,7 +214,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                         Some((x, y)) => input_button(x, y, kind == "inpress"),
                         None => log::warn!("poe-hook.keys: bad entry {entry:?}"),
                     }
-                    std::thread::sleep(Duration::from_millis(100));
+                    pause(100);
                     continue;
                 }
                 if let Some((kind, pos)) = entry.split_once(':')
@@ -205,7 +227,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                         Some((x, y)) => input_mouse(x, y, kind == "inclick"),
                         None => log::warn!("poe-hook.keys: bad entry {entry:?}"),
                     }
-                    std::thread::sleep(Duration::from_millis(150));
+                    pause(150);
                     continue;
                 }
                 if let Some(pos) = entry.strip_prefix("click:") {
@@ -216,7 +238,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                         Some((x, y)) => click(x, y),
                         None => log::warn!("poe-hook.keys: bad click {entry:?}"),
                     }
-                    std::thread::sleep(Duration::from_millis(150));
+                    pause(150);
                     continue;
                 }
                 let (key, hold) = entry.split_once(':').unwrap_or((entry, "60"));
@@ -224,7 +246,7 @@ pub fn init(keys: Vec<(u64, u16)>) -> Result<(), String> {
                     (Some(vk), Some(ms)) => press(vk as u16, ms),
                     _ => log::warn!("poe-hook.keys: bad entry {entry:?}"),
                 }
-                std::thread::sleep(Duration::from_millis(100));
+                pause(100);
             }
         }
     });
