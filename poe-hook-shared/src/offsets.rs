@@ -53,6 +53,11 @@ offsets! {
     positioned_facing_lock => "positioned.facing_lock",
     positioned_world_x => "positioned.world_x",
     positioned_world_y => "positioned.world_y",
+    positioned_dest_y => "positioned.dest_y",
+    positioned_dest_alt => "positioned.dest_alt",
+    positioned_dest_swap => "positioned.dest_swap",
+    positioned_speed_num => "positioned.speed_num",
+    positioned_speed_den => "positioned.speed_den",
     world_vt_terrain => "world.vt_terrain",
     // Actor component
     actor_action0 => "actor.action0",

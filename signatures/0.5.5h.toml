@@ -299,6 +299,14 @@ pdata = true
 ghidra = 0x141de6120
 
 [[sig]]
+name = "positioned_debug_info"
+features = ["dump_object_types"]
+pattern = "48 89 5c 24 18 55 56 57 41 56 41 57 48 8d 6c 24 ?? 48 81 ec ?? ?? ?? ?? 0f 29 b4 24 ?? ?? ?? ?? 4c 8b f1 4c 8d 7a 10"
+pdata = true
+ghidra = 0x141dec130
+note = "Positioned debug printer (=== Positioned Info ===, never called); anchor of the movement destination and speed fields"
+
+[[sig]]
 name = "terrain_construct"
 features = ["dump_object_types", "area_export", "gen_batch"]
 pattern = "48 89 5c 24 10 48 89 4c 24 08 55 56 57 48 83 ec 20 48 8b f2 48 8b f9 e8 ?? ?? ?? ??"
@@ -1113,6 +1121,51 @@ capture = "world_vt_terrain"
 value = 0x1a8
 note = "world vtable slot: returns the terrain object"
 # 3 instructions in positioned_reader use this displacement; the one at 0x141de62cc is used
+
+[[field]]
+name = "positioned.dest_y"
+features = ["dump_object_types"]
+anchor = "positioned_debug_info"
+pattern = "45 8b 86 <positioned_dest_y:4> b9 44 02 00 00 b8 3c 02 00 00 41 80 be <positioned_dest_alt:4> 00 0f 44 c8 42 8b 3c 31 41 0f b6 8e <positioned_dest_swap:4>"
+capture = "positioned_dest_y"
+value = 0x240
+note = "i32; the destination is (+0x23c, or +0x244 when dest_alt is set; this), swapped when dest_swap is set"
+
+[[field]]
+name = "positioned.dest_alt"
+features = ["dump_object_types"]
+anchor = "positioned_debug_info"
+pattern = "45 8b 86 <positioned_dest_y:4> b9 44 02 00 00 b8 3c 02 00 00 41 80 be <positioned_dest_alt:4> 00 0f 44 c8 42 8b 3c 31 41 0f b6 8e <positioned_dest_swap:4>"
+capture = "positioned_dest_alt"
+value = 0x22e
+note = "byte"
+
+[[field]]
+name = "positioned.dest_swap"
+features = ["dump_object_types"]
+anchor = "positioned_debug_info"
+pattern = "45 8b 86 <positioned_dest_y:4> b9 44 02 00 00 b8 3c 02 00 00 41 80 be <positioned_dest_alt:4> 00 0f 44 c8 42 8b 3c 31 41 0f b6 8e <positioned_dest_swap:4>"
+capture = "positioned_dest_swap"
+value = 0x22d
+note = "byte"
+
+[[field]]
+name = "positioned.speed_num"
+features = ["dump_object_types"]
+anchor = "positioned_debug_info"
+pattern = "f3 41 0f 10 8e <positioned_speed_num:4> f3 41 0f 5e 8e <positioned_speed_den:4>"
+capture = "positioned_speed_num"
+value = 0x274
+note = "f32; Movement Speed = speed_num / speed_den"
+
+[[field]]
+name = "positioned.speed_den"
+features = ["dump_object_types"]
+anchor = "positioned_debug_info"
+pattern = "f3 41 0f 10 8e <positioned_speed_num:4> f3 41 0f 5e 8e <positioned_speed_den:4>"
+capture = "positioned_speed_den"
+value = 0x278
+note = "f32"
 
 [[field]]
 name = "actor.action0"

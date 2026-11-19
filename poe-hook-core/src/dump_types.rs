@@ -520,12 +520,37 @@ fn log_player_frame(entity: usize, n: usize, dt: f32) {
     if *last != (x.to_bits(), y.to_bits()) {
         let (lx, ly) = (f32::from_bits(last.0), f32::from_bits(last.1));
         *last = (x.to_bits(), y.to_bits());
+        let o = crate::sigs::off();
+        // The Positioned debug printer's Movement Destination and Speed (0x141dec130,
+        // docs/re/debug-features.md): the pair (+0x23c, or +0x244 when dest_alt is set; dest_y),
+        // swapped when dest_swap is set; speed = speed_num / speed_den.
+        let first = if read::<u8>(pos + o.positioned_dest_alt).unwrap_or(0) != 0 {
+            o.positioned_dest_y + 4
+        } else {
+            o.positioned_dest_y - 4
+        };
+        let mut dest = (
+            read::<i32>(pos + first).unwrap_or(0),
+            read::<i32>(pos + o.positioned_dest_y).unwrap_or(0),
+        );
+        if read::<u8>(pos + o.positioned_dest_swap).unwrap_or(0) != 0 {
+            dest = (dest.1, dest.0);
+        }
+        let den = read::<f32>(pos + o.positioned_speed_den).unwrap_or(0.0);
+        // 0 / 0 at rest.
+        let speed = if den != 0.0 {
+            read::<f32>(pos + o.positioned_speed_num).unwrap_or(0.0) / den
+        } else {
+            0.0
+        };
         log::info!(
-            "frame #{n} dt={dt} world ({x:.3}, {y:.3}) step ({:.3}, {:.3}) grid ({}, {})",
+            "frame #{n} dt={dt} world ({x:.3}, {y:.3}) step ({:.3}, {:.3}) grid ({}, {}) dest ({}, {}) speed {speed:.3}",
             x - lx,
             y - ly,
-            read::<i32>(pos + crate::sigs::off().positioned_grid_x).unwrap_or(0),
-            read::<i32>(pos + crate::sigs::off().positioned_grid_y).unwrap_or(0)
+            read::<i32>(pos + o.positioned_grid_x).unwrap_or(0),
+            read::<i32>(pos + o.positioned_grid_y).unwrap_or(0),
+            dest.0,
+            dest.1
         );
     }
 }
