@@ -111,6 +111,10 @@ pub struct FeatureConfig {
     /// pathfinder's parameters and its waypoints), to check a port of its pathfinder; also
     /// enabled by `POE_HOOK_PATH_LOG`. Read-only.
     pub path_log: bool,
+    /// Log every server position applied to the local player (`0x64` with a non-zero vector,
+    /// `0x1c8`) with the client's grid at that moment, and a `SNAP` line when they differ
+    /// (snap_log.rs). Read-only; on by default.
+    pub snap_log: bool,
     /// Report the player's position and action to the local instance server every frame
     /// (the server's drift checker and debug link use them, see position_sync.rs). Never in read-only mode.
     pub position_sync: bool,
@@ -149,6 +153,7 @@ impl Default for FeatureConfig {
             entity_trace: false,
             movement_log: false,
             path_log: false,
+            snap_log: true,
             position_sync: true,
             position_sync_port: 0,
             auto_keys: Vec::new(),

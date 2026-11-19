@@ -36,6 +36,7 @@ mod protocol;
 mod scanner;
 mod side;
 mod sigs;
+mod snap_log;
 mod snapshot;
 mod state_export;
 mod symbols;
@@ -207,6 +208,15 @@ fn start_features(config: &Config, main: &Module) {
         "phase_log",
         std::env::var_os("POE_HOOK_PHASE_LOG").is_some() && !read_only,
         || phase_log::init(main),
+    );
+    // Read-only hooks: also logs official sessions (verified builds only, see `report_sig`).
+    // Needs the player from `dump_object_types`.
+    report_sig(
+        "snap_log",
+        f.snap_log && f.dump_object_types,
+        "snap_log",
+        read_only,
+        snap_log::init,
     );
     report("crash_log", f.crash_log, || crash::init(main));
     report("exit_trace", f.crash_log, || exit_trace::init(main));

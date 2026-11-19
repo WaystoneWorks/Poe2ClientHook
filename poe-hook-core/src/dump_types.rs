@@ -1169,6 +1169,11 @@ pub fn player() -> usize {
     PLAYER.load(Ordering::Relaxed)
 }
 
+/// How many player ticks ran (the movement log's frame number).
+pub fn player_updates() -> usize {
+    PLAYER_UPDATES.load(Ordering::Relaxed)
+}
+
 /// How often the player's per-frame update ran (the frame number of the movement log).
 pub fn player_frame() -> usize {
     PLAYER_UPDATES.load(Ordering::Relaxed)

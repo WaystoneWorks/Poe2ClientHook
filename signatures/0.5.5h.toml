@@ -204,11 +204,27 @@ note = "UI element SetVisible (element, bool): flags +0x168 bit 11, parent +0xb8
 
 [[sig]]
 name = "actor_sim_handler"
-features = ["position_sync", "inspect"]
+features = ["position_sync", "inspect", "snap_log"]
 pattern = "48 89 5c 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8d ac 24 ?? ?? ?? ?? 48 81 ec ?? ?? ?? ?? 4c 8b fa 4c 8b f1 33 db 0f b7 4a 08"
 pdata = true
 ghidra = 0x142159130
 note = "Actor component simulation handler (0x64 WASD, 0x1c8 start action, ...)"
+
+[[sig]]
+name = "install_queued_move"
+features = ["snap_log"]
+pattern = "40 53 41 56 48 83 ec 28 48 83 3a 00 4c 8b f2 48 8b d9 0f 85 ?? ?? ?? ??"
+pdata = true
+ghidra = 0x141e50030
+note = "Actor_InstallQueuedMove (actor, slot*): snaps to the StartAction start actor+0x3bc iff it differs from the grid (lockstep); hooked by snap_log"
+
+[[sig]]
+name = "set_location_forced_nc"
+features = ["snap_log"]
+pattern = "48 89 5c 24 20 4c 89 44 24 18 55 56 57 41 54 41 55 41 56 41 57 48 8d ac 24 ?? ?? ?? ?? 48 81 ec ?? ?? ?? ?? 49 8b d8"
+pdata = true
+ghidra = 0x141de8e70
+note = "Positioned_SetLocationForcedNoCallbacks (positioned, cell*, world*): the snap setter; hooked by snap_log"
 
 [[sig]]
 name = "roll_end"
